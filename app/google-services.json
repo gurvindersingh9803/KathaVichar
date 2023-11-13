@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "546840287029",
+    "project_id": "kathavichar-a5b4e",
+    "storage_bucket": "kathavichar-a5b4e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546840287029:android:7160e6f0755b81c14ade7c",
+        "android_client_info": {
+          "package_name": "com.example.kathavichar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdL4_V4w2zroZ_27NN2e4xrnUL8j0WIJc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
