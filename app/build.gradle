@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.example.kathavichar'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.kathavichar"
         minSdk 24
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -38,7 +38,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.2.0'
+        kotlinCompilerExtensionVersion '1.4.0'
     }
     packagingOptions {
         resources {
@@ -112,6 +112,7 @@ dependencies {
     // Optional - Integration with RxJava
     implementation 'androidx.compose.runtime:runtime-rxjava2'
 
+    implementation("androidx.navigation:navigation-compose:$nav_version")
 
 
 }
