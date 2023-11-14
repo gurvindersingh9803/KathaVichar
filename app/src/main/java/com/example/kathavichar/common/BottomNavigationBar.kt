@@ -13,9 +13,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.kathavichar.view.categories.PlayList
+import com.example.kathavichar.viewModel.MainViewModel
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(mainViewModel: MainViewModel) {
     val navigationController = rememberNavController()
     val screens = listOf(Screen.MainPlayList, Screen.Download)
     Scaffold(
@@ -44,16 +45,16 @@ fun BottomNavigationBar() {
             }
         },
     ) { innerPadding ->
-        NavigationGraph(navigationController)
+        NavigationGraph(navigationController, mainViewModel)
     }
 }
 
 @Composable
-fun NavigationGraph(navigationController: NavHostController) {
+fun NavigationGraph(navigationController: NavHostController, mainViewModel: MainViewModel) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
             // navigationController.navigate(route = route)
-            PlayList()
+            PlayList(mainViewModel)
         }
         composable(route = Screen.Download.route) {
             DownloadScreen()
