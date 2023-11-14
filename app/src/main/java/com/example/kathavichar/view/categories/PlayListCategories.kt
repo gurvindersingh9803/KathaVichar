@@ -44,7 +44,7 @@ fun PlayListItem() {
                     modifier = Modifier.height(200.dp)
                 )
             }
-            Box(modifier = Modifier.fillMaxSize().background(color = Color.DarkGray)) {
+            Box(modifier = Modifier.fillMaxSize().background(color = Color(0Xffff9f64))) {
                 Text("Sant Ji", fontSize = 30.sp, color = Color.White.copy(alpha = 0.5f), modifier = Modifier.align(Alignment.BottomEnd))
             }
         }
