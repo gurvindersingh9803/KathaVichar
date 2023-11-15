@@ -36,7 +36,6 @@ fun PlayList(data: List<Category>?, navigationController: NavHostController) {
 
 @Composable
 fun PlayListItem(category: Category, navigationController: NavHostController) {
-    val navigationController = rememberNavController()
     Card(elevation = 4.dp, modifier = Modifier.padding(3.dp).clickable { navigationController.navigate("SongsList") }) {
         Column {
             Box(modifier = Modifier.fillMaxSize()) {
