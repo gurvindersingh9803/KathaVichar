@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">KathaVichar</string>
+    <string name="title_activity_songs_list">SongsList</string>
 </resources>

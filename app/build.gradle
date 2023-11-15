@@ -62,11 +62,15 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:$retrofit2Version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit2Version"
     implementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
+    implementation platform('androidx.compose:compose-bom:2022.10.00')
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.material3:material3'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
+    androidTestImplementation platform('androidx.compose:compose-bom:2022.10.00')
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
     implementation "io.insert-koin:koin-android:$koinInjectionVersion"
@@ -76,6 +80,16 @@ dependencies {
     implementation "io.coil-kt:coil-compose:2.5.0"
     implementation "androidx.lifecycle:lifecycle-runtime-compose:2.7.0-beta01"
     implementation "androidx.compose.runtime:runtime-livedata:1.6.0-alpha08"
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
+
+    //Rx
+    implementation "io.reactivex.rxjava2:rxandroid:$rxAndroidVersion"
+    implementation "io.reactivex.rxjava2:rxjava:$rxJavaVersion"
+    implementation "com.jakewharton.rxrelay2:rxrelay:$rxRelayVersion"
+    implementation "io.reactivex.rxjava2:rxkotlin:$rxKotlinVersion"
+    implementation("androidx.compose.runtime:runtime-rxjava2:$rxComposeVersion")
+
 
 
 

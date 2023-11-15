@@ -1,6 +1,7 @@
 package com.example.kathavichar.view.categories
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,38 +12,32 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.kathavichar.model.Category
-import com.example.kathavichar.viewModel.MainViewModel
 
 @Composable
-fun PlayList(mainViewModel: MainViewModel) {
-    val uiState by mainViewModel.categories.observeAsState()
-
-    if (uiState.isNullOrEmpty()) {
-        isDataLoading()
-    } else {
-        LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(2), content = {
-            uiState?.let {
-                items(it.size) {
-                    PlayListItem(uiState!![it])
-                }
+fun PlayList(data: List<Category>?, navigationController: NavHostController) {
+    LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(2), content = {
+        data?.let {
+            items(data.size) {
+                PlayListItem(data[it], navigationController)
             }
-        })
-    }
+        }
+    })
 }
 
 @Composable
-fun PlayListItem(category: Category) {
-    Card(elevation = 4.dp, modifier = Modifier.padding(3.dp)) {
+fun PlayListItem(category: Category, navigationController: NavHostController) {
+    val navigationController = rememberNavController()
+    Card(elevation = 4.dp, modifier = Modifier.padding(3.dp).clickable { navigationController.navigate("SongsList") }) {
         Column {
             Box(modifier = Modifier.fillMaxSize()) {
                 AsyncImage(
