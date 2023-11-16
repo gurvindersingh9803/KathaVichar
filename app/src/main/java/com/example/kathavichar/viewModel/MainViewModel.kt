@@ -19,16 +19,10 @@ class MainViewModel : ViewModel() {
 
     private val firebaseTestRepo: FirebaseTestRepo by inject(FirebaseTestRepo::class.java)
     private val _uiState: MutableStateFlow<ServerResponse<List<Category>>> = MutableStateFlow(ServerResponse.isLoading())
-    val uiState: StateFlow<ServerResponse<List<Category>>> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
     val subscription: CompositeDisposable = CompositeDisposable()
 
-    init {
-        viewModelScope.launch {
-            getCategories()
-        }
-    }
-
-    private fun getCategories() {
+    fun getCategories() {
         viewModelScope.launch {
             subscription.add(
                 firebaseTestRepo.getdata()
@@ -36,7 +30,6 @@ class MainViewModel : ViewModel() {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
                         viewModelScope.launch {
-                            Log.i("werfqwef", it.toString())
                             _uiState.emit(ServerResponse.onSuccess(it))
                         }
                     }, {
@@ -47,6 +40,8 @@ class MainViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
+        Log.i("cccccccc", "")
+
         subscription.clear()
     }
 }

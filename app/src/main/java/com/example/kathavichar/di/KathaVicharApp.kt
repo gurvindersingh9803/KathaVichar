@@ -1,7 +1,6 @@
-package com.example.kathavichar
+package com.example.kathavichar.di
 
 import android.app.Application
-import com.example.kathavichar.di.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.fragment.koin.fragmentFactory
 import org.koin.core.context.startKoin

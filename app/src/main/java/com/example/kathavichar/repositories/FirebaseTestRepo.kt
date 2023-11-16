@@ -1,5 +1,6 @@
 package com.example.kathavichar.repositories
 
+import android.util.Log
 import com.example.kathavichar.model.Category
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -33,6 +34,7 @@ class FirebaseTestRepo {
                             list.add(a)
                         }
                     }
+                    Log.i("sghsdgh", "")
                     emiter.onSuccess(list)
                 }
 
@@ -42,7 +44,7 @@ class FirebaseTestRepo {
                     emiter.onError(Throwable(error.message))
                 }
             })
-        }catch (e: Exception){
+        } catch (e: Exception) {
             emiter.onError(e)
         }
     }

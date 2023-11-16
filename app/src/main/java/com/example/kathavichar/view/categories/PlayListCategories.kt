@@ -1,5 +1,7 @@
 package com.example.kathavichar.view.categories
 
+import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,12 +21,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.kathavichar.model.Category
 
 @Composable
 fun PlayList(data: List<Category>?, navigationController: NavHostController) {
+    Log.i("dfswgdfsg", "")
     LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(2), content = {
         data?.let {
             items(data.size) {
@@ -36,7 +38,7 @@ fun PlayList(data: List<Category>?, navigationController: NavHostController) {
 
 @Composable
 fun PlayListItem(category: Category, navigationController: NavHostController) {
-    Card(elevation = 4.dp, modifier = Modifier.padding(3.dp).clickable { navigationController.navigate("SongsList") }) {
+    Card(elevation = 4.dp, modifier = Modifier.padding(3.dp).clickable {  }) {
         Column {
             Box(modifier = Modifier.fillMaxSize()) {
                 AsyncImage(

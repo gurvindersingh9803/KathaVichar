@@ -1,27 +1,24 @@
 package com.example.kathavichar.common
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
+import android.util.Log
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.kathavichar.network.ServerResponse
-import com.example.kathavichar.view.categories.PlayList
-import com.example.kathavichar.view.categories.isDataLoading
+import com.example.kathavichar.R
+import com.example.kathavichar.view.MainScreen
 import com.example.kathavichar.viewModel.MainViewModel
 
-@Composable
+/*@Composable
 fun BottomNavigationBar(navigationController: NavHostController) {
     val screens = listOf(Screen.MainPlayList, Screen.Download)
     Scaffold(
@@ -54,19 +51,54 @@ fun BottomNavigationBar(navigationController: NavHostController) {
             NavigationGraph(navigationController = navigationController)
         }
     }
+}*/
+
+@Composable
+fun BottomNavigationBar(navigationController: NavHostController) {
+    val screens = listOf(Screen.MainPlayList, Screen.Download)
+
+    BottomNavigation(
+        backgroundColor = colorResource(id = R.color.teal_200),
+        contentColor = Color.Black,
+    ) {
+        val navBackStackEntry by navigationController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+        screens.forEach { screen ->
+            BottomNavigationItem(
+                icon = { },
+                label = { Text(screen.route) },
+                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                onClick = {
+                    navigationController.navigate(screen.route) {
+                        navigationController.graph.startDestinationRoute?.let { screen_route ->
+                            popUpTo(screen_route) {
+                                saveState = true
+                            }
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+            )
+        }
+    }
 }
 
 @Composable
-fun NavigationGraph(navigationController: NavHostController) {
+fun NavigationGraph(navigationController: NavHostController, viewModel: MainViewModel) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
             // navigationController.navigate(route = route)
-            RenderGridView(MainViewModel() , navigationController)
+            Log.i("RenderGridViewjhgjh", "")
+            MainScreen(navigationController, viewModel)
         }
         composable(route = Screen.Download.route) {
+            Log.i("DownloadScreenjhgjh", "")
             DownloadScreen()
         }
         composable(route = Screen.SongsList.route) {
+            Log.i("SongsListScreenjhgjh", "")
+
             SongsListScreen()
         }
     }
@@ -82,13 +114,4 @@ fun SongsListScreen() {
     Text(text = "SongsList")
 }
 
-@Composable
-fun RenderGridView(mainViewModel: MainViewModel = viewModel(), navigationController: NavHostController) {
-    val uiState by mainViewModel.uiState.collectAsState()
-    when (uiState) {
-        is ServerResponse.isLoading -> isDataLoading()
-        is ServerResponse.onSuccess -> PlayList(uiState.data, navigationController)
-        is ServerResponse.onError -> {}
-        else -> {}
-    }
-}
+
