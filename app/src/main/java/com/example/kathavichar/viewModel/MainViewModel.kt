@@ -1,16 +1,14 @@
 package com.example.kathavichar.viewModel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.kathavichar.model.Category
+import com.example.kathavichar.model.Artist
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.FirebaseTestRepo
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
@@ -18,7 +16,7 @@ import org.koin.java.KoinJavaComponent.inject
 class MainViewModel : ViewModel() {
 
     private val firebaseTestRepo: FirebaseTestRepo by inject(FirebaseTestRepo::class.java)
-    private val _uiState: MutableStateFlow<ServerResponse<List<Category>>> = MutableStateFlow(ServerResponse.isLoading())
+    private val _uiState: MutableStateFlow<ServerResponse<List<Artist>>> = MutableStateFlow(ServerResponse.isLoading())
     val uiState = _uiState.asStateFlow()
     val subscription: CompositeDisposable = CompositeDisposable()
 
@@ -30,7 +28,7 @@ class MainViewModel : ViewModel() {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
                         viewModelScope.launch {
-                            _uiState.emit(ServerResponse.onSuccess(it))
+                            // _uiState.emit(ServerResponse.onSuccess(it))
                         }
                     }, {
                     }),
@@ -40,8 +38,6 @@ class MainViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
-        Log.i("cccccccc", "")
-
         subscription.clear()
     }
 }

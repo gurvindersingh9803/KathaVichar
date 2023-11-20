@@ -1,7 +1,9 @@
 package com.example.kathavichar.repositories
 
 import android.util.Log
-import com.example.kathavichar.model.Category
+import com.example.kathavichar.model.Artist
+import com.example.kathavichar.model.DataModel
+import com.example.kathavichar.model.Section
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -19,23 +21,34 @@ class FirebaseTestRepo {
     var databaseReference: DatabaseReference? = null
     init {
         firebaseDatabase = FirebaseDatabase.getInstance()
-        databaseReference = firebaseDatabase!!.getReference("categories")
+        databaseReference = firebaseDatabase!!.getReference("items")
     }
 
-    fun getdata(): Single<List<Category>> = Single.create { emiter ->
-        val list = mutableListOf<Category>()
+    fun getdata(): Single<Section> = Single.create { emiter ->
+        val list = mutableListOf<Artist>()
 
         try {
             databaseReference!!.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    snapshot.children.forEach {
-                        val a = it.getValue(Category::class.java)
-                        if (a != null) {
+                  /*  snapshot.children.forEach {
+                        val a = it.
+
+                        Log.i("sghsdgh", a.toString())
+
+                        *//*if (a != null) {
                             list.add(a)
-                        }
+                        }*//*
+                    }*/
+                    // Log.i("sghsdgh", "")
+                    // emiter.onSuccess(list)
+
+                    val a1 = snapshot.value
+
+                    Log.i("ghghgh", a1.toString())
+
+                    val a = snapshot.children.forEach {
+                        Log.i("sghsdgh", it.toString())
                     }
-                    Log.i("sghsdgh", "")
-                    emiter.onSuccess(list)
                 }
 
                 override fun onCancelled(error: DatabaseError) {

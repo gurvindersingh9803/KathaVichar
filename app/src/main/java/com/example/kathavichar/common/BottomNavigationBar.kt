@@ -3,7 +3,6 @@ package com.example.kathavichar.common
 import android.util.Log
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -94,6 +93,9 @@ fun NavigationGraph(navigationController: NavHostController, viewModel: MainView
         composable(route = Screen.MainPlayList.route) {
             // navigationController.navigate(route = route)
             Log.i("RenderGridViewjhgjh", "")
+            //  Prevew()
+
+            // hey(viewModel)
             MainScreen(navigationController, viewModel)
         }
         composable(route = Screen.Download.route) {
