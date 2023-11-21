@@ -11,6 +11,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.reactivex.Single
 import org.koin.java.KoinJavaComponent.inject
 
@@ -21,34 +22,35 @@ class FirebaseTestRepo {
     var databaseReference: DatabaseReference? = null
     init {
         firebaseDatabase = FirebaseDatabase.getInstance()
-        databaseReference = firebaseDatabase!!.getReference("items")
+        databaseReference = firebaseDatabase!!.getReference("")
     }
 
     fun getdata(): Single<Section> = Single.create { emiter ->
-        val list = mutableListOf<Artist>()
+        val list = mutableListOf<SectionData>()
 
         try {
             databaseReference!!.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                  /*  snapshot.children.forEach {
-                        val a = it.
 
-                        Log.i("sghsdgh", a.toString())
+                     val jsonString = gson.toJson(snapshot.value)
+                    Log.i("esssf", gson.fromJson(jsonString, Data::class.java).toString())
 
-                        *//*if (a != null) {
-                            list.add(a)
-                        }*//*
-                    }*/
-                    // Log.i("sghsdgh", "")
-                    // emiter.onSuccess(list)
-
-                    val a1 = snapshot.value
-
-                    Log.i("ghghgh", a1.toString())
 
                     val a = snapshot.children.forEach {
-                        Log.i("sghsdgh", it.toString())
+                        // Log.i("sdfsadv", gson.toJson(it.getValue()) .toString())
+                        Log.i("ef", gson.fromJson(gson.toJson(it.getValue()) .toString(), SectionData::class.java).toString())
+
+                        val a= gson.fromJson(gson.toJson(it.getValue()) .toString(), SectionData::class.java)
+                        list.add(a)
                     }
+
+                    println(list)
+
+
+
+                    // val artistsResponseList = Gson().fromJson(jsonString, ArtistsResponse::class.java)
+                    Log.i("ghghgh", a.toString())
+
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -62,3 +64,11 @@ class FirebaseTestRepo {
         }
     }
 }
+
+data class Artist(var image: String = "", var name: String = "")
+
+data class SectionData(var sectionName: String = "", var data: List<Artist> = listOf())
+
+data class Data(var data: List<SectionData> = listOf())
+
+
