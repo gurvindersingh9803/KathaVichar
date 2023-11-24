@@ -32,10 +32,10 @@ import com.example.kathavichar.model.SectionData
 
 @Composable
 fun PlayList(data: List<SectionData>?, navigationController: NavHostController) {
-    Log.i("dfswgdfsg", data.toString())
     Column {
         data?.forEach { sectionData ->
-            Text(sectionData.sectionName, fontSize = 20.sp)
+            Text(sectionData.sectionName, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             Column {
                 LazyRow(content = {
                     items(sectionData.data.size) {
@@ -46,19 +46,9 @@ fun PlayList(data: List<SectionData>?, navigationController: NavHostController) 
                     }
                 })
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
-    /*LazyColumn(content = {
-    data?.forEach { sectionData ->
-        item {
-            Text(text = sectionData.sectionName)
-        }
-
-        items(sectionData.data.size) {
-            Text(text = sectionData.data[it].name)
-        }
-    }
-})*/
 }
 
 @Composable
@@ -69,7 +59,7 @@ fun PlayListItem(sectionItem: Item, navigationController: NavHostController) {
         modifier = Modifier
             .size(150.dp, 150.dp)
             .padding(3.dp)
-            .clickable { },
+            .clickable { navigationController.navigate("SongsList") },
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(102.dp),
