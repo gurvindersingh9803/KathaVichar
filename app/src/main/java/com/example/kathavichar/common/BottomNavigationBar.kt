@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,10 +29,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -207,10 +206,10 @@ fun SongItem() {
             }
 
             Column() {
-                Text(text = "Dasam Granth", fontSize = 12.sp)
-                Text(text = "Track name", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(text = "Dasam Granth", style = MaterialTheme.typography.subtitle1)
+                Text(text = "Track name", style = MaterialTheme.typography.h1)
             }
-            Text(text = "2:35", fontSize = 12.sp)
+            Text(text = "2:35", style = MaterialTheme.typography.body2)
         }
 
         Spacer(modifier = Modifier.height(20.dp))
