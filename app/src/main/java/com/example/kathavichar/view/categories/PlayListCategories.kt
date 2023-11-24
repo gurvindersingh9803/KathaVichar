@@ -1,6 +1,5 @@
 package com.example.kathavichar.view.categories
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,8 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
@@ -26,37 +23,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.kathavichar.R
-import com.example.kathavichar.model.Artist
-import com.example.kathavichar.model.Section
+import com.example.kathavichar.model.SectionData
 import com.example.kathavichar.viewModel.MainViewModel
 
-@Composable
-fun PlayList(data: List<Artist>?, navigationController: NavHostController) {
+/*@Composable
+fun PlayListoo(data: List<SectionData>?, navigationController: NavHostController) {
     Log.i("dfswgdfsg", data.toString())
     LazyVerticalStaggeredGrid(columns = StaggeredGridCells.Fixed(2), content = {
         data?.let {
             items(data.size) {
-                // PlayListItem(data[it], navigationController)
+                PlayListItem(data[it], navigationController)
             }
         }
     })
-}
+}*/
 
 @Composable
-fun PlayListItem(category: Section, navigationController: NavHostController) {
-    Card(elevation = 4.dp, modifier = Modifier.padding(3.dp).clickable { }) {
+fun PlayListItemoo(category: SectionData, navigationController: NavHostController) {
+    Card(
+        elevation = 4.dp,
+        modifier = Modifier
+            .padding(3.dp)
+            .clickable { },
+    ) {
         Column {
-            /*Box(modifier = Modifier.fillMaxSize()) {
-                AsyncImage(
-                    model = category.imageUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .height(200.dp),
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color(0Xffff9f64)),
+            ) {
+                Text(
+                    category.sectionName.toString(),
+                    fontSize = 30.sp,
+                    color = Color.White.copy(alpha = 0.5f),
+                    modifier = Modifier.align(Alignment.BottomEnd),
                 )
-            }*/
-            Box(modifier = Modifier.fillMaxSize().background(color = Color(0Xffff9f64))) {
-             //   Text(category.nickname.toString(), fontSize = 30.sp, color = Color.White.copy(alpha = 0.5f), modifier = Modifier.align(Alignment.BottomEnd))
             }
         }
     }
@@ -79,7 +80,9 @@ fun Prevew() {
                             .size(150.dp),
                     ) {
                         Card(
-                            modifier = Modifier.padding(10.dp).height(IntrinsicSize.Min),
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .height(IntrinsicSize.Min),
                             elevation = 10.dp,
                             shape = RoundedCornerShape(4.dp),
                         ) {
@@ -91,7 +94,8 @@ fun Prevew() {
                                     )
                                 }
                                 Box(
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier
+                                        .fillMaxSize()
                                         .background(color = Color(0Xffff9f64)),
                                 ) {
                                     Text(
