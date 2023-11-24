@@ -166,7 +166,7 @@ fun SongsListScreen() {
         item {
             Card(Modifier.padding(10.dp)) {
                 Image(
-                    painter = painterResource(id = R.drawable.img),
+                    painter = painterResource(id = R.drawable.imag),
                     contentDescription = null,
                     contentScale = ContentScale.FillWidth,
                     modifier = Modifier
