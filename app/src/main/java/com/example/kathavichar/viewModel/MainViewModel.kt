@@ -3,10 +3,9 @@ package com.example.kathavichar.viewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.kathavichar.model.Item
 import com.example.kathavichar.model.SectionData
 import com.example.kathavichar.network.ServerResponse
-import com.example.kathavichar.repositories.FirebaseTestRepo
+import com.example.kathavichar.repositories.HomeCategoriesFirebase
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -17,7 +16,7 @@ import org.koin.java.KoinJavaComponent.inject
 
 class MainViewModel : ViewModel() {
 
-    private val firebaseTestRepo: FirebaseTestRepo by inject(FirebaseTestRepo::class.java)
+    private val homeCategoriesFirebase: HomeCategoriesFirebase by inject(HomeCategoriesFirebase::class.java)
     private val _uiState: MutableStateFlow<ServerResponse<MutableList<SectionData>>> = MutableStateFlow(ServerResponse.isLoading())
     val uiState = _uiState.asStateFlow()
     val subscription: CompositeDisposable = CompositeDisposable()
@@ -25,7 +24,7 @@ class MainViewModel : ViewModel() {
     fun getCategories() {
         viewModelScope.launch {
             subscription.add(
-                firebaseTestRepo.getdata()
+                homeCategoriesFirebase.getdata()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({

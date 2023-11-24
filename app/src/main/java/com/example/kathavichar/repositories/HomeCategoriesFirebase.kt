@@ -6,12 +6,11 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
 import com.google.gson.Gson
 import io.reactivex.Single
 import org.koin.java.KoinJavaComponent.inject
 
-class FirebaseTestRepo {
+class HomeCategoriesFirebase {
     var firebaseDatabase: FirebaseDatabase? = null
 
     private val gson: Gson by inject(Gson::class.java)
@@ -23,11 +22,10 @@ class FirebaseTestRepo {
 
     fun getdata(): Single<MutableList<SectionData>> = Single.create { emitter ->
         val list = mutableListOf<SectionData>()
-
         try {
             databaseReference!!.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val a = snapshot.children.forEach {
+                    snapshot.children.forEach {
                         val a = gson.fromJson(gson.toJson(it.getValue()).toString(), SectionData::class.java)
                         list.add(a)
                     }
