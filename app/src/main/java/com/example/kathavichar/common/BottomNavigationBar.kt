@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,7 +28,6 @@ import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.NavigateNext
 import androidx.compose.material.icons.rounded.PauseCircleFilled
@@ -225,15 +225,18 @@ fun MusicPlayers() {
             )
 
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.background(gradient)) {
-                Image(painter = painterResource(id = R.drawable.imag), contentDescription = null)
-
-                Text(text = "Dasam Granth", style = MaterialTheme.typography.subtitle1, color = MaterialTheme.colors.surface)
-                Text(text = "Subtitle", style = MaterialTheme.typography.body2, color = MaterialTheme.colors.surface)
-
-                Slider(value = 0f, onValueChange = {}, colors = sliderColors)
-
-                Box(modifier = Modifier.padding(10.dp)) {
+                Box(
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.medium)
+                        .aspectRatio(1f),
+                ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Image(painter = painterResource(id = R.drawable.imag), contentDescription = null, modifier = Modifier.fillMaxWidth())
+
+                        Text(text = "Dasam Granth", style = MaterialTheme.typography.subtitle1, color = MaterialTheme.colors.surface)
+                        Text(text = "Subtitle", style = MaterialTheme.typography.body2, color = MaterialTheme.colors.surface)
+
+                        Slider(value = 0f, onValueChange = {}, colors = sliderColors)
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -265,7 +268,7 @@ fun MusicPlayers() {
                                     .clip(CircleShape)
                                     .clickable(onClick = {})
                                     .padding(12.dp)
-                                    .size(32.dp),
+                                    .size(48.dp),
                             )
 
                             Icon(
@@ -275,7 +278,7 @@ fun MusicPlayers() {
                                     .clip(CircleShape)
                                     .clickable(onClick = {})
                                     .padding(12.dp)
-                                    .size(32.dp),
+                                    .size(62.dp),
                             )
 
                             Icon(
@@ -285,7 +288,7 @@ fun MusicPlayers() {
                                     .clip(CircleShape)
                                     .clickable(onClick = {})
                                     .padding(12.dp)
-                                    .size(32.dp),
+                                    .size(48.dp),
                             )
                         }
                     }
