@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.kathavichar.common.BottomNavigationBar
 import com.example.kathavichar.common.NavigationGraph
+import com.example.kathavichar.common.utils.KathaVicharTopBar
+import com.example.kathavichar.di.KathaVicharApp
 import com.example.kathavichar.ui.theme.KathaVicharTheme
 import com.example.kathavichar.viewModel.MainViewModel
 
@@ -21,6 +23,7 @@ class MainActivity : ComponentActivity() {
             KathaVicharTheme {
                 val navController = rememberNavController()
                 Scaffold(
+                    // topBar = { KathaVicharTopBar() },
                     bottomBar = {
                         BottomNavigationBar(navigationController = navController)
                     },

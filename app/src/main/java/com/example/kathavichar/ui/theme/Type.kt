@@ -31,7 +31,6 @@ val Typography = Typography(
     h1 = TextStyle(
         fontFamily = CustomFont,
         fontWeight = FontWeight.Thin,
-        fontStyle = FontStyle(),
         fontSize = 16.sp,
     ),
     body1 = TextStyle(

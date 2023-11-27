@@ -1,33 +1,49 @@
 package com.example.kathavichar.common
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ProgressIndicatorDefaults
+import androidx.compose.material.Slider
+import androidx.compose.material.SliderDefaults
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.NavigateNext
+import androidx.compose.material.icons.rounded.PauseCircleFilled
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -80,7 +96,7 @@ fun BottomNavigationBar(navigationController: NavHostController) {
     val screens = listOf(Screen.MainPlayList, Screen.Download)
 
     BottomNavigation(
-        backgroundColor = colorResource(id = R.color.teal_200),
+        backgroundColor = MaterialTheme.colors.primary,
         contentColor = Color.Black,
     ) {
         val navBackStackEntry by navigationController.currentBackStackEntryAsState()
@@ -116,7 +132,10 @@ fun NavigationGraph(navigationController: NavHostController, viewModel: MainView
             DownloadScreen()
         }
         composable(route = Screen.SongsList.route) {
-            SongsListScreen()
+            SongsListScreen(navigationController)
+        }
+        composable(route = Screen.MusicPlayer.route) {
+            MusicPlayers()
         }
     }
 }
@@ -125,93 +144,423 @@ fun NavigationGraph(navigationController: NavHostController, viewModel: MainView
 fun DownloadScreen() {
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SongsListScreen() {
-    // val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-
-   /* Scaffold(
-        topBar = {
-            LargeTopAppBar(
-
-                title = {
-                    Text(text = "Maskeen Ji")
-                },
-
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).background(Color.Red),
-
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            items(10) { item ->
-                Text(
-                    text = item.toString(),
-                )
-            }
-        }
-    }*/
+fun SongsListScreen(navigationController: NavHostController) {
     val lazyListState = rememberLazyListState()
-
     var scrolledY = 0f
     var previousOffset = 0
 
-    LazyColumn(content = {
-        item {
-            Card(Modifier.padding(10.dp)) {
-                Image(
-                    painter = painterResource(id = R.drawable.imag),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth,
-                    modifier = Modifier
-                        .graphicsLayer {
-                            scrolledY += lazyListState.firstVisibleItemScrollOffset - previousOffset
-                            translationY = scrolledY * 0.5f
-                            previousOffset = lazyListState.firstVisibleItemScrollOffset
-                        }
-                        .height(200.dp)
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
-                )
-            }
-        }
-        items(30) {
-            SongItem()
-        }
-    })
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            lazyListState,
+            content = {
+                item {
+                    Image(
+                        painter = painterResource(id = R.drawable.imag),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier
+                            .graphicsLayer {
+                                scrolledY += lazyListState.firstVisibleItemScrollOffset - previousOffset
+                                translationY = scrolledY * 0.1f
+                                previousOffset = lazyListState.firstVisibleItemScrollOffset
+                            }
+                            .height(200.dp)
+                            .fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+                items(30) {
+                    SongItem(navigationController)
+                }
+            },
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun SongItem() {
+fun SongItem(navigationController: NavHostController) {
     Column() {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Box(modifier = Modifier.size(50.dp)) {
-                Image(
-                    painter = painterResource(id = R.drawable.headset),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
+        Card(modifier = Modifier.clickable { navigationController.navigate("MusicPlayer") }) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Box(modifier = Modifier.size(50.dp)) {
+                    Image(
+                        painter = painterResource(id = R.drawable.headset),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
 
-                )
-            }
+                    )
+                }
 
-            Column() {
-                Text(text = "Dasam Granth", style = MaterialTheme.typography.subtitle1)
-                Text(text = "Track name", style = MaterialTheme.typography.h1)
+                Column() {
+                    Text(text = "Dasam Granth", style = MaterialTheme.typography.subtitle1)
+                    Text(text = "Track name", style = MaterialTheme.typography.h1)
+                }
+                Text(text = "2:35", style = MaterialTheme.typography.body2)
             }
-            Text(text = "2:35", style = MaterialTheme.typography.body2)
         }
 
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
+
+@Preview
+@Composable
+fun MusicPlayers() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            val gradient = Brush.verticalGradient(listOf(MaterialTheme.colors.primary, MaterialTheme.colors.primaryVariant))
+
+            val sliderColors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colors.background,
+                activeTrackColor = MaterialTheme.colors.background,
+                inactiveTrackColor = MaterialTheme.colors.background.copy(
+                    alpha = ProgressIndicatorDefaults.IndicatorBackgroundOpacity,
+                ),
+            )
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.background(gradient)) {
+                Image(painter = painterResource(id = R.drawable.imag), contentDescription = null)
+
+                Text(text = "Dasam Granth", style = MaterialTheme.typography.subtitle1, color = MaterialTheme.colors.surface)
+                Text(text = "Subtitle", style = MaterialTheme.typography.body2, color = MaterialTheme.colors.surface)
+
+                Slider(value = 0f, onValueChange = {}, colors = sliderColors)
+
+                Box(modifier = Modifier.padding(10.dp)) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                                Text(
+                                    "3:30",
+                                    style = MaterialTheme.typography.body2,
+                                )
+                            }
+                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                                Text(
+                                    "00.10",
+                                    style = MaterialTheme.typography.body2,
+                                )
+                            }
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.ArrowBack,
+                                contentDescription = "Skip Previous",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable(onClick = {})
+                                    .padding(12.dp)
+                                    .size(32.dp),
+                            )
+
+                            Icon(
+                                imageVector = Icons.Rounded.PauseCircleFilled,
+                                contentDescription = "Skip Previous",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable(onClick = {})
+                                    .padding(12.dp)
+                                    .size(32.dp),
+                            )
+
+                            Icon(
+                                imageVector = Icons.Rounded.NavigateNext,
+                                contentDescription = "Skip Previous",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable(onClick = {})
+                                    .padding(12.dp)
+                                    .size(32.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
+@Previe
+@Composable
+fun MusicPlayer() {
+    val gradientColors =
+        listOf(
+            MaterialTheme.colors.primary,
+            MaterialTheme.colors.background,
+        )
+
+    val sliderColors = if (isSystemInDarkTheme()) {
+        SliderDefaults.colors(
+            thumbColor = MaterialTheme.colors.onBackground,
+            activeTrackColor = MaterialTheme.colors.onBackground,
+            inactiveTrackColor = MaterialTheme.colors.onBackground.copy(
+                alpha = ProgressIndicatorDefaults.IndicatorBackgroundOpacity,
+            ),
+        )
+    } else {
+        SliderDefaults.colors(
+            thumbColor = MaterialTheme.colors.background,
+            activeTrackColor = MaterialTheme.colors.background,
+            inactiveTrackColor = MaterialTheme.colors.background.copy(
+                alpha = ProgressIndicatorDefaults.IndicatorBackgroundOpacity,
+            ),
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        Surface {
+            Box(
+                modifier = Modifier
+                    .background(
+                        Brush.verticalGradient(
+                            colors = gradientColors,
+                            endY = LocalConfiguration.current.screenHeightDp.toFloat() * LocalDensity.current.density,
+                        ),
+                    )
+                    .fillMaxSize()
+                    .systemBarsPadding(),
+            ) {
+                Column {
+                    IconButton(
+                        onClick = {},
+                    ) {
+                        Image(
+                            imageVector = Icons.Rounded.KeyboardArrowDown,
+                            contentDescription = "Close",
+                            colorFilter = ColorFilter.tint(LocalContentColor.current),
+                        )
+                    }
+                    Column(
+                        modifier  Modifier
+                            .padding(horizontal = 24.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 32.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .weight(1f, fill = false)
+                                .aspectRatio(1f),
+
+                        ) {
+                          */
+/*  Image(
+                                painter = painterResource(id = R.drawable.imag),
+                                contentDescription = "Song thumbnail",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                            )*//*
+
+                            // VinylAnimation(painter = painterResource(id = R.drawable.imag), isSongPlaying = true)
+                        }
+
+                        Text(
+                            text = "Sant maskeen ji",
+                            style = MaterialTheme.typography.h5,
+                            color = MaterialTheme.colors.onBackground,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+
+                        Text(
+                            "Sub title",
+                            style = MaterialTheme.typography.subtitle1,
+                            color = MaterialTheme.colors.onBackground,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.graphicsLayer {
+                                alpha = 0.60f
+                            },
+                        )
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                        ) {
+                            Slider(
+                                value = 50F,
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                colors = sliderColors,
+                                onValueChange = {},
+                                onValueChangeFinished = {},
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                                    Text(
+                                        "DateTime",
+                                        style = MaterialTheme.typography.body2,
+                                    )
+                                }
+                                CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                                    Text(
+                                        "Total DateTime",
+                                        style = MaterialTheme.typography.body2,
+                                    )
+                                }
+                            }
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceAround,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Add,
+                                contentDescription = "Skip Previous",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable(onClick = {})
+                                    .padding(12.dp)
+                                    .size(32.dp),
+                            )
+                            Icon(
+                                imageVector = Icons.Rounded.Star,
+                                contentDescription = "Replay 10 seconds",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable(onClick = {})
+                                    .padding(12.dp)
+                                    .size(32.dp),
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.imag),
+                                contentDescription = "Play",
+                                tint = MaterialTheme.colors.background,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colors.onBackground)
+                                    .clickable(onClick = {})
+                                    .size(64.dp)
+                                    .padding(8.dp),
+                            )
+                            Icon(
+                                imageVector = Icons.Rounded.Close,
+                                contentDescription = "Forward 10 seconds",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable(onClick = {})
+                                    .padding(12.dp)
+                                    .size(32.dp),
+                            )
+                            Icon(
+                                imageVector = Icons.Rounded.Star,
+                                contentDescription = "Skip Next",
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable(onClick = {})
+                                    .padding(12.dp)
+                                    .size(32.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+*/
+/*@Composable
+fun VinylAnimation(
+    modifier: Modifier = Modifier,
+    isSongPlaying: Boolean = true,
+    painter: Painter,
+) {
+    var currentRotation by remember {
+        mutableFloatStateOf(0f)
+    }
+
+    val rotation = remember {
+        Animatable(currentRotation)
+    }
+
+    LaunchedEffect(isSongPlaying) {
+        if (isSongPlaying) {
+            rotation.animateTo(
+                targetValue = currentRotation + 360f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(3000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart,
+                ),
+            ) {
+                currentRotation = value
+            }
+        } else {
+            if (currentRotation > 0f) {
+                rotation.animateTo(
+                    targetValue = currentRotation + 50,
+                    animationSpec = tween(
+                        1250,
+                        easing = LinearOutSlowInEasing,
+                    ),
+                ) {
+                    currentRotation = value
+                }
+            }
+        }
+    }
+
+    Vinyl(painter = painter, rotationDegrees = rotation.value)
+}
+
+@Composable
+fun Vinyl(
+    modifier: Modifier = Modifier,
+    rotationDegrees: Float = 0f,
+    painter: Painter,
+) {
+    Box(
+        modifier = modifier
+            .aspectRatio(1.0f)
+            .clip(RoundedCornerShape(4.dp)),
+    ) {
+        // Vinyl background
+        Image(
+            modifier = Modifier
+                .fillMaxSize()
+                .rotate(rotationDegrees),
+            painter = painterResource(id = R.drawable.imag),
+            contentDescription = "Vinyl Background",
+        )
+
+        // Vinyl song cover
+        Image(
+            modifier = Modifier
+                .fillMaxSize(0.5f)
+                .rotate(rotationDegrees)
+                .aspectRatio(1.0f)
+                .align(Alignment.Center)
+                .clip(RoundedCornerShape(6.dp)),
+            painter = painter,
+            contentDescription = "Song cover",
+        )
+    }
+}*/
