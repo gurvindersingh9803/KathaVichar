@@ -29,7 +29,6 @@ class SongsViewModel : ViewModel() {
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        Log.i("sdghdsfsongs", it.toString())
                         viewModelScope.launch {
                             _uiStateSongs.emit(ServerResponse.onSuccess(it))
                         }

@@ -47,45 +47,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.kathavichar.R
-import com.example.kathavichar.view.composables.home.MainScreen
+import com.example.kathavichar.view.composables.home.HomeScreenState
 import com.example.kathavichar.view.composables.songs.SongsListState
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
-
-/*@Composable
-fun BottomNavigationBar(navigationController: NavHostController) {
-    val screens = listOf(Screen.MainPlayList, Screen.Download)
-    Scaffold(
-        bottomBar = {
-            val navBackStackEntry by navigationController.currentBackStackEntryAsState()
-            val currentDestination = navBackStackEntry?.destination
-            BottomNavigation {
-                screens.forEach { screen ->
-                    BottomNavigationItem(
-                        icon = { },
-                        label = { Text(screen.route) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navigationController.navigate(screen.route) {
-                                navigationController.graph.startDestinationRoute?.let { screen_route ->
-                                    popUpTo(screen_route) {
-                                        saveState = true
-                                    }
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                    )
-                }
-            }
-        },
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            NavigationGraph(navigationController = navigationController)
-        }
-    }
-}*/
 
 @Composable
 fun BottomNavigationBar(navigationController: NavHostController) {
@@ -126,13 +91,13 @@ fun NavigationGraph(
 ) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
-            MainScreen(navigationController, mainViewModel)
+            HomeScreenState(navigationController, mainViewModel)
         }
         composable(route = Screen.Download.route) {
             DownloadScreen()
         }
         composable(
-            route = "SongsList/{artistName}",
+            route = "${Screen.SongsList.route}/{artistName}",
             arguments = listOf(
                 navArgument("artistName") {
                     type = NavType.StringType

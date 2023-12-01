@@ -10,7 +10,7 @@ import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.viewModel.MainViewModel
 
 @Composable
-fun MainScreen(navigationController: NavHostController, viewModel: MainViewModel) {
+fun HomeScreenState(navigationController: NavHostController, viewModel: MainViewModel) {
     LaunchedEffect(Unit) {
         viewModel.getCategories()
     }
@@ -18,7 +18,7 @@ fun MainScreen(navigationController: NavHostController, viewModel: MainViewModel
 
     when (uiState) {
         is ServerResponse.isLoading -> isDataLoading()
-        is ServerResponse.onSuccess -> PlayList(uiState.data, navigationController)
+        is ServerResponse.onSuccess -> HomeCategories(uiState.data, navigationController)
         is ServerResponse.onError -> {}
     }
 }

@@ -36,7 +36,6 @@ class MainViewModel : ViewModel() {
                             _uiState.emit(ServerResponse.onSuccess(it))
                         }
                     }, {
-                        Log.i("edfgwegf", it.toString())
                     }),
             )
         }

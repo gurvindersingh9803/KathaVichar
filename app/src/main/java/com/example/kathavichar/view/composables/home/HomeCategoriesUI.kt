@@ -26,11 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.kathavichar.common.Screen
 import com.example.kathavichar.model.Item
 import com.example.kathavichar.model.SectionData
 
 @Composable
-fun PlayList(data: List<SectionData>?, navigationController: NavHostController) {
+fun HomeCategories(data: List<SectionData>?, navigationController: NavHostController) {
     Column {
         data?.forEach { sectionData ->
             Text(sectionData.sectionName, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
@@ -58,7 +59,7 @@ fun PlayListItem(sectionItem: Item, navigationController: NavHostController) {
         modifier = Modifier
             .size(150.dp, 150.dp)
             .padding(3.dp)
-            .clickable { navigationController.navigate("SongsList/${sectionItem.name}") },
+            .clickable { navigationController.navigate("${Screen.SongsList.route}/${sectionItem.name}") },
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(102.dp),
