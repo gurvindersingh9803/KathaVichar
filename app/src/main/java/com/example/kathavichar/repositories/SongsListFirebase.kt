@@ -8,10 +8,8 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.gson.Gson
-import com.google.gson.stream.JsonReader
 import io.reactivex.Single
 import org.koin.java.KoinJavaComponent
-import java.io.StringReader
 
 class SongsListFirebase {
 
@@ -25,7 +23,7 @@ class SongsListFirebase {
         databaseReference = firebaseDatabase!!.reference
     }
 
-    fun getSongsList(): Single<MutableList<Song>> = Single.create { emitter ->
+    fun getSongsList(whichArtist: String): Single<MutableList<Song>> = Single.create { emitter ->
         val list = mutableListOf<Song>()
         Log.i("ssdffff", list.toString())
         try {
@@ -36,14 +34,25 @@ class SongsListFirebase {
 
                         if (sectionName == "Artists") {
                             for (artistSnapshot in sectionSnapshot.child("data").children) {
+                                val artistNameSnapshot = artistSnapshot.child("name")
                                 val songsSnapshot = artistSnapshot.child("songs")
 
-                                for (songSnapshot in songsSnapshot.children) {
-                                    val audioUrl = songSnapshot.child("audioUrl").getValue(String::class.java)
-                                    val imgUrl = songSnapshot.child("imgUrl").getValue(String::class.java)
-                                    val title = songSnapshot.child("title").getValue(String::class.java)
-                                    val songObj = Song(title = title, imgUrl = imgUrl, audioUrl = audioUrl)
-                                    list.add(songObj)
+                                println("nameeee ${artistNameSnapshot.value}")
+                                if (artistNameSnapshot.value == whichArtist) {
+                                    for (songSnapshot in songsSnapshot.children) {
+                                        val audioUrl = songSnapshot.child("audioUrl")
+                                            .getValue(String::class.java)
+                                        val imgUrl = songSnapshot.child("imgUrl")
+                                            .getValue(String::class.java)
+                                        val title =
+                                            songSnapshot.child("title").getValue(String::class.java)
+                                        val songObj = Song(
+                                            title = title,
+                                            imgUrl = imgUrl,
+                                            audioUrl = audioUrl,
+                                        )
+                                        list.add(songObj)
+                                    }
                                 }
                                 emitter.onSuccess(list)
                             }

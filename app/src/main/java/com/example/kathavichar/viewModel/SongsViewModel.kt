@@ -3,10 +3,8 @@ package com.example.kathavichar.viewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.kathavichar.model.SectionData
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.network.ServerResponse
-import com.example.kathavichar.repositories.HomeCategoriesFirebase
 import com.example.kathavichar.repositories.SongsListFirebase
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -14,26 +12,26 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent.inject
+import org.koin.java.KoinJavaComponent
 
-class MainViewModel : ViewModel() {
+class SongsViewModel : ViewModel() {
 
-    private val homeCategoriesFirebase: HomeCategoriesFirebase by inject(HomeCategoriesFirebase::class.java)
+    private val _uiStateSongs: MutableStateFlow<ServerResponse<MutableList<Song>>> = MutableStateFlow(ServerResponse.isLoading())
+    val uiStateSongs = _uiStateSongs.asStateFlow()
+    private val sonsListFirebase: SongsListFirebase by KoinJavaComponent.inject(SongsListFirebase::class.java)
 
-    private val _uiState: MutableStateFlow<ServerResponse<MutableList<SectionData>>> = MutableStateFlow(ServerResponse.isLoading())
-    val uiState = _uiState.asStateFlow()
+    val subscription: CompositeDisposable = CompositeDisposable()
 
-    private val subscription: CompositeDisposable = CompositeDisposable()
-
-    fun getCategories() {
+    fun getSongs(artistName: String) {
         viewModelScope.launch {
             subscription.add(
-                homeCategoriesFirebase.getdata()
+                sonsListFirebase.getSongsList(artistName)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
+                        Log.i("sdghdsfsongs", it.toString())
                         viewModelScope.launch {
-                            _uiState.emit(ServerResponse.onSuccess(it))
+                            _uiStateSongs.emit(ServerResponse.onSuccess(it))
                         }
                     }, {
                         Log.i("edfgwegf", it.toString())

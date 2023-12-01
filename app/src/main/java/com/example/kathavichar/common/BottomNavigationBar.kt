@@ -7,15 +7,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -31,30 +27,30 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.NavigateNext
 import androidx.compose.material.icons.rounded.PauseCircleFilled
-import androidx.compose.material3.Card
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.example.kathavichar.R
-import com.example.kathavichar.view.home.categories.MainScreen
+import com.example.kathavichar.view.composables.home.MainScreen
+import com.example.kathavichar.view.composables.songs.SongsListState
 import com.example.kathavichar.viewModel.MainViewModel
+import com.example.kathavichar.viewModel.SongsViewModel
 
 /*@Composable
 fun BottomNavigationBar(navigationController: NavHostController) {
@@ -123,16 +119,28 @@ fun BottomNavigationBar(navigationController: NavHostController) {
 }
 
 @Composable
-fun NavigationGraph(navigationController: NavHostController, viewModel: MainViewModel) {
+fun NavigationGraph(
+    navigationController: NavHostController,
+    mainViewModel: MainViewModel,
+    songsViewModel: SongsViewModel,
+) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
-            MainScreen(navigationController, viewModel)
+            MainScreen(navigationController, mainViewModel)
         }
         composable(route = Screen.Download.route) {
             DownloadScreen()
         }
-        composable(route = Screen.SongsList.route) {
-            SongsListScreen(navigationController)
+        composable(
+            route = "SongsList/{artistName}",
+            arguments = listOf(
+                navArgument("artistName") {
+                    type = NavType.StringType
+                },
+            ),
+        ) {
+            val artistName = it.arguments?.getString("artistName")
+            SongsListState(navigationController, artistName, songsViewModel)
         }
         composable(route = Screen.MusicPlayer.route) {
             MusicPlayers()
@@ -142,71 +150,6 @@ fun NavigationGraph(navigationController: NavHostController, viewModel: MainView
 
 @Composable
 fun DownloadScreen() {
-}
-
-@Composable
-fun SongsListScreen(navigationController: NavHostController) {
-    val lazyListState = rememberLazyListState()
-    var scrolledY = 0f
-    var previousOffset = 0
-
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        LazyColumn(
-            Modifier.fillMaxSize(),
-            lazyListState,
-            content = {
-                item {
-                    Image(
-                        painter = painterResource(id = R.drawable.imag),
-                        contentDescription = null,
-                        contentScale = ContentScale.FillWidth,
-                        modifier = Modifier
-                            .graphicsLayer {
-                                scrolledY += lazyListState.firstVisibleItemScrollOffset - previousOffset
-                                translationY = scrolledY * 0.1f
-                                previousOffset = lazyListState.firstVisibleItemScrollOffset
-                            }
-                            .height(200.dp)
-                            .fillMaxWidth(),
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-                items(30) {
-                    SongItem(navigationController)
-                }
-            },
-        )
-    }
-}
-
-@Composable
-fun SongItem(navigationController: NavHostController) {
-    Column() {
-        Card(modifier = Modifier.clickable { navigationController.navigate("MusicPlayer") }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Box(modifier = Modifier.size(50.dp)) {
-                    Image(
-                        painter = painterResource(id = R.drawable.headset),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-
-                    )
-                }
-
-                Column() {
-                    Text(text = "Dasam Granth", style = MaterialTheme.typography.subtitle1)
-                    Text(text = "Track name", style = MaterialTheme.typography.h1)
-                }
-                Text(text = "2:35", style = MaterialTheme.typography.body2)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-    }
 }
 
 @Preview

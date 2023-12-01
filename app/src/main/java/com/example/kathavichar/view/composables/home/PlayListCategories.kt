@@ -1,4 +1,4 @@
-package com.example.kathavichar.view.home.categories
+package com.example.kathavichar.view.composables.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,7 +58,7 @@ fun PlayListItem(sectionItem: Item, navigationController: NavHostController) {
         modifier = Modifier
             .size(150.dp, 150.dp)
             .padding(3.dp)
-            .clickable { navigationController.navigate("SongsList") },
+            .clickable { navigationController.navigate("SongsList/${sectionItem.name}") },
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(102.dp),
