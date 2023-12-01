@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kathavichar.model.SectionData
+import com.example.kathavichar.model.Song
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.HomeCategoriesFirebase
+import com.example.kathavichar.repositories.SongsListFirebase
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -17,9 +19,19 @@ import org.koin.java.KoinJavaComponent.inject
 class MainViewModel : ViewModel() {
 
     private val homeCategoriesFirebase: HomeCategoriesFirebase by inject(HomeCategoriesFirebase::class.java)
+    private val sonsListFirebase: SongsListFirebase by inject(SongsListFirebase::class.java)
+
     private val _uiState: MutableStateFlow<ServerResponse<MutableList<SectionData>>> = MutableStateFlow(ServerResponse.isLoading())
     val uiState = _uiState.asStateFlow()
+
+    private val _uiStateSongs: MutableStateFlow<ServerResponse<MutableList<Song>>> = MutableStateFlow(ServerResponse.isLoading())
+    val uiStateSongs = _uiStateSongs.asStateFlow()
+
     val subscription: CompositeDisposable = CompositeDisposable()
+
+    init {
+        getSongs()
+    }
 
     fun getCategories() {
         viewModelScope.launch {
@@ -30,6 +42,23 @@ class MainViewModel : ViewModel() {
                     .subscribe({
                         viewModelScope.launch {
                             _uiState.emit(ServerResponse.onSuccess(it))
+                        }
+                    }, {
+                        Log.i("edfgwegf", it.toString())
+                    }),
+            )
+        }
+    }
+    fun getSongs() {
+        viewModelScope.launch {
+            subscription.add(
+                sonsListFirebase.getSongsList()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        Log.i("sdghdsfsongs", it.toString())
+                        viewModelScope.launch {
+                            _uiStateSongs.emit(ServerResponse.onSuccess(it))
                         }
                     }, {
                         Log.i("edfgwegf", it.toString())

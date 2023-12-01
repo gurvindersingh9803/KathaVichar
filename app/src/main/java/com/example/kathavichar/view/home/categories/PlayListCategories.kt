@@ -1,6 +1,5 @@
 package com.example.kathavichar.view.home.categories
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -80,7 +79,7 @@ fun PlayListItem(sectionItem: Item, navigationController: NavHostController) {
 
             ) {
                 Text(
-                    sectionItem.name.toString(),
+                    sectionItem.name,
                     fontSize = 20.sp,
                     color = Color.White.copy(alpha = 0.5f),
                     modifier = Modifier.align(Alignment.BottomEnd),
