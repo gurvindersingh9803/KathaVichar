@@ -8,8 +8,10 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.gson.Gson
+import com.google.gson.stream.JsonReader
 import io.reactivex.Single
 import org.koin.java.KoinJavaComponent
+import java.io.StringReader
 
 class SongsListFirebase {
 
@@ -29,14 +31,24 @@ class SongsListFirebase {
         try {
             databaseReference!!.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    snapshot.children.forEach {
-                        Log.i("ghsdgdf", it.toString())
+                    for (sectionSnapshot in snapshot.children) {
+                        val sectionName = sectionSnapshot.child("sectionName").getValue(String::class.java)
 
+                        if (sectionName == "Artists") {
+                            for (artistSnapshot in sectionSnapshot.child("data").children) {
+                                val songsSnapshot = artistSnapshot.child("songs")
 
-
+                                for (songSnapshot in songsSnapshot.children) {
+                                    val audioUrl = songSnapshot.child("audioUrl").getValue(String::class.java)
+                                    val imgUrl = songSnapshot.child("imgUrl").getValue(String::class.java)
+                                    val title = songSnapshot.child("title").getValue(String::class.java)
+                                    val songObj = Song(title = title, imgUrl = imgUrl, audioUrl = audioUrl)
+                                    list.add(songObj)
+                                }
+                                emitter.onSuccess(list)
+                            }
+                        }
                     }
-
-                    emitter.onSuccess(list)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
