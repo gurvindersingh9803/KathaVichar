@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
-class MainViewModel : ViewModel() {
+class MainViewModel() : ViewModel() {
 
     private val homeCategoriesFirebase: HomeCategoriesFirebase by inject(HomeCategoriesFirebase::class.java)
 

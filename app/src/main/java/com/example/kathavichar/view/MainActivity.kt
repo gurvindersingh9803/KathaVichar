@@ -7,18 +7,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.compose.rememberNavController
 import com.example.kathavichar.common.BottomNavigationBar
 import com.example.kathavichar.common.NavigationGraph
 import com.example.kathavichar.ui.theme.KathaVicharTheme
 import com.example.kathavichar.viewModel.MainViewModel
+import com.example.kathavichar.viewModel.MusicPlayerViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()
     private val songsViewModel by viewModels<SongsViewModel>()
+    private val musicPlayerViewModel by viewModels<MusicPlayerViewModel>()
+    private lateinit var musicPlayer: ExoPlayer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        musicPlayer = ExoPlayer.Builder(this).build()
         setContent {
             KathaVicharTheme {
                 val navController = rememberNavController()
@@ -29,7 +35,7 @@ class MainActivity : ComponentActivity() {
                     },
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        NavigationGraph(navigationController = navController, mainViewModel, songsViewModel)
+                        NavigationGraph(navigationController = navController, mainViewModel, songsViewModel, musicPlayerViewModel, musicPlayer)
                     }
                 }
             }
