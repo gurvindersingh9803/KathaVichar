@@ -59,7 +59,7 @@ fun NavigationGraph(
     mainViewModel: MainViewModel,
     songsViewModel: SongsViewModel,
     musicPlayerViewModel: MusicPlayerViewModel,
-    musicPlayer: ExoPlayer
+    musicPlayer: ExoPlayer,
 ) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
@@ -79,8 +79,16 @@ fun NavigationGraph(
             val artistName = it.arguments?.getString("artistName")
             SongsListState(navigationController, artistName, songsViewModel)
         }
-        composable(route = Screen.MusicPlayer.route) {
-            MusicPlayerState(musicPlayerViewModel, musicPlayer)
+        composable(
+            route = "${Screen.MusicPlayerState.route}/{audioUrl}",
+            arguments = listOf(
+                navArgument("audioUrl") {
+                    type = NavType.StringType
+                },
+            ),
+        ) {
+            val audioUrl = it.arguments?.getString("audioUrl")
+            MusicPlayerState(musicPlayerViewModel, musicPlayer, audioUrl)
         }
     }
 }

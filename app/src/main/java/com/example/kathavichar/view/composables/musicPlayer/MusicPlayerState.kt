@@ -9,12 +9,16 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.example.kathavichar.viewModel.MusicPlayerViewModel
 
 @Composable
-fun MusicPlayerState(musicPlayerViewModel: MusicPlayerViewModel, musicPlayer: ExoPlayer) {
+fun MusicPlayerState(
+    musicPlayerViewModel: MusicPlayerViewModel,
+    musicPlayer: ExoPlayer,
+    audioUrl: String?
+) {
     LaunchedEffect(Unit) {
-        val mediaItem = MediaItem.fromUri(Uri.parse("https://firebasestorage.googleapis.com/v0/b/kathavichar-a5b4e.appspot.com/o/allKatha%2FSantMaskeenJi%2F20dc0c28-a4b0-45f0-a3c2-fec1548ca542.mp3?alt=media&token=28806dff-4de7-4b47-93f1-dfa960ee0647"))
+        Log.i("rftgregyrtyg", audioUrl.toString())
+        val mediaItem = MediaItem.fromUri(Uri.parse(audioUrl))
         musicPlayer.addMediaItem(mediaItem)
         musicPlayer.prepare()
-        Log.i("rwfqwetrt", musicPlayer.toString())
         musicPlayer.play()
     }
 }

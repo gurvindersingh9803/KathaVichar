@@ -7,7 +7,7 @@ import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.MusicPlayerViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 import com.google.gson.Gson
-import org.koin.android.ext.koin.androidApplication
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -15,7 +15,6 @@ val appModule = module {
     single { Gson() }
     single { HomeCategoriesFirebase() }
     single { SongsListFirebase() }
-    // single { ExoPlayer.Builder(androidApplication()).build() }
     viewModel { MainViewModel() }
     viewModel { SongsViewModel() }
     viewModel { MusicPlayerViewModel() }

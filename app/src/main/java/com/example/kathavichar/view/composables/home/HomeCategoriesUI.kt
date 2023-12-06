@@ -53,6 +53,7 @@ fun HomeCategories(data: List<SectionData>?, navigationController: NavHostContro
 
 @Composable
 fun PlayListItem(sectionItem: Item, navigationController: NavHostController) {
+    println("zazaaz $sectionItem")
     Card(
         elevation = 4.dp,
         shape = RoundedCornerShape(10.dp),

@@ -1,6 +1,5 @@
 package com.example.kathavichar.view.composables.songs
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.kathavichar.R
+import com.example.kathavichar.common.Screen
 import com.example.kathavichar.model.Song
 
 @Composable
@@ -33,8 +33,6 @@ fun SongsListUI(data: List<Song>?, navigationController: NavHostController) {
     val lazyListState = rememberLazyListState()
     var scrolledY = 0f
     var previousOffset = 0
-
-    Log.i("edfgrsdfd", data.toString())
 
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         LazyColumn(
@@ -69,8 +67,9 @@ fun SongsListUI(data: List<Song>?, navigationController: NavHostController) {
 
 @Composable
 fun SongItem(songItem: Song?, navigationController: NavHostController) {
+    println("fdfdf $songItem")
     Column() {
-        Card(modifier = Modifier.clickable { navigationController.navigate("MusicPlayer") }) {
+        Card(modifier = Modifier.clickable { navigationController.navigate("${Screen.MusicPlayerState.route}/${songItem?.audioUrl}") }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly,
