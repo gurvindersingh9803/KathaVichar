@@ -15,12 +15,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.example.kathavichar.model.Song
 import com.example.kathavichar.view.composables.home.HomeScreenState
 import com.example.kathavichar.view.composables.musicPlayer.MusicPlayerState
 import com.example.kathavichar.view.composables.songs.SongsListState
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.MusicPlayerViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
+import com.google.gson.Gson
 
 @Composable
 fun BottomNavigationBar(navigationController: NavHostController) {
@@ -80,15 +82,18 @@ fun NavigationGraph(
             SongsListState(navigationController, artistName, songsViewModel)
         }
         composable(
-            route = "${Screen.MusicPlayerState.route}/{audioUrl}",
+            route = "${Screen.MusicPlayerState.route}/{songItemString}",
             arguments = listOf(
-                navArgument("audioUrl") {
+                navArgument("songItemString") {
                     type = NavType.StringType
                 },
             ),
         ) {
-            val audioUrl = it.arguments?.getString("audioUrl")
-            MusicPlayerState(musicPlayerViewModel, musicPlayer, audioUrl)
+            it.arguments?.getString("songItemString").let { songItemString ->
+                val gson = Gson()
+                val audioUrl = gson.fromJson(songItemString, Song::class.java)
+                MusicPlayerState(musicPlayerViewModel, musicPlayer, audioUrl.audioUrl)
+            }
         }
     }
 }

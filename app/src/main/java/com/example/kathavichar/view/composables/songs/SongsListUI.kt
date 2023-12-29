@@ -27,6 +27,9 @@ import androidx.navigation.NavHostController
 import com.example.kathavichar.R
 import com.example.kathavichar.common.Screen
 import com.example.kathavichar.model.Song
+import com.google.gson.Gson
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun SongsListUI(data: List<Song>?, navigationController: NavHostController) {
@@ -67,9 +70,12 @@ fun SongsListUI(data: List<Song>?, navigationController: NavHostController) {
 
 @Composable
 fun SongItem(songItem: Song?, navigationController: NavHostController) {
-    println("fdfdf $songItem")
+    val gson = Gson() // TODO: Make it only composable 1 time in future.
+    val songItemString = gson.toJson(songItem, Song::class.java)
+    var encode = URLEncoder.encode(songItemString, StandardCharsets.UTF_8.toString())
+
     Column() {
-        Card(modifier = Modifier.clickable { navigationController.navigate("${Screen.MusicPlayerState.route}/${songItem?.audioUrl}") }) {
+        Card(modifier = Modifier.clickable { navigationController.navigate("${Screen.MusicPlayerState.route}/$encode") }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly,
