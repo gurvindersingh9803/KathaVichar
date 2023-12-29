@@ -7,7 +7,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -19,6 +18,7 @@ import com.example.kathavichar.model.Song
 import com.example.kathavichar.view.composables.home.HomeScreenState
 import com.example.kathavichar.view.composables.musicPlayer.MusicPlayerState
 import com.example.kathavichar.view.composables.songs.SongsListState
+import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.MusicPlayerViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
@@ -61,7 +61,7 @@ fun NavigationGraph(
     mainViewModel: MainViewModel,
     songsViewModel: SongsViewModel,
     musicPlayerViewModel: MusicPlayerViewModel,
-    musicPlayer: ExoPlayer,
+    musicPlayerService: MusicPlayerService,
 ) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
@@ -92,7 +92,7 @@ fun NavigationGraph(
             it.arguments?.getString("songItemString").let { songItemString ->
                 val gson = Gson()
                 val audioUrl = gson.fromJson(songItemString, Song::class.java)
-                MusicPlayerState(musicPlayerViewModel, musicPlayer, audioUrl.audioUrl)
+                MusicPlayerState(musicPlayerViewModel, musicPlayerService, audioUrl.audioUrl)
             }
         }
     }
