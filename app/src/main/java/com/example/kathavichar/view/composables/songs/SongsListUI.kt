@@ -27,12 +27,13 @@ import androidx.navigation.NavHostController
 import com.example.kathavichar.R
 import com.example.kathavichar.common.Screen
 import com.example.kathavichar.model.Song
+import com.example.kathavichar.viewModel.SongsViewModel
 import com.google.gson.Gson
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun SongsListUI(data: List<Song>?, navigationController: NavHostController) {
+fun SongsListUI(data: List<Song>?, songsViewModel: SongsViewModel, navigationController: NavHostController) {
     val lazyListState = rememberLazyListState()
     var scrolledY = 0f
     var previousOffset = 0
@@ -60,7 +61,7 @@ fun SongsListUI(data: List<Song>?, navigationController: NavHostController) {
                 }
                 data?.size?.let {
                     items(it) { currentSongIndex ->
-                        SongItem(data[currentSongIndex], navigationController)
+                        SongItem(data[currentSongIndex], songsViewModel, navigationController)
                     }
                 }
             },
@@ -69,13 +70,17 @@ fun SongsListUI(data: List<Song>?, navigationController: NavHostController) {
 }
 
 @Composable
-fun SongItem(songItem: Song?, navigationController: NavHostController) {
+fun SongItem(
+    songItem: Song?,
+    songsViewModel: SongsViewModel,
+    navigationController: NavHostController
+) {
     val gson = Gson() // TODO: Make it only composable 1 time in future.
     val songItemString = gson.toJson(songItem, Song::class.java)
-    var encode = URLEncoder.encode(songItemString, StandardCharsets.UTF_8.toString())
+    val encode = URLEncoder.encode(songItemString, StandardCharsets.UTF_8.toString())
 
     Column() {
-        Card(modifier = Modifier.clickable { navigationController.navigate("${Screen.MusicPlayerState.route}/$encode") }) {
+        Card(modifier = Modifier.clickable { songItem?.let { songsViewModel.onTrackClicked(it) } }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly,

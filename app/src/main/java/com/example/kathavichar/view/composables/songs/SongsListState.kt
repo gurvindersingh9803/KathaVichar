@@ -18,7 +18,7 @@ fun SongsListState(navigationController: NavHostController, artistName: String?,
 
     when (uiState) {
         is ServerResponse.isLoading -> isDataLoading()
-        is ServerResponse.onSuccess -> SongsListUI(uiState.data, navigationController)
+        is ServerResponse.onSuccess -> SongsListUI(uiState.data, viewModel, navigationController)
         is ServerResponse.onError -> {}
     }
 }

@@ -1,10 +1,11 @@
 package com.example.kathavichar.repositories.musicPlayer
 
-import android.net.Uri
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -22,10 +23,10 @@ class MusicPlayerKathaVichar(private val exoPlayer: ExoPlayer) : Player.Listener
 
     val currentTrackDuration: Long
         get() = if (exoPlayer.duration > 0) exoPlayer.duration else 0L
-    
-    fun initMusicPlayer(uri: Uri) {
+
+    fun initMusicPlayer(songsList: MutableList<MediaItem>) {
         exoPlayer.addListener(this)
-        // exoPlayer.setMediaItems(trackList)
+        exoPlayer.setMediaItems(songsList)
         exoPlayer.prepare()
     }
 
@@ -40,6 +41,12 @@ class MusicPlayerKathaVichar(private val exoPlayer: ExoPlayer) : Player.Listener
 
     fun seekToPosition(position: Long) {
         exoPlayer.seekTo(position)
+    }
+
+    fun setUpTrack(index: Int, isTrackPlay: Boolean) {
+        if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
+        exoPlayer.seekTo(index, 0)
+        if (isTrackPlay) exoPlayer.playWhenReady = true
     }
 
     override fun onPlayerError(error: PlaybackException) {

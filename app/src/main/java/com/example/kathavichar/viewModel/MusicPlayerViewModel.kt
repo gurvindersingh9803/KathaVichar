@@ -1,34 +1,89 @@
 package com.example.kathavichar.viewModel
 
-import android.net.Uri
-import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.kathavichar.view.musicPlayerService.DefaultMusicPlayerService
-import com.example.kathavichar.view.musicPlayerService.DefaultSchedulerProvider
-import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import org.koin.android.ext.android.inject
-import org.koin.java.KoinJavaComponent.inject
 
 class MusicPlayerViewModel() : ViewModel() {
 
-    private val musicPlayerService: MusicPlayerService by inject(MusicPlayerService::class.java)
-    private val compositeDisposable = CompositeDisposable()
-    private val schedulerProvider = DefaultSchedulerProvider()
+/*    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(MusicPlayerKathaVichar::class.java)
 
-    fun playSong(soundFileType: Uri) {
-        compositeDisposable.add(
-            musicPlayerService.playSound(soundFileType)
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    Log.i("Media player task completed", "Completed")
-                    musicPlayerService.pauseMusicPlayer()
-                }, {
-                    Log.i("Media player error occurred", it.toString())
-                    musicPlayerService.pauseMusicPlayer()
-                }),
-        )
+    private var selectedTrackIndex: Int by mutableStateOf(-1)
+
+    private var isTrackPlay: Boolean = false
+
+    private var isAuto: Boolean = false
+
+    private val _songs = mutableStateListOf<Song>()
+    *//**
+     * An immutable snapshot of the current list of tracks.
+     *//*
+    val songs: List<Song> get() = _songs
+
+
+
+    *//*    private val musicPlayerService: MusicPlayerService by inject(MusicPlayerService::class.java)
+        private val compositeDisposable = CompositeDisposable()
+        private val schedulerProvider = DefaultSchedulerProvider()*//*
+
+    init {
+        musicPlayerKathaVichar.initMusicPlayer()
+        observeMusicPlayerState()
     }
+
+    override fun onPlayPauseClicked() {
+        musicPlayerKathaVichar.playPause()
+    }
+
+    override fun onPreviousClicked() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onNextClicked() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onTrackClicked(song: Song) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onSeekBarPositionChanged(position: Long) {
+        TODO("Not yet implemented")
+    }
+
+    fun observeMusicPlayerState() {
+        viewModelScope.launch {
+            musicPlayerKathaVichar.playerState.collect{
+                Log.i("ergftewgtw", it.name)
+            }
+        }
+    }
+
+    private fun onTrackSelected(index: Int) {
+        if (selectedTrackIndex == -1) isTrackPlay = true
+        if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
+            // _tracks.resetTracks()
+            selectedTrackIndex = index
+            setUpTrack()
+        }
+    }
+
+    private fun setUpTrack() {
+        if (!isAuto) musicPlayerKathaVichar.setUpTrack(selectedTrackIndex, isTrackPlay)
+        isAuto = false
+    }
+    *//* fun playSong(soundFileType: Uri) {
+         compositeDisposable.add(
+             musicPlayerService.playSound(soundFileType)
+                 .subscribeOn(schedulerProvider.io())
+                 .observeOn(AndroidSchedulers.mainThread())
+                 .subscribe({
+                     Log.i("Media player task completed", "Completed")
+                     musicPlayerService.pauseMusicPlayer()
+                 }, {
+                     Log.i("Media player error occurred", it.toString())
+                     musicPlayerService.pauseMusicPlayer()
+                 }),
+         )
+     }*/
 }

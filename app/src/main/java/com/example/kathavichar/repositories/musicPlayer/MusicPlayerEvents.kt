@@ -1,5 +1,7 @@
 package com.example.kathavichar.repositories.musicPlayer
 
+import com.example.kathavichar.model.Song
+
 interface MusicPlayerEvents {
 
     fun onPlayPauseClicked()
@@ -8,7 +10,7 @@ interface MusicPlayerEvents {
 
     fun onNextClicked()
 
-    fun onTrackClicked()
+    fun onTrackClicked(song: Song)
 
     fun onSeekBarPositionChanged(position: Long)
 }

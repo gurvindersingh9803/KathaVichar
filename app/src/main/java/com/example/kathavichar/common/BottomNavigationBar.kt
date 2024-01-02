@@ -90,9 +90,7 @@ fun NavigationGraph(
             ),
         ) {
             it.arguments?.getString("songItemString").let { songItemString ->
-                val gson = Gson()
-                val audioUrl = gson.fromJson(songItemString, Song::class.java)
-                MusicPlayerState(musicPlayerViewModel, musicPlayerService, audioUrl.audioUrl)
+                MusicPlayerState(musicPlayerViewModel, musicPlayerService, songItemString)
             }
         }
     }
