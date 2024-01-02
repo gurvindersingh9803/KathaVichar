@@ -13,7 +13,7 @@ import org.koin.java.KoinJavaComponent.inject
 
 class MusicPlayerViewModel() : ViewModel() {
 
-    private val musicPlayerService: MusicPlayerService by inject(DefaultMusicPlayerService::class.java)
+    private val musicPlayerService: MusicPlayerService by inject(MusicPlayerService::class.java)
     private val compositeDisposable = CompositeDisposable()
     private val schedulerProvider = DefaultSchedulerProvider()
 
