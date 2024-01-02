@@ -46,12 +46,16 @@ class SongsListFirebase {
                                             .getValue(String::class.java)
                                         val title =
                                             songSnapshot.child("title").getValue(String::class.java)
-                                        val songObj = Song(
-                                            title = title,
-                                            imgUrl = imgUrl,
-                                            audioUrl = audioUrl,
-                                        )
-                                        list.add(songObj)
+                                        val songObj = audioUrl?.let {
+                                            Song(
+                                                title = title,
+                                                imgUrl = imgUrl,
+                                                audioUrl = it,
+                                            )
+                                        }
+                                        if (songObj != null) {
+                                            list.add(songObj)
+                                        }
                                     }
                                 }
                                 emitter.onSuccess(list)
