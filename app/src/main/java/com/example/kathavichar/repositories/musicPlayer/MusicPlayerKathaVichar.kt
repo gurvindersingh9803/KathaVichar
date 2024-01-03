@@ -74,6 +74,7 @@ class MusicPlayerKathaVichar(private val exoPlayer: ExoPlayer) : Player.Listener
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         super.onPlaybackStateChanged(playbackState)
+        Log.i("aqqaqqq", playbackState.toString())
         when (playbackState) {
             Player.STATE_IDLE -> {
                 _playerState.tryEmit(MusicPlayerStates.STATE_IDLE)
@@ -84,8 +85,12 @@ class MusicPlayerKathaVichar(private val exoPlayer: ExoPlayer) : Player.Listener
             Player.STATE_READY -> {
                 _playerState.tryEmit(MusicPlayerStates.STATE_READY)
                 if (exoPlayer.playWhenReady) {
+                    Log.i("aqqaqqqplayWhenReady", playbackState.toString())
+
                     _playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
                 } else {
+                    Log.i("aqqaqqqplayWhenReadyNooo", playbackState.toString())
+
                     _playerState.tryEmit(MusicPlayerStates.STATE_PAUSE)
                 }
             }
