@@ -1,5 +1,6 @@
 package com.example.kathavichar.view.composables.songs
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,14 +18,19 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.kathavichar.R
 import com.example.kathavichar.model.Song
+import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.viewModel.SongsViewModel
 import com.google.gson.Gson
 import java.net.URLEncoder
@@ -98,8 +104,21 @@ fun SongItem(
                 // Text(text = "Track name", style = MaterialTheme.typography.h1)
             }
             Text(text = "2:35", style = MaterialTheme.typography.body2)
+
+            Log.i("ergfegew", songItem?.state?.name.toString())
+            if (songItem?.state == MusicPlayerStates.STATE_PLAYING) LottieAnimationForPlayingSong()
         }
     }
 
     Spacer(modifier = Modifier.height(20.dp))
+}
+
+@Composable
+fun LottieAnimationForPlayingSong() {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.audio_wave))
+    LottieAnimation(
+        composition = composition,
+        iterations = Int.MAX_VALUE,
+        modifier = Modifier.size(64.dp),
+    )
 }
