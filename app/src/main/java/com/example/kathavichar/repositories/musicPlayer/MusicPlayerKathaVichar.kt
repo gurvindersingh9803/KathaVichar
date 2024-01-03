@@ -1,5 +1,6 @@
 package com.example.kathavichar.repositories.musicPlayer
 
+import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -65,7 +66,7 @@ class MusicPlayerKathaVichar(private val exoPlayer: ExoPlayer) : Player.Listener
     }
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
-        if(reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO){
+        if(reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
             _playerState.tryEmit(MusicPlayerStates.STATE_NEXT_TRACK)
             _playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
         }

@@ -1,5 +1,6 @@
 package com.example.kathavichar.view.composables.songs.main
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.example.kathavichar.view.composables.musicPlayer.BottomPlayerTab
 import com.example.kathavichar.view.composables.songs.SongsListState
@@ -87,8 +89,9 @@ fun Content(
                             viewModel = songsViewModel,
                             modifier = modifier,
                         )
+                        Log.i("wrefewdfq", songsViewModel.selectedTrack.toString())
                         AnimatedVisibility(
-                            visible = true,
+                            visible = songsViewModel.selectedTrack != null,
                             enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
                         ) {
                             songsViewModel.selectedTrack?.let {

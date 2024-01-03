@@ -55,11 +55,7 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
 
     private val playbackStateFlowJob = viewModelScope
 
-    private val playbackStateFlow: MutableStateFlow<PlayBackState> = MutableStateFlow(PlayBackState(currentPlaybackPosition = musicPlayerKathaVichar.currentPlaybackPosition, currentTrackDuration = musicPlayerKathaVichar.currentTrackDuration))
-
-    init {
-        observeMusicPlayerState()
-    }
+    private val playbackStateFlow: MutableStateFlow<PlayBackState> = MutableStateFlow(PlayBackState(currentPlaybackPosition = 0L, currentTrackDuration = 0L))
 
     fun getSongs(artistName: String) {
         viewModelScope.launch {
@@ -71,6 +67,7 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
                         viewModelScope.launch {
                             _songs.addAll(it)
                             musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemList())
+                            observeMusicPlayerState()
                             _uiStateSongs.emit(ServerResponse.onSuccess(it))
                         }
                     }, {
@@ -114,18 +111,17 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
         if (selectedTrackIndex == -1) isTrackPlay = true
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
             selectedTrackIndex = index
-            resetTracks()
+            _songs.resetTracks()
             setUpTrack()
         }
     }
 
-    private fun resetTracks() {
-        _songs.forEach { track ->
+    private fun MutableList<Song>.resetTracks() {
+        this.forEach { track ->
             track.isSelected = false
             track.state = MusicPlayerStates.STATE_IDLE
         }
     }
-
     private fun setUpTrack() {
         if (!isAuto) musicPlayerKathaVichar.setUpTrack(selectedTrackIndex, isTrackPlay)
         isAuto = false
@@ -171,5 +167,10 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
      */
     fun List<Song>.toMediaItemList(): MutableList<MediaItem> {
         return this.map { MediaItem.fromUri(it.audioUrl) }.toMutableList()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        musicPlayerKathaVichar.releasePlayer()
     }
 }
