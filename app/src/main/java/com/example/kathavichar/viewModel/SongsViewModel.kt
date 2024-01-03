@@ -5,20 +5,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import com.example.kathavichar.model.PlayBackState
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.SongsListFirebase
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
+import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
 
@@ -29,6 +33,7 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
     private val sonsListFirebase: SongsListFirebase by KoinJavaComponent.inject(SongsListFirebase::class.java)
 
     private val _songs = mutableStateListOf<Song>()
+
     /**
      * An immutable snapshot of the current list of tracks.
      */
@@ -37,14 +42,20 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
     val subscription: CompositeDisposable = CompositeDisposable()
 
     private val musicPlayerKathaVichar: MusicPlayerKathaVichar by KoinJavaComponent.inject(
-        MusicPlayerKathaVichar::class.java
+        MusicPlayerKathaVichar::class.java,
     )
 
     private var selectedTrackIndex: Int by mutableStateOf(-1)
+    var selectedTrack: Song? by mutableStateOf(null)
+        private set
 
     private var isTrackPlay: Boolean = false
 
     private var isAuto: Boolean = false
+
+    private val playbackStateFlowJob = viewModelScope
+
+    private val playbackStateFlow: MutableStateFlow<PlayBackState> = MutableStateFlow(PlayBackState(currentPlaybackPosition = musicPlayerKathaVichar.currentPlaybackPosition, currentTrackDuration = musicPlayerKathaVichar.currentTrackDuration))
 
     init {
         observeMusicPlayerState()
@@ -78,7 +89,7 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
     }
 
     override fun onNextClicked() {
-        TODO("Not yet implemented")
+        if (selectedTrackIndex < songs.size - 1) onTrackSelected(selectedTrackIndex + 1)
     }
 
     override fun onTrackClicked(song: Song) {
@@ -91,8 +102,9 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
 
     fun observeMusicPlayerState() {
         viewModelScope.launch {
-            musicPlayerKathaVichar.playerState.collect{
+            musicPlayerKathaVichar.playerState.collect {
                 Log.i("ergftewgtw", it.name)
+                updateState(it)
             }
         }
     }
@@ -112,6 +124,39 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
         isAuto = false
     }
 
+    private fun updateState(state: MusicPlayerStates) {
+        if (selectedTrackIndex != -1) {
+            isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
+            _songs[selectedTrackIndex].state = state
+            _songs[selectedTrackIndex].isSelected = true
+            selectedTrack = null
+            selectedTrack = songs[selectedTrackIndex]
+
+            updatePlaybackState(state)
+            if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
+                isAuto = true
+                onNextClicked()
+            }
+            if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
+        }
+    }
+
+    private fun updatePlaybackState(state: MusicPlayerStates) {
+        playbackStateFlowJob.cancel()
+        playbackStateFlowJob.launch {
+            do {
+                playbackStateFlow.emit(
+                    PlayBackState(
+                        currentPlaybackPosition = musicPlayerKathaVichar.currentPlaybackPosition,
+                        currentTrackDuration = musicPlayerKathaVichar.currentTrackDuration,
+                    ),
+                )
+                Log.i("wfeeff", "")
+                delay(1000)
+            } while (state == MusicPlayerStates.STATE_PLAYING && isActive)
+        }
+    }
+
     /**
      * Converts a list of [Track] objects into a mutable list of [MediaItem] objects.
      *
@@ -120,5 +165,4 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
     fun List<Song>.toMediaItemList(): MutableList<MediaItem> {
         return this.map { MediaItem.fromUri(it.audioUrl) }.toMutableList()
     }
-
 }

@@ -14,15 +14,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
-import com.example.kathavichar.model.Song
 import com.example.kathavichar.view.composables.home.HomeScreenState
 import com.example.kathavichar.view.composables.musicPlayer.MusicPlayerState
-import com.example.kathavichar.view.composables.songs.SongsListState
+import com.example.kathavichar.view.composables.songs.main.SongScreenParent
 import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.MusicPlayerViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
-import com.google.gson.Gson
 
 @Composable
 fun BottomNavigationBar(navigationController: NavHostController) {
@@ -79,7 +77,7 @@ fun NavigationGraph(
             ),
         ) {
             val artistName = it.arguments?.getString("artistName")
-            SongsListState(navigationController, artistName, songsViewModel)
+            SongScreenParent(navigationController, artistName, songsViewModel)
         }
         composable(
             route = "${Screen.MusicPlayerState.route}/{songItemString}",

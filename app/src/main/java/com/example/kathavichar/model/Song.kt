@@ -6,5 +6,6 @@ data class Song(
     val audioUrl: String,
     val imgUrl: String?,
     val title: String?,
-    var state: MusicPlayerStates = MusicPlayerStates.STATE_IDLE
+    var state: MusicPlayerStates = MusicPlayerStates.STATE_IDLE,
+    var isSelected: Boolean = false
 )
