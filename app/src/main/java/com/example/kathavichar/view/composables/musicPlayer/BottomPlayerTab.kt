@@ -28,16 +28,16 @@ fun BottomPlayerTab(song: Song, musicPlayerEvents: MusicPlayerEvents, onBottomTa
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(Color.LightGray)
-            .clickable { }
+            .clickable(onClick = onBottomTabClick)
             .padding(15.dp),
     ) {
         Row() {
             SongImage(songImage = song.imgUrl.toString(), modifier = Modifier.size(70.dp))
             SongName(songName = song.title.toString(), modifier = Modifier.weight(1f))
-            PreviousIcon(onClick = { }, isBottomTab = true)
+            PreviousIcon(onClick = {}, isBottomTab = true)
             PausePlayIcon(
                 currentSong = song,
-                onClick = {},
+                onClick = musicPlayerEvents::onPlayPauseClicked,
                 isBottomTab = true,
             )
             NextIcon(onClick = {}, isBottomTab = true)

@@ -113,9 +113,16 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
         Log.i("fggfrghergth", index.toString())
         if (selectedTrackIndex == -1) isTrackPlay = true
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
-            // _tracks.resetTracks()
             selectedTrackIndex = index
+            resetTracks()
             setUpTrack()
+        }
+    }
+
+    private fun resetTracks() {
+        _songs.forEach { track ->
+            track.isSelected = false
+            track.state = MusicPlayerStates.STATE_IDLE
         }
     }
 

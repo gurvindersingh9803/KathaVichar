@@ -44,7 +44,15 @@ fun SongScreenParent(
         Row(
             Modifier.fillMaxWidth(),
         ) {
-            Content(songsViewModel = songsViewModel, paddingValues, fullScreenState, Modifier.weight(1f), artistName, navigationController, onBottomTabClick)
+            Content(
+                songsViewModel = songsViewModel,
+                paddingValues,
+                fullScreenState,
+                Modifier.weight(1f),
+                artistName,
+                navigationController,
+                onBottomTabClick,
+            )
         }
     }
 }
