@@ -27,7 +27,7 @@ fun SongScreenParent(
                 visible = true,
                 enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
             ) {
-                songsViewModel.selectedTrack?.let { BottomPlayerTab(song = it) }
+                songsViewModel.selectedTrack?.let { BottomPlayerTab(song = it, songsViewModel, {}) }
             }
         }
     }

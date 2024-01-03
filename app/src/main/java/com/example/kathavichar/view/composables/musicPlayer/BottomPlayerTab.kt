@@ -19,9 +19,10 @@ import com.example.kathavichar.common.sharedComposables.PreviousIcon
 import com.example.kathavichar.common.sharedComposables.SongImage
 import com.example.kathavichar.common.sharedComposables.SongName
 import com.example.kathavichar.model.Song
+import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 
 @Composable
-fun BottomPlayerTab(song: Song) {
+fun BottomPlayerTab(song: Song, musicPlayerEvents: MusicPlayerEvents, onBottomTabClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

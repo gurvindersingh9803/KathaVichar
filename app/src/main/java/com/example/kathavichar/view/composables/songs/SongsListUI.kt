@@ -1,5 +1,7 @@
 package com.example.kathavichar.view.composables.songs
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +29,7 @@ import androidx.navigation.NavHostController
 import com.example.kathavichar.R
 import com.example.kathavichar.common.Screen
 import com.example.kathavichar.model.Song
+import com.example.kathavichar.view.composables.musicPlayer.BottomPlayerTab
 import com.example.kathavichar.viewModel.SongsViewModel
 import com.google.gson.Gson
 import java.net.URLEncoder
