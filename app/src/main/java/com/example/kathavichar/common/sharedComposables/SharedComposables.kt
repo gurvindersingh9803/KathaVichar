@@ -35,9 +35,9 @@ fun PausePlayIcon(currentSong: Song, onClick: () -> Unit, isBottomTab: Boolean) 
             Icon(
                 painter = painterResource(
                     id = if (currentSong.state == MusicPlayerStates.STATE_PLAYING) {
-                        R.drawable.imag
+                        R.drawable.baseline_pause_circle_outline_24
                     } else {
-                        R.drawable.headset
+                        R.drawable.outline_play_circle_24
                     },
                 ),
                 contentDescription = "play/pause",
@@ -79,6 +79,7 @@ fun PreviousIcon(onClick: () -> Unit, isBottomTab: Boolean) {
         )
     }
 }
+
 @Composable
 fun NextIcon(onClick: () -> Unit, isBottomTab: Boolean) {
     IconButton(onClick = onClick) {
@@ -89,4 +90,3 @@ fun NextIcon(onClick: () -> Unit, isBottomTab: Boolean) {
         )
     }
 }
-
