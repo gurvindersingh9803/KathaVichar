@@ -1,23 +1,65 @@
 package com.example.kathavichar.repositories.musicPlayer
 
-import android.util.Log
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-class MusicPlayerKathaVichar(private val exoPlayer: ExoPlayer) : Player.Listener {
+class MusicPlayerKathaVichar(
+    private val exoPlayer: ExoPlayer,
+) : Player.Listener {
+    override fun onMediaItemTransition(
+        mediaItem: MediaItem?,
+        reason: Int,
+    ) {
+        super.onMediaItemTransition(mediaItem, reason)
+    }
 
-    /**
-     * A state flow that emits the current playback state of the player.
-     */
+    override fun onTracksChanged(tracks: Tracks) {
+        super.onTracksChanged(tracks)
+    }
 
-    private val _playerState: MutableStateFlow<MusicPlayerStates> = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
-    val playerState = _playerState.asStateFlow()
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        when (playbackState) {
+            Player.STATE_IDLE -> {
+                playerState.tryEmit(MusicPlayerStates.STATE_IDLE)
+            }
+
+            Player.STATE_BUFFERING -> {
+                playerState.tryEmit(MusicPlayerStates.STATE_BUFFERING)
+            }
+
+            Player.STATE_READY -> {
+                playerState.tryEmit(MusicPlayerStates.STATE_READY)
+                if (exoPlayer.playWhenReady) {
+                    playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
+                } else {
+                    playerState.tryEmit(MusicPlayerStates.STATE_PAUSE)
+                }
+            }
+
+            Player.STATE_ENDED -> {
+                playerState.tryEmit(MusicPlayerStates.STATE_END)
+            }
+        }
+    }
+
+    override fun onPlayWhenReadyChanged(
+        playWhenReady: Boolean,
+        reason: Int,
+    ) {
+        super.onPlayWhenReadyChanged(playWhenReady, reason)
+    }
+
+    override fun onPlayerError(error: PlaybackException) {
+        super.onPlayerError(error)
+    }
+
+    val playerState = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
+
+    // val _playerState = MutableSharedFlow(MusicPlayerStates.STATE_IDLE).asSharedFlow()
 
     val currentPlaybackPosition: Long
         get() = if (exoPlayer.currentPosition > 0) exoPlayer.currentPosition else 0L
@@ -32,6 +74,8 @@ class MusicPlayerKathaVichar(private val exoPlayer: ExoPlayer) : Player.Listener
     }
 
     fun playPause() {
+        var a = exoPlayer.playbackState == Player.STATE_IDLE
+        println("fgbdf $a")
         if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
         exoPlayer.playWhenReady = !exoPlayer.playWhenReady
     }
@@ -44,59 +88,13 @@ class MusicPlayerKathaVichar(private val exoPlayer: ExoPlayer) : Player.Listener
         exoPlayer.seekTo(position)
     }
 
-    fun setUpTrack(index: Int, isTrackPlay: Boolean) {
+    fun setUpTrack(
+        index: Int,
+        isTrackPlay: Boolean,
+    ) {
+        println("qrfgegf $isTrackPlay $index ${exoPlayer.playbackState }")
         if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
         exoPlayer.seekTo(index, 0)
         if (isTrackPlay) exoPlayer.playWhenReady = true
-    }
-
-    override fun onPlayerError(error: PlaybackException) {
-        super.onPlayerError(error)
-        _playerState.tryEmit(MusicPlayerStates.STATE_ERROR)
-    }
-
-    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-        if (exoPlayer.playbackState == Player.STATE_READY) {
-            if (playWhenReady) {
-                _playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
-            } else {
-                _playerState.tryEmit(MusicPlayerStates.STATE_PAUSE)
-            }
-        }
-    }
-    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-        super.onMediaItemTransition(mediaItem, reason)
-        if(reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-            _playerState.tryEmit(MusicPlayerStates.STATE_NEXT_TRACK)
-            _playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
-        }
-    }
-
-    override fun onPlaybackStateChanged(playbackState: Int) {
-        super.onPlaybackStateChanged(playbackState)
-        Log.i("aqqaqqq", playbackState.toString())
-        when (playbackState) {
-            Player.STATE_IDLE -> {
-                _playerState.tryEmit(MusicPlayerStates.STATE_IDLE)
-            }
-            Player.STATE_BUFFERING -> {
-                _playerState.tryEmit(MusicPlayerStates.STATE_BUFFERING)
-            }
-            Player.STATE_READY -> {
-                _playerState.tryEmit(MusicPlayerStates.STATE_READY)
-                if (exoPlayer.playWhenReady) {
-                    Log.i("aqqaqqqplayWhenReady", playbackState.toString())
-
-                    _playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
-                } else {
-                    Log.i("aqqaqqqplayWhenReadyNooo", playbackState.toString())
-
-                    _playerState.tryEmit(MusicPlayerStates.STATE_PAUSE)
-                }
-            }
-            Player.STATE_ENDED -> {
-                _playerState.tryEmit(MusicPlayerStates.STATE_END)
-            }
-        }
     }
 }

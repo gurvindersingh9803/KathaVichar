@@ -3,6 +3,7 @@ package com.example.kathavichar.di
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.kathavichar.repositories.HomeCategoriesFirebase
 import com.example.kathavichar.repositories.SongsListFirebase
+import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
 import com.example.kathavichar.view.musicPlayerService.DefaultMusicPlayerService
 import com.example.kathavichar.view.musicPlayerService.MusicPlayerService

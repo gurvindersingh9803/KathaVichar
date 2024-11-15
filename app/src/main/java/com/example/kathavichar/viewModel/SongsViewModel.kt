@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import com.example.kathavichar.model.PlayBackState
 import com.example.kathavichar.model.Song
@@ -18,6 +19,7 @@ import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,8 +28,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
 
-class SongsViewModel : ViewModel(), MusicPlayerEvents {
-
+class SongsViewModel :
+    ViewModel(),
+    MusicPlayerEvents {
     private val _uiStateSongs: MutableStateFlow<ServerResponse<MutableList<Song>>> = MutableStateFlow(ServerResponse.isLoading())
     val uiStateSongs = _uiStateSongs.asStateFlow()
     private val sonsListFirebase: SongsListFirebase by KoinJavaComponent.inject(SongsListFirebase::class.java)
@@ -55,21 +58,27 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
 
     private val playbackStateFlowJob = viewModelScope
 
-    private val playbackStateFlow: MutableStateFlow<PlayBackState> = MutableStateFlow(PlayBackState(currentPlaybackPosition = 0L, currentTrackDuration = 0L))
+    private val playbackStateFlow: MutableStateFlow<PlayBackState> =
+        MutableStateFlow(PlayBackState(currentPlaybackPosition = 0L, currentTrackDuration = 0L))
+
+    init {
+        viewModelScope.launch {
+            getSongs("Maskeen Ji")
+        }
+    }
 
     fun getSongs(artistName: String) {
         viewModelScope.launch {
             subscription.add(
-                sonsListFirebase.getSongsList(artistName)
+                sonsListFirebase
+                    .getSongsList(artistName)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        viewModelScope.launch {
-                            _songs.addAll(it)
-                            musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemList())
-                            observeMusicPlayerState()
-                            _uiStateSongs.emit(ServerResponse.onSuccess(it))
-                        }
+                        println("argts $it")
+                        _songs.addAll(it)
+                        musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemList())
+                        observeMusicPlayerState()
                     }, {
                         Log.i("edfgwegf", it.toString())
                     }),
@@ -90,6 +99,7 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
     }
 
     override fun onTrackClicked(song: Song) {
+        println("onTrackClicked")
         onTrackSelected(songs.indexOf(song))
     }
 
@@ -98,16 +108,11 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
     }
 
     fun observeMusicPlayerState() {
-        viewModelScope.launch {
-            musicPlayerKathaVichar.playerState.collect {
-                Log.i("ergftewgtw", it.name)
-                updateState(it)
-            }
-        }
+        viewModelScope.collectPlayerState(kathaVichar = musicPlayerKathaVichar, ::updateState)
     }
 
     private fun onTrackSelected(index: Int) {
-        Log.i("fggfrghergth", index.toString())
+        Log.i("fggfrghergth", musicPlayerKathaVichar.playerState.value.toString())
         if (selectedTrackIndex == -1) isTrackPlay = true
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
             selectedTrackIndex = index
@@ -122,6 +127,7 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
             track.state = MusicPlayerStates.STATE_IDLE
         }
     }
+
     private fun setUpTrack() {
         if (!isAuto) musicPlayerKathaVichar.setUpTrack(selectedTrackIndex, isTrackPlay)
         isAuto = false
@@ -130,6 +136,7 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
     private fun updateState(state: MusicPlayerStates) {
         if (selectedTrackIndex != -1) {
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
+            println("afgvsdfg $selectedTrack $state")
             _songs[selectedTrackIndex].state = state
             _songs[selectedTrackIndex].isSelected = true
             selectedTrack = null
@@ -165,12 +172,21 @@ class SongsViewModel : ViewModel(), MusicPlayerEvents {
      *
      * @return A mutable list of [MediaItem] objects.
      */
-    fun List<Song>.toMediaItemList(): MutableList<MediaItem> {
-        return this.map { MediaItem.fromUri(it.audioUrl) }.toMutableList()
-    }
+    fun List<Song>.toMediaItemList(): MutableList<MediaItem> = this.map { MediaItem.fromUri(it.audioUrl) }.toMutableList()
 
     override fun onCleared() {
         super.onCleared()
         musicPlayerKathaVichar.releasePlayer()
+    }
+
+    fun CoroutineScope.collectPlayerState(
+        kathaVichar: MusicPlayerKathaVichar,
+        updateState: (MusicPlayerStates) -> Unit,
+    ) {
+        this.launch {
+            kathaVichar.playerState.collect {
+                updateState(it)
+            }
+        }
     }
 }

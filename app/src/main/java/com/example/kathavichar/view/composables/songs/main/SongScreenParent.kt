@@ -1,6 +1,5 @@
 package com.example.kathavichar.view.composables.songs.main
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Box
@@ -18,13 +17,14 @@ import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import com.example.kathavichar.view.composables.musicPlayer.BottomPlayerTab
-import com.example.kathavichar.view.composables.songs.SongsListState
+import com.example.kathavichar.view.composables.songs.SongsListUI
 import com.example.kathavichar.viewModel.SongsViewModel
 import kotlinx.coroutines.launch
 
@@ -32,17 +32,20 @@ import kotlinx.coroutines.launch
 @Composable
 fun SongScreenParent(
     navigationController: NavHostController,
-    artistName: String?,
     songsViewModel: SongsViewModel,
 ) {
-    val fullScreenState = rememberModalBottomSheetState(
-        initialValue = ModalBottomSheetValue.Hidden,
-        skipHalfExpanded = true,
-    )
+    val fullScreenState =
+        rememberModalBottomSheetState(
+            initialValue = ModalBottomSheetValue.Hidden,
+            skipHalfExpanded = true,
+        )
+
+    val isMusicPlaying = remember { mutableStateOf(false) }
+
     val scope = rememberCoroutineScope()
     val onBottomTabClick: () -> Unit = { scope.launch { fullScreenState.show() } }
 
-    Scaffold() { paddingValues ->
+    Scaffold { paddingValues ->
         Row(
             Modifier.fillMaxWidth(),
         ) {
@@ -51,7 +54,6 @@ fun SongScreenParent(
                 paddingValues,
                 fullScreenState,
                 Modifier.weight(1f),
-                artistName,
                 navigationController,
                 onBottomTabClick,
             )
@@ -66,12 +68,11 @@ fun Content(
     paddingValues: PaddingValues,
     fullScreenState: ModalBottomSheetState,
     modifier: Modifier = Modifier,
-    artistName: String?,
     navigationController: NavHostController,
     onBottomTabClick: () -> Unit,
-
 ) {
     Box(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+        println("swfgfdg ${songsViewModel.selectedTrack}")
         ModalBottomSheetLayout(
             sheetContent = {
             },
@@ -82,14 +83,8 @@ fun Content(
             Scaffold(topBar = {
             }) { paddingValues ->
                 Box(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
-                    Column() {
-                        SongsListState(
-                            navigationController = navigationController,
-                            artistName = artistName,
-                            viewModel = songsViewModel,
-                            modifier = modifier,
-                        )
-                        Log.i("wrefewdfq", songsViewModel.selectedTrack.toString())
+                    Column {
+                        SongsListUI(songsViewModel, navigationController, modifier = modifier)
                         AnimatedVisibility(
                             visible = songsViewModel.selectedTrack != null,
                             enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),

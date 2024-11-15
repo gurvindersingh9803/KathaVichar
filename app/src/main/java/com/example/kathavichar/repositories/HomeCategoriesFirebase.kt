@@ -15,32 +15,37 @@ class HomeCategoriesFirebase {
 
     private val gson: Gson by inject(Gson::class.java)
     var databaseReference: DatabaseReference? = null
+
     init {
         firebaseDatabase = FirebaseDatabase.getInstance()
         databaseReference = firebaseDatabase!!.reference
     }
 
-    fun getdata(): Single<MutableList<SectionData>> = Single.create { emitter ->
-        val list = mutableListOf<SectionData>()
-        try {
-            databaseReference!!.addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    snapshot.children.forEach {
-                        val a = gson.fromJson(gson.toJson(it.getValue()).toString(), SectionData::class.java)
-                        list.add(a)
-                    }
-                    println(list)
-                    emitter.onSuccess(list)
-                }
+    fun getdata(): Single<MutableList<SectionData>> =
+        Single.create { emitter ->
+            val list = mutableListOf<SectionData>()
+            try {
+                databaseReference!!.addValueEventListener(
+                    object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            snapshot.children.forEach {
+                                println("rfgwes $it")
+                                val a = gson.fromJson(gson.toJson(it.value).toString(), SectionData::class.java)
+                                list.add(a)
+                            }
+                            println(list)
+                            emitter.onSuccess(list)
+                        }
 
-                override fun onCancelled(error: DatabaseError) {
-                    // calling on cancelled method when we receive
-                    // any error or we are not able to get the data.
-                    emitter.onError(Throwable(error.message))
-                }
-            })
-        } catch (e: Exception) {
-            emitter.onError(e)
+                        override fun onCancelled(error: DatabaseError) {
+                            // calling on cancelled method when we receive
+                            // any error or we are not able to get the data.
+                            emitter.onError(Throwable(error.message))
+                        }
+                    },
+                )
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
         }
-    }
 }

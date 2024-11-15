@@ -1,6 +1,5 @@
 package com.example.kathavichar.common
 
-import androidx.activity.viewModels
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.MaterialTheme
@@ -16,11 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.kathavichar.view.composables.home.HomeScreenState
-import com.example.kathavichar.view.composables.musicPlayer.MusicPlayerState
 import com.example.kathavichar.view.composables.songs.main.SongScreenParent
-import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
 import com.example.kathavichar.viewModel.MainViewModel
-import com.example.kathavichar.viewModel.MusicPlayerViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 
 @Composable
@@ -59,8 +55,6 @@ fun NavigationGraph(
     navigationController: NavHostController,
     mainViewModel: MainViewModel,
     songsViewModel: SongsViewModel,
-    musicPlayerViewModel: MusicPlayerViewModel,
-    musicPlayerService: MusicPlayerService,
 ) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
@@ -71,26 +65,16 @@ fun NavigationGraph(
         }
         composable(
             route = "${Screen.SongsList.route}/{artistName}",
-            arguments = listOf(
-                navArgument("artistName") {
-                    type = NavType.StringType
-                },
-            ),
+            arguments =
+                listOf(
+                    navArgument("artistName") {
+                        type = NavType.StringType
+                    },
+                ),
         ) {
             val artistName = it.arguments?.getString("artistName")
-            SongScreenParent(navigationController, artistName, songsViewModel)
-        }
-        composable(
-            route = "${Screen.MusicPlayerState.route}/{songItemString}",
-            arguments = listOf(
-                navArgument("songItemString") {
-                    type = NavType.StringType
-                },
-            ),
-        ) {
-            it.arguments?.getString("songItemString").let { songItemString ->
-                MusicPlayerState(musicPlayerViewModel, musicPlayerService, songItemString)
-            }
+            println("ssdfghh")
+            SongScreenParent(navigationController, songsViewModel)
         }
     }
 }
@@ -165,14 +149,15 @@ fun MusicPlayer() {
                                 .aspectRatio(1f),
 
                         ) {
-                          */
+ */
 /*  Image(
                                 painter = painterResource(id = R.drawable.imag),
                                 contentDescription = "Song thumbnail",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize(),
-                            )*//*
+                            )*/
+/*
 
                             // VinylAnimation(painter = painterResource(id = R.drawable.imag), isSongPlaying = true)
                         }

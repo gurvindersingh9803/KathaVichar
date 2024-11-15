@@ -4,9 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
-class MusicPlayerViewModel() : ViewModel() {
-
-/*    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(MusicPlayerKathaVichar::class.java)
+class MusicPlayerViewModel : ViewModel() {
+    /*    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(MusicPlayerKathaVichar::class.java)
 
     private var selectedTrackIndex: Int by mutableStateOf(-1)
 
@@ -15,16 +14,20 @@ class MusicPlayerViewModel() : ViewModel() {
     private var isAuto: Boolean = false
 
     private val _songs = mutableStateListOf<Song>()
-    *//**
+     */
+/**
      * An immutable snapshot of the current list of tracks.
-     *//*
+     */
+/*
     val songs: List<Song> get() = _songs
 
 
 
-    *//*    private val musicPlayerService: MusicPlayerService by inject(MusicPlayerService::class.java)
+ */
+/*    private val musicPlayerService: MusicPlayerService by inject(MusicPlayerService::class.java)
         private val compositeDisposable = CompositeDisposable()
-        private val schedulerProvider = DefaultSchedulerProvider()*//*
+        private val schedulerProvider = DefaultSchedulerProvider()*/
+/*
 
     init {
         musicPlayerKathaVichar.initMusicPlayer()
@@ -72,7 +75,8 @@ class MusicPlayerViewModel() : ViewModel() {
         if (!isAuto) musicPlayerKathaVichar.setUpTrack(selectedTrackIndex, isTrackPlay)
         isAuto = false
     }
-    *//* fun playSong(soundFileType: Uri) {
+ */
+/* fun playSong(soundFileType: Uri) {
          compositeDisposable.add(
              musicPlayerService.playSound(soundFileType)
                  .subscribeOn(schedulerProvider.io())

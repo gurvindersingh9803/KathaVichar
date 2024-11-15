@@ -32,12 +32,13 @@ import com.example.kathavichar.R
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.viewModel.SongsViewModel
-import com.google.gson.Gson
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @Composable
-fun SongsListUI(data: List<Song>?, songsViewModel: SongsViewModel, navigationController: NavHostController, modifier: Modifier) {
+fun SongsListUI(
+    songsViewModel: SongsViewModel,
+    navigationController: NavHostController,
+    modifier: Modifier,
+) {
     val lazyListState = rememberLazyListState()
     var scrolledY = 0f
     var previousOffset = 0
@@ -61,9 +62,10 @@ fun SongsListUI(data: List<Song>?, songsViewModel: SongsViewModel, navigationCon
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }*/
-            data?.size?.let {
+            println("dghdr ${songsViewModel.songs[0]}")
+            songsViewModel.songs.size?.let {
                 items(it) { currentSongIndex ->
-                    SongItem(data[currentSongIndex], songsViewModel, navigationController)
+                    SongItem(songsViewModel, songsViewModel.songs[currentSongIndex], navigationController)
                 }
             }
         },
@@ -72,15 +74,17 @@ fun SongsListUI(data: List<Song>?, songsViewModel: SongsViewModel, navigationCon
 
 @Composable
 fun SongItem(
-    songItem: Song?,
     songsViewModel: SongsViewModel,
+    song: Song,
     navigationController: NavHostController,
 ) {
-    val gson = Gson() // TODO: Make it only composable 1 time in future.
-    val songItemSring = gson.toJson(songItem, Song::class.java)
-    val encode = URLEncoder.encode(songItemSring, StandardCharsets.UTF_8.toString())
-
-    Card(modifier = Modifier.clickable { songItem?.let { songsViewModel.onTrackClicked(it) } }) {
+    Card(
+        modifier =
+            Modifier.clickable {
+                println("ergfegew $song")
+                songsViewModel.onTrackClicked(song)
+            },
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -91,22 +95,23 @@ fun SongItem(
                     painter = painterResource(id = R.drawable.headset),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-
                 )
             }
-            Column() {
-                if (songItem != null) {
-                    Text(
-                        text = songItem.title.toString(),
-                        style = MaterialTheme.typography.subtitle1,
-                    )
-                }
+            Column {
+                Text(
+                    text = song.title.toString(),
+                    style = MaterialTheme.typography.subtitle1,
+                )
                 // Text(text = "Track name", style = MaterialTheme.typography.h1)
             }
             Text(text = "2:35", style = MaterialTheme.typography.body2)
 
-            Log.i("ergfegew", songItem?.state?.name.toString())
-            if (songItem?.state == MusicPlayerStates.STATE_PLAYING) LottieAnimationForPlayingSong()
+            Log.i("ergfegew", song.toString())
+            if (song?.state == MusicPlayerStates.STATE_BUFFERING ||
+                song?.state == MusicPlayerStates.STATE_PLAYING
+            ) {
+                LottieAnimationForPlayingSong()
+            }
         }
     }
 

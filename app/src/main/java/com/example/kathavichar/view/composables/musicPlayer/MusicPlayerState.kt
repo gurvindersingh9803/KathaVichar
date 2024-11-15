@@ -1,10 +1,8 @@
 package com.example.kathavichar.view.composables.musicPlayer
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.example.kathavichar.common.sharedComposables.PausePlayIcon
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
 import com.example.kathavichar.viewModel.MusicPlayerViewModel
