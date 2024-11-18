@@ -13,7 +13,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
@@ -53,87 +52,11 @@ class MusicPlayerKathaVichar(
         createMusicNotificationChannel()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createMusicNotificationChannel() {
-        val musicNotificationChannel =
-            NotificationChannel(
-                Constants.NOTIFICATION_CHANNEL_ID,
-                Constants.NOTIFICATION_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT,
-            )
-        println("nvn $musicNotificationChannel")
-        musicNotificationChannel.description = "Music playback controls"
-
-        musicNotificationManager.createNotificationChannel(musicNotificationChannel)
-    }
-
-    @UnstableApi
-    private fun buildMusicNotification(mediaSession: MediaSession) {
-        PlayerNotificationManager
-            .Builder(
-                context,
-                Constants.NOTIFICATION_ID,
-                Constants.NOTIFICATION_CHANNEL_ID,
-            ).setMediaDescriptionAdapter(
-                MusicNotificationDescriptorAdapter(
-                    context = context,
-                    pendingIntent = mediaSession.sessionActivity,
-                ),
-            ).setSmallIconResourceId(R.drawable.headset)
-            .build()
-            .also {
-                it.setMediaSessionToken(mediaSession.sessionCompatToken)
-                it.setUseFastForwardActionInCompactView(true)
-                it.setUseRewindActionInCompactView(true)
-                it.setUseNextActionInCompactView(true)
-                it.setUsePreviousActionInCompactView(true)
-                it.setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                it.setPlayer(exoPlayer)
-            }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    @UnstableApi
-    fun startMusicNotificationService(
-        mediaSessionService: MediaSessionService,
-        mediaSession: MediaSession,
-    ) {
-        buildMusicNotification(mediaSession)
-        startForegroundMusicService(mediaSessionService)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
-        val musicNotification =
-            NotificationCompat
-                .Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
-                .setContentTitle("Music Player")
-                .setContentText("Playing music")
-                .setSmallIcon(R.drawable.headset)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .build()
-
-        mediaSessionService.startForeground(Constants.NOTIFICATION_ID, musicNotification)
-    }
-
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
         exoPlayer.addListener(this)
         exoPlayer.setMediaItems(songsList)
         exoPlayer.prepare()
-    }
-
-    fun createMediaItem(title: String): MediaItem {
-        val mediaMetadata =
-            MediaMetadata
-                .Builder()
-                .setTitle(title)
-                .build()
-
-        return MediaItem
-            .Builder()
-            .setMediaMetadata(mediaMetadata)
-            .build()
     }
 
     fun playPause() {
@@ -214,6 +137,69 @@ class MusicPlayerKathaVichar(
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createMusicNotificationChannel() {
+        val musicNotificationChannel =
+            NotificationChannel(
+                Constants.NOTIFICATION_CHANNEL_ID,
+                Constants.NOTIFICATION_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_DEFAULT,
+            )
+        println("nvn $musicNotificationChannel")
+        musicNotificationChannel.description = "Music playback controls"
+
+        musicNotificationManager.createNotificationChannel(musicNotificationChannel)
+    }
+
+    @UnstableApi
+    private fun buildMusicNotification(mediaSession: MediaSession) {
+        PlayerNotificationManager
+            .Builder(
+                context,
+                Constants.NOTIFICATION_ID,
+                Constants.NOTIFICATION_CHANNEL_ID,
+            ).setMediaDescriptionAdapter(
+                MusicNotificationDescriptorAdapter(
+                    context = context,
+                    pendingIntent = mediaSession.sessionActivity,
+                ),
+            ).setSmallIconResourceId(R.drawable.headset)
+            .build()
+            .also {
+                it.setMediaSessionToken(mediaSession.sessionCompatToken)
+                it.setUseFastForwardActionInCompactView(true)
+                it.setUseRewindActionInCompactView(true)
+                it.setUseNextActionInCompactView(true)
+                it.setUsePreviousActionInCompactView(true)
+                it.setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                it.setPlayer(exoPlayer)
+            }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @UnstableApi
+    fun startMusicNotificationService(
+        mediaSessionService: MediaSessionService,
+        mediaSession: MediaSession,
+    ) {
+        buildMusicNotification(mediaSession)
+        startForegroundMusicService(mediaSessionService)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
+        val musicNotification =
+            NotificationCompat
+                .Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
+                .setContentTitle("Music Player")
+                .setContentText("Playing music")
+                .setSmallIcon(R.drawable.headset)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build()
+
+        mediaSessionService.startForeground(Constants.NOTIFICATION_ID, musicNotification)
     }
 }
 

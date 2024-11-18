@@ -29,7 +29,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
 
@@ -120,7 +119,6 @@ class SongsViewModel :
 
     override fun onPlayPauseClicked() {
         musicPlayerKathaVichar.playPause()
-        // updateState(musicPlayerKathaVichar.playerState.value)
     }
 
     override fun onPreviousClicked() {
@@ -128,7 +126,6 @@ class SongsViewModel :
     }
 
     override fun onNextClicked() {
-        println("efgefg ${selectedTrackIndex < songs.size - 1}")
         if (selectedTrackIndex < songs.size - 1) onTrackSelected(selectedTrackIndex + 1)
     }
 
@@ -143,11 +140,7 @@ class SongsViewModel :
 
     private fun observeMusicPlayerState() {
         viewModelScope.launch {
-            // delay(1000)
             musicPlayerKathaVichar.playerStates.observeForever { state ->
-                println("dfgggg $state")
-                // updateState(state)
-
                 if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
                     isAuto = true
                     onNextClicked()
@@ -159,16 +152,11 @@ class SongsViewModel :
     }
 
     private fun onTrackSelected(index: Int) {
-        Log.i("fggfrghergth index", index.toString())
-
-        // updateState(musicPlayerKathaVichar.playerState.value)
         if (selectedTrackIndex == -1) isTrackPlay = true
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
-            println("sfddsf fggfrghergth $isTrackPlay")
             selectedTrackIndex = index
             _songs.resetTracks()
             setUpTrack()
-            // updateState(musicPlayerKathaVichar.playerState.value)
         }
     }
 
@@ -187,13 +175,10 @@ class SongsViewModel :
     private fun updateState(state: MusicPlayerStates) {
         if (selectedTrackIndex != -1) {
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING || state == MusicPlayerStates.STATE_BUFFERING
-            println("afgvsdfg $selectedTrack $state")
             _songs[selectedTrackIndex].state = state
             _songs[selectedTrackIndex].isSelected = true
             selectedTrack = null
             selectedTrack = songs[selectedTrackIndex]
-            println("afgvsdfg 2 hghg $selectedTrack $state")
-
             updatePlaybackState(state)
 
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
@@ -201,8 +186,8 @@ class SongsViewModel :
     }
 
     private fun updatePlaybackState(state: MusicPlayerStates) {
+        // TODO: store this scope in a var and destroy it when used may be.
         viewModelScope.launch {
-            println("tghrshgsd $state $isActive")
             do {
                 _playbackState.postValue(
                     PlayerBackState(
@@ -210,7 +195,6 @@ class SongsViewModel :
                         currentTrackDuration = musicPlayerKathaVichar.currentTrackDuration,
                     ),
                 )
-                Log.i("wfeeff", "")
                 delay(1000)
             } while (state == MusicPlayerStates.STATE_PLAYING)
         }

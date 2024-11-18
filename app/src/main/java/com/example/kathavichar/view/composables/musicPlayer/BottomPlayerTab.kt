@@ -20,6 +20,7 @@ import com.example.kathavichar.common.sharedComposables.SongImage
 import com.example.kathavichar.common.sharedComposables.SongName
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
+import com.example.kathavichar.view.composables.songs.md_theme_light_primary
 
 @Composable
 fun BottomPlayerTab(song: Song, musicPlayerEvents: MusicPlayerEvents, onBottomTabClick: () -> Unit) {
@@ -27,7 +28,7 @@ fun BottomPlayerTab(song: Song, musicPlayerEvents: MusicPlayerEvents, onBottomTa
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.LightGray)
+            .background(md_theme_light_primary)
             .clickable(onClick = onBottomTabClick)
             .padding(15.dp),
     ) {

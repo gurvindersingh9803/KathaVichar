@@ -4,12 +4,14 @@ import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -25,21 +27,28 @@ fun PausePlayIcon(
     onClick: () -> Unit,
     isBottomTab: Boolean,
 ) {
-    println("efgdews ${currentSong.state}")
     IconButton(onClick = onClick) {
-        Icon(
-            painter =
-            painterResource(
-                id =
-                if (currentSong.state == MusicPlayerStates.STATE_BUFFERING || currentSong.state == MusicPlayerStates.STATE_PLAYING) {
-                    R.drawable.baseline_pause_circle_outline_24
-                } else {
-                    R.drawable.outline_play_circle_24
-                },
-            ),
-            contentDescription = "play/pause",
-            modifier = Modifier.size(48.dp),
-        )
+        if (currentSong.state == MusicPlayerStates.STATE_BUFFERING) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(36.dp),
+                color = Color.White,
+                strokeWidth = 3.dp,
+            )
+        } else {
+            Icon(
+                painter =
+                    painterResource(
+                        id =
+                            if (currentSong.state == MusicPlayerStates.STATE_PLAYING) {
+                                R.drawable.baseline_pause_24
+                            } else {
+                                R.drawable.baseline_play_arrow_24
+                            },
+                    ),
+                contentDescription = "play/pause",
+                modifier = Modifier.size(48.dp),
+            )
+        }
     }
 }
 

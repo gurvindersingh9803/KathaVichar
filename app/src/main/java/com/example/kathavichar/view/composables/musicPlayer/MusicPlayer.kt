@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.kathavichar.common.sharedComposables.NextIcon
+import com.example.kathavichar.common.sharedComposables.PausePlayIcon
+import com.example.kathavichar.common.sharedComposables.PreviousIcon
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
@@ -187,13 +190,13 @@ fun TrackControls(
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-       /* PreviousIcon(onClick = onPreviousClick, isBottomTab = false)
-        PlayPauseIcon(
-            selectedTrack = selectedTrack,
+        PreviousIcon(onClick = onPreviousClick, isBottomTab = true)
+        PausePlayIcon(
+            currentSong = selectedTrack,
             onClick = onPlayPauseClick,
-            isBottomTab = false
+            isBottomTab = true,
         )
-        NextIcon(onClick = onNextClick, isBottomTab = false)*/
+        NextIcon(onClick = onNextClick, isBottomTab = true)
     }
 }
 
