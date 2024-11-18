@@ -14,28 +14,23 @@ import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kathavichar.view.composables.musicPlayer.BottomPlayerTab
+import com.example.kathavichar.view.composables.musicPlayer.BottomSheetDialog
 import com.example.kathavichar.view.composables.songs.SongsListUI
 import com.example.kathavichar.viewModel.SongsViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun SongScreenParent(
-    songsViewModel: SongsViewModel,
-) {
+fun SongScreenParent(songsViewModel: SongsViewModel) {
     val fullScreenState =
         rememberModalBottomSheetState(
             initialValue = ModalBottomSheetValue.Hidden,
             skipHalfExpanded = true,
         )
-
-    val isMusicPlaying = remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val onBottomTabClick: () -> Unit = { scope.launch { fullScreenState.show() } }
@@ -57,6 +52,9 @@ fun Content(
     println("swfgfdg ${songsViewModel.selectedTrack}")
     ModalBottomSheetLayout(
         sheetContent = {
+            if (songsViewModel.selectedTrack != null) {
+                BottomSheetDialog(songsViewModel.selectedTrack!!, songsViewModel, songsViewModel.playerStates)
+            }
         },
         sheetState = fullScreenState,
         sheetShape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),

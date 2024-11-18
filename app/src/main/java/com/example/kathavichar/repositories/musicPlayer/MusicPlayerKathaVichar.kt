@@ -23,6 +23,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.ui.PlayerNotificationManager
 import com.example.kathavichar.R
+import com.example.kathavichar.common.Constants
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableApi::class)
@@ -30,7 +31,6 @@ class MusicPlayerKathaVichar(
     private val exoPlayer: ExoPlayer,
     private val context: Context,
 ) : Player.Listener {
-
     private var isServiceRunning = false
 
     private val _playerState = MutableLiveData<MusicPlayerStates>()
@@ -48,17 +48,19 @@ class MusicPlayerKathaVichar(
     private var isStarted = false
     private val musicNotificationManager: NotificationManagerCompat =
         NotificationManagerCompat.from(context)
+
     init {
         createMusicNotificationChannel()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createMusicNotificationChannel() {
-        val musicNotificationChannel = NotificationChannel(
-            Constants.NOTIFICATION_CHANNEL_ID,
-            Constants.NOTIFICATION_CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_DEFAULT,
-        )
+        val musicNotificationChannel =
+            NotificationChannel(
+                Constants.NOTIFICATION_CHANNEL_ID,
+                Constants.NOTIFICATION_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_DEFAULT,
+            )
         println("nvn $musicNotificationChannel")
         musicNotificationChannel.description = "Music playback controls"
 
@@ -67,18 +69,17 @@ class MusicPlayerKathaVichar(
 
     @UnstableApi
     private fun buildMusicNotification(mediaSession: MediaSession) {
-        PlayerNotificationManager.Builder(
-            context,
-            Constants.NOTIFICATION_ID,
-            Constants.NOTIFICATION_CHANNEL_ID,
-        )
-            .setMediaDescriptionAdapter(
+        PlayerNotificationManager
+            .Builder(
+                context,
+                Constants.NOTIFICATION_ID,
+                Constants.NOTIFICATION_CHANNEL_ID,
+            ).setMediaDescriptionAdapter(
                 MusicNotificationDescriptorAdapter(
                     context = context,
                     pendingIntent = mediaSession.sessionActivity,
                 ),
-            )
-            .setSmallIconResourceId(R.drawable.headset)
+            ).setSmallIconResourceId(R.drawable.headset)
             .build()
             .also {
                 it.setMediaSessionToken(mediaSession.sessionCompatToken)
@@ -101,23 +102,16 @@ class MusicPlayerKathaVichar(
         startForegroundMusicService(mediaSessionService)
     }
 
-/*    @RequiresApi(Build.VERSION_CODES.O)
-    private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
-        val musicNotification = Notification.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
-            .setCategory(Notification.CATEGORY_SERVICE)
-            .build()
-
-        mediaSessionService.startForeground(Constants.NOTIFICATION_ID, musicNotification)
-    }*/
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
-        val musicNotification = NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("Music Player")
-            .setContentText("Playing music")
-            .setSmallIcon(R.drawable.headset)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
+        val musicNotification =
+            NotificationCompat
+                .Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
+                .setContentTitle("Music Player")
+                .setContentText("Playing music")
+                .setSmallIcon(R.drawable.headset)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build()
 
         mediaSessionService.startForeground(Constants.NOTIFICATION_ID, musicNotification)
     }
@@ -130,14 +124,18 @@ class MusicPlayerKathaVichar(
     }
 
     fun createMediaItem(title: String): MediaItem {
-        val mediaMetadata = MediaMetadata.Builder()
-            .setTitle(title)
-            .build()
+        val mediaMetadata =
+            MediaMetadata
+                .Builder()
+                .setTitle(title)
+                .build()
 
-        return MediaItem.Builder()
+        return MediaItem
+            .Builder()
             .setMediaMetadata(mediaMetadata)
             .build()
     }
+
     fun playPause() {
         if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
         exoPlayer.playWhenReady = !exoPlayer.playWhenReady
@@ -155,7 +153,6 @@ class MusicPlayerKathaVichar(
         index: Int,
         isTrackPlay: Boolean,
     ) {
-        println("qrfgegf $isTrackPlay $index ${exoPlayer.playbackState }")
         if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
         exoPlayer.seekTo(index, 0)
         if (isTrackPlay) exoPlayer.playWhenReady = true
@@ -167,7 +164,6 @@ class MusicPlayerKathaVichar(
     ) {
         super.onMediaItemTransition(mediaItem, reason)
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-            println("Transition Reason: $reason") // Add this line to log the reason
             _playerState.postValue(MusicPlayerStates.STATE_NEXT_TRACK)
             // _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
         }
@@ -226,14 +222,11 @@ class MusicNotificationDescriptorAdapter(
     private val context: Context,
     private val pendingIntent: PendingIntent?,
 ) : PlayerNotificationManager.MediaDescriptionAdapter {
-    override fun getCurrentContentTitle(player: Player): CharSequence {
-        return player.mediaMetadata.title ?: "Unknown"
-    }
+    override fun getCurrentContentTitle(player: Player): CharSequence = player.mediaMetadata.title ?: "Unknown"
 
     override fun createCurrentContentIntent(player: Player): PendingIntent? = pendingIntent
 
-    override fun getCurrentContentText(player: Player): CharSequence =
-        player.mediaMetadata.displayTitle ?: "Unknown"
+    override fun getCurrentContentText(player: Player): CharSequence = player.mediaMetadata.displayTitle ?: "Unknown"
 
     override fun getCurrentLargeIcon(
         player: Player,

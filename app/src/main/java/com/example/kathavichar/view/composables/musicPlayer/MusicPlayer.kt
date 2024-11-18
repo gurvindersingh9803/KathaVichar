@@ -1,278 +1,224 @@
 package com.example.kathavichar.view.composables.musicPlayer
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.Icon
-import androidx.compose.material.LocalContentAlpha
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ProgressIndicatorDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Slider
-import androidx.compose.material.SliderDefaults
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.NavigateNext
-import androidx.compose.material.icons.rounded.PauseCircleFilled
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import com.example.kathavichar.R
-import kotlinx.coroutines.flow.MutableStateFlow
-import org.koin.android.ext.android.inject
-import org.koin.java.KoinJavaComponent.inject
+import androidx.lifecycle.LiveData
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.example.kathavichar.model.Song
+import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
+import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
+import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * [BottomSheetDialog] is a composable that represents the bottom sheet dialog which contains information about the selected track,
+ * a slider to monitor and control track progress, and controls for track playback.
+ *
+ * @param selectedTrack The [Track] object that is currently selected for playback.
+ * @param playerEvents The [PlayerEvents] object which encapsulates all the events associated with the player like play, pause, next, previous.
+ * @param playbackState A [StateFlow] object representing the playback state, including current playback position and track duration.
+ */
 @Composable
-fun MusicPlayer() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            val gradient = Brush.verticalGradient(listOf(MaterialTheme.colors.primary, MaterialTheme.colors.primaryVariant))
-
-            val sliderColors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colors.background,
-                activeTrackColor = MaterialTheme.colors.background,
-                inactiveTrackColor = MaterialTheme.colors.background.copy(
-                    alpha = ProgressIndicatorDefaults.IndicatorBackgroundOpacity,
-                ),
-            )
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.background(gradient)) {
-                Box(
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.medium)
-                        .aspectRatio(1f),
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Image(painter = painterResource(id = R.drawable.imag), contentDescription = null, modifier = Modifier.fillMaxWidth())
-
-                        Text(text = "Dasam Granth", style = MaterialTheme.typography.subtitle1, color = MaterialTheme.colors.surface)
-                        Text(text = "Subtitle", style = MaterialTheme.typography.body2, color = MaterialTheme.colors.surface)
-
-                        Slider(value = 0f, onValueChange = {}, colors = sliderColors)
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-                                Text(
-                                    "3:30",
-                                    style = MaterialTheme.typography.body2,
-                                )
-                            }
-                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-                                Text(
-                                    "00.10",
-                                    style = MaterialTheme.typography.body2,
-                                )
-                            }
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.ArrowBack,
-                                contentDescription = "Skip Previous",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable(onClick = {})
-                                    .padding(12.dp)
-                                    .size(48.dp),
-                            )
-
-                            Icon(
-                                imageVector = Icons.Rounded.PauseCircleFilled,
-                                contentDescription = "Skip Previous",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable(onClick = {})
-                                    .padding(12.dp)
-                                    .size(62.dp),
-                            )
-
-                            Icon(
-                                imageVector = Icons.Rounded.NavigateNext,
-                                contentDescription = "Skip Previous",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable(onClick = {})
-                                    .padding(12.dp)
-                                    .size(48.dp),
-                            )
-                        }
-                    }
-                }
-            }
+fun BottomSheetDialog(
+    selectedTrack: Song,
+    playerEvents: MusicPlayerEvents,
+    playbackState: LiveData<PlayerBackState>,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        TrackInfo(
+            trackImage = selectedTrack.imgUrl.toString(),
+            trackName = selectedTrack.title,
+            artistName = selectedTrack.artistName,
+        )
+        TrackProgressSlider(playbackState = playbackState) {
+            playerEvents.onSeekBarPositionChanged(it)
         }
+        TrackControls(
+            selectedTrack = selectedTrack,
+            onPreviousClick = playerEvents::onPreviousClicked,
+            onPlayPauseClick = playerEvents::onPlayPauseClicked,
+            onNextClick = playerEvents::onNextClicked,
+        )
     }
 }
 
+/**
+ * [TrackInfo] is a composable that displays the image, name, and artist of a track.
+ *
+ * @param trackImage The resource ID of the track image.
+ * @param trackName The name of the track.
+ * @param artistName The name of the artist.
+ */
+@Composable
+fun TrackInfo(
+    trackImage: String,
+    trackName: String,
+    artistName: String,
+) {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(height = 350.dp),
+    ) {
+        TrackImage(
+            trackImage = trackImage,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(all = 16.dp),
+        )
+    }
+    Text(
+        text = trackName,
+        style = typography.bodyLarge,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+    )
+    Text(
+        text = artistName,
+        style = typography.bodySmall,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp),
+    )
+}
 
 /**
- * A custom player class that provides several convenience methods for
- * controlling playback and monitoring the state of an underlying ExoPlayer.
+ * [TrackProgressSlider] is a composable that represents a slider for tracking and controlling the progress of the current track.
  *
- * @param player The ExoPlayer instance that this class wraps.
+ * @param playbackState A [StateFlow] object representing the playback state, including current playback position and track duration.
+ * @param onSeekBarPositionChanged A lambda which gets executed when the position of the slider is changed.
  */
-class MyPlayer : Player.Listener {
-    // Inject ExoPlayer instance
-    private val player: ExoPlayer by inject(ExoPlayer::class.java)
+@Composable
+fun TrackProgressSlider(
+    playbackState: LiveData<PlayerBackState>,
+    onSeekBarPositionChanged: (Long) -> Unit,
+) {
+    println("tgre ${playbackState.value}")
+    val playbackStateValue =
+        playbackState
+            .observeAsState(
+                initial = PlayerBackState(0L, 0L),
+            ).value
 
-    /**
-     * A state flow that emits the current playback state of the player.
-     */
-    val playerState = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
+    var currentMediaProgress = playbackStateValue.currentPlayBackPosition.toFloat()
 
-    /**
-     * The current playback position in milliseconds. If the player's position
-     * is negative, this returns 0.
-     */
-    val currentPlaybackPosition: Long
-        get() = if (player.currentPosition > 0) player.currentPosition else 0L
+    var currentPosTemp by rememberSaveable { mutableStateOf(0f) }
 
-    /**
-     * The duration of the current track in milliseconds. If the track's duration
-     * is negative, this returns 0.
-     */
-    val currentTrackDuration: Long
-        get() = if (player.duration > 0) player.duration else 0L
-
-    /**
-     * Initializes the player with a list of media items.
-     *
-     * @param trackList The list of media items to play.
-     */
-    fun iniPlayer(trackList: MutableList<MediaItem>) {
-        player.addListener(this)
-        player.setMediaItems(trackList)
-        player.prepare()
+    Slider(
+        value = if (currentPosTemp == 0f) currentMediaProgress else currentPosTemp,
+        onValueChange = { currentPosTemp = it },
+        onValueChangeFinished = {
+            currentMediaProgress = currentPosTemp
+            currentPosTemp = 0f
+            onSeekBarPositionChanged(currentMediaProgress.toLong())
+        },
+        valueRange = 0f..playbackStateValue.currentTrackDuration.toFloat(),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+    )
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = playbackStateValue.currentPlayBackPosition.formatTime(),
+            style = typography.bodySmall,
+        )
+        Text(
+            text = playbackStateValue.currentTrackDuration.formatTime(),
+            style = typography.bodySmall,
+        )
     }
+}
 
-    /**
-     * Sets up the player to start playback of the track at the specified index.
-     *
-     * @param index The index of the track in the playlist.
-     * @param isTrackPlay If true, playback will start immediately.
-     */
-    fun setUpTrack(index: Int, isTrackPlay: Boolean) {
-        if (player.playbackState == Player.STATE_IDLE) player.prepare()
-        player.seekTo(index, 0)
-        if (isTrackPlay) player.playWhenReady = true
+/**
+ * [TrackControls] is a composable that represents the controls for track playback, including previous, play/pause, and next buttons.
+ *
+ * @param selectedTrack The [Track] object that is currently selected for playback.
+ * @param onPreviousClick A lambda which gets executed when the previous button is clicked.
+ * @param onPlayPauseClick A lambda which gets executed when the play/pause button is clicked.
+ * @param onNextClick A lambda which gets executed when the next button is clicked.
+ */
+@Composable
+fun TrackControls(
+    selectedTrack: Song,
+    onPreviousClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
+    onNextClick: () -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+       /* PreviousIcon(onClick = onPreviousClick, isBottomTab = false)
+        PlayPauseIcon(
+            selectedTrack = selectedTrack,
+            onClick = onPlayPauseClick,
+            isBottomTab = false
+        )
+        NextIcon(onClick = onNextClick, isBottomTab = false)*/
     }
+}
 
-    /**
-     * Toggles the playback state between playing and paused.
-     */
-    fun playPause() {
-        if (player.playbackState == Player.STATE_IDLE) player.prepare()
-        player.playWhenReady = !player.playWhenReady
-    }
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun TrackImage(
+    trackImage: String,
+    modifier: Modifier,
+) {
+    GlideImage(
+        model = trackImage,
+        contentScale = ContentScale.Crop,
+        contentDescription = "Track Image",
+        modifier = modifier.clip(shape = RoundedCornerShape(8.dp)),
+    )
+}
 
-    /**
-     * Releases the player, freeing any resources it holds.
-     */
-    fun releasePlayer() {
-        player.release()
-    }
-
-    /**
-     * Seeks to the specified position in the current track.
-     *
-     * @param position The position to seek to, in milliseconds.
-     */
-    fun seekToPosition(position: Long) {
-        player.seekTo(position)
-    }
-
-    // Overrides for Player.Listener follow...
-
-    /**
-     * Called when a player error occurs. This implementation emits the
-     * STATE_ERROR state to the playerState flow.
-     */
-    override fun onPlayerError(error: PlaybackException) {
-        super.onPlayerError(error)
-        playerState.tryEmit(MusicPlayerStates.STATE_ERROR)
-    }
-
-    /**
-     * Called when the player's playWhenReady state changes. This implementation
-     * emits the STATE_PLAYING or STATE_PAUSE state to the playerState flow
-     * depending on the new playWhenReady state and the current playback state.
-     */
-    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-        if (player.playbackState == Player.STATE_READY) {
-            if (playWhenReady) {
-                playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
-            } else {
-                playerState.tryEmit(MusicPlayerStates.STATE_PAUSE)
-            }
-        }
-    }
-
-    /**
-     * Called when the player transitions to a new media item. This implementation
-     * emits the STATE_NEXT_TRACK and STATE_PLAYING states to the playerState flow
-     * if the transition was automatic.
-     */
-    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-        super.onMediaItemTransition(mediaItem, reason)
-        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-            playerState.tryEmit(MusicPlayerStates.STATE_NEXT_TRACK)
-            playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
-        }
-    }
-
-    /**
-     * Called when the player's playback state changes. This implementation emits
-     * a state to the playerState flow corresponding to the new playback state.
-     */
-    override fun onPlaybackStateChanged(playbackState: Int) {
-        when (playbackState) {
-            Player.STATE_IDLE -> {
-                playerState.tryEmit(MusicPlayerStates.STATE_IDLE)
-            }
-
-            Player.STATE_BUFFERING -> {
-                playerState.tryEmit(MusicPlayerStates.STATE_BUFFERING)
-            }
-
-            Player.STATE_READY -> {
-                playerState.tryEmit(MusicPlayerStates.STATE_READY)
-                if (player.playWhenReady) {
-                    playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
-                } else {
-                    playerState.tryEmit(MusicPlayerStates.STATE_PAUSE)
-                }
-            }
-
-            Player.STATE_ENDED -> {
-                playerState.tryEmit(MusicPlayerStates.STATE_END)
-            }
-        }
-    }
+/**
+ * Formats a long duration value (in milliseconds) into a time string in the format "MM:SS".
+ *
+ * @return The formatted time string.
+ */
+fun Long.formatTime(): String {
+    val totalSeconds = this / 1000
+    val minutes = totalSeconds / 60
+    val remainingSeconds = totalSeconds % 60
+    return String.format("%02d:%02d", minutes, remainingSeconds)
 }

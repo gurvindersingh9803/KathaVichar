@@ -1,28 +1,33 @@
 package com.example.kathavichar.viewModel
 
+import android.media.session.PlaybackState
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import com.example.kathavichar.model.PlayBackState
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.SongsListFirebase
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
+import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -58,8 +63,22 @@ class SongsViewModel :
 
     private val playbackStateFlowJob = viewModelScope
 
-    private val playbackStateFlow: MutableStateFlow<PlayBackState> =
-        MutableStateFlow(PlayBackState(currentPlaybackPosition = 0L, currentTrackDuration = 0L))
+    /**
+     * A private [MutableStateFlow] that holds the current [PlaybackState].
+     * It is used to emit updates about the playback state to observers.
+     */
+
+    private val _playbackState = MutableLiveData(PlayerBackState(0L, 0L))
+    val playerStates: LiveData<PlayerBackState> get() = _playbackState
+    /*private val _playbackState = MutableStateFlow(PlayerBackState(0L, 0L))
+
+     */
+
+    /**
+     * A public property that exposes the [_playbackState] as an immutable [StateFlow] for observers.
+     */
+    /*
+    val playbackState: StateFlow<PlayerBackState> get() = _playbackState*/
 
     init {
         viewModelScope.launch {
@@ -67,6 +86,7 @@ class SongsViewModel :
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun getSongs(artistName: String) {
         viewModelScope.launch {
             subscription.add(
@@ -75,14 +95,16 @@ class SongsViewModel :
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        val songList = it.map { rawSong ->
-                            Song.Builder()
-                                .title(rawSong.title)
-                                .audioUrl(rawSong.audioUrl)
-                                .imgUrl(rawSong.imgUrl)
-                                .artistName(rawSong.artistName)
-                                .build()
-                        }
+                        val songList =
+                            it.map { rawSong ->
+                                Song
+                                    .Builder()
+                                    .title(rawSong.title)
+                                    .audioUrl(rawSong.audioUrl)
+                                    .imgUrl(rawSong.imgUrl)
+                                    .artistName(rawSong.artistName)
+                                    .build()
+                            }
                         println("argts $songList")
 
                         // Add to _songs and initialize the music player
@@ -116,7 +138,7 @@ class SongsViewModel :
     }
 
     override fun onSeekBarPositionChanged(position: Long) {
-        TODO("Not yet implemented")
+        viewModelScope.launch { musicPlayerKathaVichar.seekToPosition(position) }
     }
 
     private fun observeMusicPlayerState() {
@@ -179,18 +201,18 @@ class SongsViewModel :
     }
 
     private fun updatePlaybackState(state: MusicPlayerStates) {
-        playbackStateFlowJob.cancel()
-        playbackStateFlowJob.launch {
+        viewModelScope.launch {
+            println("tghrshgsd $state $isActive")
             do {
-                playbackStateFlow.emit(
-                    PlayBackState(
-                        currentPlaybackPosition = musicPlayerKathaVichar.currentPlaybackPosition,
+                _playbackState.postValue(
+                    PlayerBackState(
+                        currentPlayBackPosition = musicPlayerKathaVichar.currentPlaybackPosition,
                         currentTrackDuration = musicPlayerKathaVichar.currentTrackDuration,
                     ),
                 )
                 Log.i("wfeeff", "")
                 delay(1000)
-            } while (state == MusicPlayerStates.STATE_PLAYING && isActive)
+            } while (state == MusicPlayerStates.STATE_PLAYING)
         }
     }
 
@@ -199,20 +221,25 @@ class SongsViewModel :
      *
      * @return A mutable list of [MediaItem] objects.
      */
-    fun List<Song>.toMediaItemList(): MutableList<MediaItem> = this.map {
-        MediaItem.fromUri(it.audioUrl)
-    }.toMutableList()
+    fun List<Song>.toMediaItemList(): MutableList<MediaItem> =
+        this
+            .map {
+                MediaItem.fromUri(it.audioUrl)
+            }.toMutableList()
 
-    fun List<Song>.toMediaItemListWithMetadata(): MutableList<MediaItem> = this.map { song ->
-        MediaItem.Builder()
-            .setUri(song.audioUrl)
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(song.title)
-                    .build(),
-            )
-            .build()
-    }.toMutableList()
+    fun List<Song>.toMediaItemListWithMetadata(): MutableList<MediaItem> =
+        this
+            .map { song ->
+                MediaItem
+                    .Builder()
+                    .setUri(song.audioUrl)
+                    .setMediaMetadata(
+                        MediaMetadata
+                            .Builder()
+                            .setTitle(song.title)
+                            .build(),
+                    ).build()
+            }.toMutableList()
 
     override fun onCleared() {
         super.onCleared()
