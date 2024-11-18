@@ -29,14 +29,14 @@ fun PausePlayIcon(
     IconButton(onClick = onClick) {
         Icon(
             painter =
-                painterResource(
-                    id =
-                        if (currentSong.state == MusicPlayerStates.STATE_BUFFERING) {
-                            R.drawable.baseline_pause_circle_outline_24
-                        } else {
-                            R.drawable.outline_play_circle_24
-                        },
-                ),
+            painterResource(
+                id =
+                if (currentSong.state == MusicPlayerStates.STATE_BUFFERING || currentSong.state == MusicPlayerStates.STATE_PLAYING) {
+                    R.drawable.baseline_pause_circle_outline_24
+                } else {
+                    R.drawable.outline_play_circle_24
+                },
+            ),
             contentDescription = "play/pause",
             modifier = Modifier.size(48.dp),
         )

@@ -1,65 +1,41 @@
 package com.example.kathavichar.repositories.musicPlayer
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.graphics.Bitmap
+import android.os.Build
+import androidx.annotation.OptIn
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
+import androidx.media3.ui.PlayerNotificationManager
+import com.example.kathavichar.R
 
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(UnstableApi::class)
 class MusicPlayerKathaVichar(
     private val exoPlayer: ExoPlayer,
+    private val context: Context,
 ) : Player.Listener {
-    override fun onMediaItemTransition(
-        mediaItem: MediaItem?,
-        reason: Int,
-    ) {
-        super.onMediaItemTransition(mediaItem, reason)
-    }
 
-    override fun onTracksChanged(tracks: Tracks) {
-        super.onTracksChanged(tracks)
-    }
+    private var isServiceRunning = false
 
-    override fun onPlaybackStateChanged(playbackState: Int) {
-        when (playbackState) {
-            Player.STATE_IDLE -> {
-                playerState.tryEmit(MusicPlayerStates.STATE_IDLE)
-            }
-
-            Player.STATE_BUFFERING -> {
-                playerState.tryEmit(MusicPlayerStates.STATE_BUFFERING)
-            }
-
-            Player.STATE_READY -> {
-                playerState.tryEmit(MusicPlayerStates.STATE_READY)
-                if (exoPlayer.playWhenReady) {
-                    playerState.tryEmit(MusicPlayerStates.STATE_PLAYING)
-                } else {
-                    playerState.tryEmit(MusicPlayerStates.STATE_PAUSE)
-                }
-            }
-
-            Player.STATE_ENDED -> {
-                playerState.tryEmit(MusicPlayerStates.STATE_END)
-            }
-        }
-    }
-
-    override fun onPlayWhenReadyChanged(
-        playWhenReady: Boolean,
-        reason: Int,
-    ) {
-        super.onPlayWhenReadyChanged(playWhenReady, reason)
-    }
-
-    override fun onPlayerError(error: PlaybackException) {
-        super.onPlayerError(error)
-    }
-
-    val playerState = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
-
-    // val _playerState = MutableSharedFlow(MusicPlayerStates.STATE_IDLE).asSharedFlow()
+    private val _playerState = MutableLiveData<MusicPlayerStates>()
+    val playerStates: LiveData<MusicPlayerStates> get() = _playerState
+    protected lateinit var mediaSession: MediaSession
 
     val currentPlaybackPosition: Long
         get() = if (exoPlayer.currentPosition > 0) exoPlayer.currentPosition else 0L
@@ -67,15 +43,102 @@ class MusicPlayerKathaVichar(
     val currentTrackDuration: Long
         get() = if (exoPlayer.duration > 0) exoPlayer.duration else 0L
 
+    // protected lateinit var mediaSession: MediaSession
+
+    private var isStarted = false
+    private val musicNotificationManager: NotificationManagerCompat =
+        NotificationManagerCompat.from(context)
+    init {
+        createMusicNotificationChannel()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createMusicNotificationChannel() {
+        val musicNotificationChannel = NotificationChannel(
+            Constants.NOTIFICATION_CHANNEL_ID,
+            Constants.NOTIFICATION_CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_DEFAULT,
+        )
+        println("nvn $musicNotificationChannel")
+        musicNotificationChannel.description = "Music playback controls"
+
+        musicNotificationManager.createNotificationChannel(musicNotificationChannel)
+    }
+
+    @UnstableApi
+    private fun buildMusicNotification(mediaSession: MediaSession) {
+        PlayerNotificationManager.Builder(
+            context,
+            Constants.NOTIFICATION_ID,
+            Constants.NOTIFICATION_CHANNEL_ID,
+        )
+            .setMediaDescriptionAdapter(
+                MusicNotificationDescriptorAdapter(
+                    context = context,
+                    pendingIntent = mediaSession.sessionActivity,
+                ),
+            )
+            .setSmallIconResourceId(R.drawable.headset)
+            .build()
+            .also {
+                it.setMediaSessionToken(mediaSession.sessionCompatToken)
+                it.setUseFastForwardActionInCompactView(true)
+                it.setUseRewindActionInCompactView(true)
+                it.setUseNextActionInCompactView(true)
+                it.setUsePreviousActionInCompactView(true)
+                it.setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                it.setPlayer(exoPlayer)
+            }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @UnstableApi
+    fun startMusicNotificationService(
+        mediaSessionService: MediaSessionService,
+        mediaSession: MediaSession,
+    ) {
+        buildMusicNotification(mediaSession)
+        startForegroundMusicService(mediaSessionService)
+    }
+
+/*    @RequiresApi(Build.VERSION_CODES.O)
+    private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
+        val musicNotification = Notification.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .build()
+
+        mediaSessionService.startForeground(Constants.NOTIFICATION_ID, musicNotification)
+    }*/
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
+        val musicNotification = NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
+            .setContentTitle("Music Player")
+            .setContentText("Playing music")
+            .setSmallIcon(R.drawable.headset)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        mediaSessionService.startForeground(Constants.NOTIFICATION_ID, musicNotification)
+    }
+
+    @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
         exoPlayer.addListener(this)
         exoPlayer.setMediaItems(songsList)
         exoPlayer.prepare()
     }
 
+    fun createMediaItem(title: String): MediaItem {
+        val mediaMetadata = MediaMetadata.Builder()
+            .setTitle(title)
+            .build()
+
+        return MediaItem.Builder()
+            .setMediaMetadata(mediaMetadata)
+            .build()
+    }
     fun playPause() {
-        var a = exoPlayer.playbackState == Player.STATE_IDLE
-        println("fgbdf $a")
         if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
         exoPlayer.playWhenReady = !exoPlayer.playWhenReady
     }
@@ -96,5 +159,88 @@ class MusicPlayerKathaVichar(
         if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
         exoPlayer.seekTo(index, 0)
         if (isTrackPlay) exoPlayer.playWhenReady = true
+    }
+
+    override fun onMediaItemTransition(
+        mediaItem: MediaItem?,
+        reason: Int,
+    ) {
+        super.onMediaItemTransition(mediaItem, reason)
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+            println("Transition Reason: $reason") // Add this line to log the reason
+            _playerState.postValue(MusicPlayerStates.STATE_NEXT_TRACK)
+            // _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+        }
+    }
+
+    override fun onTracksChanged(tracks: Tracks) {
+        super.onTracksChanged(tracks)
+    }
+
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        when (playbackState) {
+            Player.STATE_IDLE -> {
+                _playerState.postValue(MusicPlayerStates.STATE_IDLE)
+            }
+
+            Player.STATE_BUFFERING -> {
+                _playerState.postValue(MusicPlayerStates.STATE_BUFFERING)
+            }
+
+            Player.STATE_READY -> {
+                _playerState.postValue(MusicPlayerStates.STATE_READY)
+
+                if (exoPlayer.playWhenReady) {
+                    _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+                } else {
+                    _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
+                }
+            }
+
+            Player.STATE_ENDED -> {
+                _playerState.postValue(MusicPlayerStates.STATE_END)
+            }
+        }
+    }
+
+    override fun onPlayWhenReadyChanged(
+        playWhenReady: Boolean,
+        reason: Int,
+    ) {
+        if (exoPlayer.playbackState == Player.STATE_READY) {
+            if (playWhenReady) {
+                _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+            } else {
+                _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
+            }
+        }
+    }
+
+    override fun onPlayerError(error: PlaybackException) {
+        super.onPlayerError(error)
+    }
+}
+
+@UnstableApi
+class MusicNotificationDescriptorAdapter(
+    private val context: Context,
+    private val pendingIntent: PendingIntent?,
+) : PlayerNotificationManager.MediaDescriptionAdapter {
+    override fun getCurrentContentTitle(player: Player): CharSequence {
+        return player.mediaMetadata.title ?: "Unknown"
+    }
+
+    override fun createCurrentContentIntent(player: Player): PendingIntent? = pendingIntent
+
+    override fun getCurrentContentText(player: Player): CharSequence =
+        player.mediaMetadata.displayTitle ?: "Unknown"
+
+    override fun getCurrentLargeIcon(
+        player: Player,
+        callback: PlayerNotificationManager.BitmapCallback,
+    ): Bitmap? {
+        println("dffdfef")
+
+        return null
     }
 }

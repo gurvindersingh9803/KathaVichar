@@ -66,15 +66,15 @@ fun NavigationGraph(
         composable(
             route = "${Screen.SongsList.route}/{artistName}",
             arguments =
-                listOf(
-                    navArgument("artistName") {
-                        type = NavType.StringType
-                    },
-                ),
+            listOf(
+                navArgument("artistName") {
+                    type = NavType.StringType
+                },
+            ),
         ) {
             val artistName = it.arguments?.getString("artistName")
             println("ssdfghh")
-            SongScreenParent(navigationController, songsViewModel)
+            SongScreenParent(songsViewModel)
         }
     }
 }

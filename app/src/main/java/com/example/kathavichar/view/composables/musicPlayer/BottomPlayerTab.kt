@@ -34,13 +34,13 @@ fun BottomPlayerTab(song: Song, musicPlayerEvents: MusicPlayerEvents, onBottomTa
         Row() {
             SongImage(songImage = song.imgUrl.toString(), modifier = Modifier.size(70.dp))
             SongName(songName = song.title.toString(), modifier = Modifier.weight(1f))
-            PreviousIcon(onClick = {}, isBottomTab = true)
+            PreviousIcon(onClick = musicPlayerEvents::onPreviousClicked, isBottomTab = true)
             PausePlayIcon(
                 currentSong = song,
                 onClick = musicPlayerEvents::onPlayPauseClicked,
                 isBottomTab = true,
             )
-            NextIcon(onClick = {}, isBottomTab = true)
+            NextIcon(onClick = musicPlayerEvents::onNextClicked, isBottomTab = true)
         }
     }
 }

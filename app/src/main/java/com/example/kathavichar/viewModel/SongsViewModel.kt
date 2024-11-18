@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import com.example.kathavichar.model.PlayBackState
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.network.ServerResponse
@@ -19,7 +20,6 @@ import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,9 +75,19 @@ class SongsViewModel :
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        println("argts $it")
-                        _songs.addAll(it)
-                        musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemList())
+                        val songList = it.map { rawSong ->
+                            Song.Builder()
+                                .title(rawSong.title)
+                                .audioUrl(rawSong.audioUrl)
+                                .imgUrl(rawSong.imgUrl)
+                                .artistName(rawSong.artistName)
+                                .build()
+                        }
+                        println("argts $songList")
+
+                        // Add to _songs and initialize the music player
+                        _songs.addAll(songList)
+                        musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemListWithMetadata())
                         observeMusicPlayerState()
                     }, {
                         Log.i("edfgwegf", it.toString())
@@ -88,13 +98,15 @@ class SongsViewModel :
 
     override fun onPlayPauseClicked() {
         musicPlayerKathaVichar.playPause()
+        // updateState(musicPlayerKathaVichar.playerState.value)
     }
 
     override fun onPreviousClicked() {
-        TODO("Not yet implemented")
+        if (selectedTrackIndex > 0) onTrackSelected(selectedTrackIndex - 1)
     }
 
     override fun onNextClicked() {
+        println("efgefg ${selectedTrackIndex < songs.size - 1}")
         if (selectedTrackIndex < songs.size - 1) onTrackSelected(selectedTrackIndex + 1)
     }
 
@@ -107,17 +119,34 @@ class SongsViewModel :
         TODO("Not yet implemented")
     }
 
-    fun observeMusicPlayerState() {
-        viewModelScope.collectPlayerState(kathaVichar = musicPlayerKathaVichar, ::updateState)
+    private fun observeMusicPlayerState() {
+        viewModelScope.launch {
+            // delay(1000)
+            musicPlayerKathaVichar.playerStates.observeForever { state ->
+                println("dfgggg $state")
+                // updateState(state)
+
+                if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
+                    isAuto = true
+                    onNextClicked()
+                } else {
+                    updateState(state)
+                }
+            }
+        }
     }
 
     private fun onTrackSelected(index: Int) {
-        Log.i("fggfrghergth", musicPlayerKathaVichar.playerState.value.toString())
+        Log.i("fggfrghergth index", index.toString())
+
+        // updateState(musicPlayerKathaVichar.playerState.value)
         if (selectedTrackIndex == -1) isTrackPlay = true
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
+            println("sfddsf fggfrghergth $isTrackPlay")
             selectedTrackIndex = index
             _songs.resetTracks()
             setUpTrack()
+            // updateState(musicPlayerKathaVichar.playerState.value)
         }
     }
 
@@ -135,18 +164,16 @@ class SongsViewModel :
 
     private fun updateState(state: MusicPlayerStates) {
         if (selectedTrackIndex != -1) {
-            isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
+            isTrackPlay = state == MusicPlayerStates.STATE_PLAYING || state == MusicPlayerStates.STATE_BUFFERING
             println("afgvsdfg $selectedTrack $state")
             _songs[selectedTrackIndex].state = state
             _songs[selectedTrackIndex].isSelected = true
             selectedTrack = null
             selectedTrack = songs[selectedTrackIndex]
+            println("afgvsdfg 2 hghg $selectedTrack $state")
 
             updatePlaybackState(state)
-            if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
-                isAuto = true
-                onNextClicked()
-            }
+
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
         }
     }
@@ -172,21 +199,23 @@ class SongsViewModel :
      *
      * @return A mutable list of [MediaItem] objects.
      */
-    fun List<Song>.toMediaItemList(): MutableList<MediaItem> = this.map { MediaItem.fromUri(it.audioUrl) }.toMutableList()
+    fun List<Song>.toMediaItemList(): MutableList<MediaItem> = this.map {
+        MediaItem.fromUri(it.audioUrl)
+    }.toMutableList()
+
+    fun List<Song>.toMediaItemListWithMetadata(): MutableList<MediaItem> = this.map { song ->
+        MediaItem.Builder()
+            .setUri(song.audioUrl)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(song.title)
+                    .build(),
+            )
+            .build()
+    }.toMutableList()
 
     override fun onCleared() {
         super.onCleared()
         musicPlayerKathaVichar.releasePlayer()
-    }
-
-    fun CoroutineScope.collectPlayerState(
-        kathaVichar: MusicPlayerKathaVichar,
-        updateState: (MusicPlayerStates) -> Unit,
-    ) {
-        this.launch {
-            kathaVichar.playerState.collect {
-                updateState(it)
-            }
-        }
     }
 }

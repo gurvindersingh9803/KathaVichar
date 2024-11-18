@@ -48,7 +48,7 @@ class SongsListFirebase {
                                             songSnapshot.child("title").getValue(String::class.java)
                                         val songObj = audioUrl?.let {
                                             Song(
-                                                title = title,
+                                                title = title!!,
                                                 imgUrl = imgUrl,
                                                 audioUrl = it,
                                             )
