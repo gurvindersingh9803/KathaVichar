@@ -78,12 +78,12 @@ class SongsViewModel :
      */
     /*
     val playbackState: StateFlow<PlayerBackState> get() = _playbackState*/
-
+/*
     init {
         viewModelScope.launch {
             getSongs("Maskeen Ji")
         }
-    }
+    }*/
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getSongs(artistName: String) {
@@ -110,6 +110,9 @@ class SongsViewModel :
                         _songs.addAll(songList)
                         musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemListWithMetadata())
                         observeMusicPlayerState()
+                        viewModelScope.launch {
+                            _uiStateSongs.emit(ServerResponse.onSuccess(songList.toMutableList()))
+                        }
                     }, {
                         Log.i("edfgwegf", it.toString())
                     }),

@@ -15,7 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.kathavichar.view.composables.home.HomeScreenState
-import com.example.kathavichar.view.composables.songs.main.SongScreenParent
+import com.example.kathavichar.view.composables.songs.SongsListState
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 
@@ -73,7 +73,7 @@ fun NavigationGraph(
                 ),
         ) {
             val artistName = it.arguments?.getString("artistName")
-            SongScreenParent(songsViewModel)
+            SongsListState(artistName.toString(), songsViewModel)
         }
     }
 }

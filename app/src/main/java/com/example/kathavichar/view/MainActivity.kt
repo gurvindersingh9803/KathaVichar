@@ -11,16 +11,20 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.compose.rememberNavController
-import com.example.kathavichar.common.BottomNavigationBar
 import com.example.kathavichar.common.NavigationGraph
 import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.ui.theme.KathaVicharTheme
+import com.example.kathavichar.view.composables.songs.typography
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -36,6 +40,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // TODO: stop firebase duplicacy of data.
         setContent {
             KathaVicharTheme {
                 val isPermissionGranted =
@@ -70,11 +75,18 @@ class MainActivity : ComponentActivity() {
                 startMusicService()
 
                 val navController = rememberNavController()
-                Scaffold(
-                    bottomBar = {
-                        BottomNavigationBar(navigationController = navController)
-                    },
-                ) { innerPadding ->
+                Scaffold(topBar = {
+                    Surface(shadowElevation = 5.dp) {
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    text = "Katha Veechar",
+                                    style = typography.titleLarge,
+                                )
+                            },
+                        )
+                    }
+                }) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
                         // SongScreenParent(songsViewModel)
 

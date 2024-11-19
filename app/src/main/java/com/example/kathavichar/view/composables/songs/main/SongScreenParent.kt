@@ -2,28 +2,27 @@ package com.example.kathavichar.view.composables.songs.main
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.kathavichar.view.composables.musicPlayer.BottomPlayerTab
 import com.example.kathavichar.view.composables.musicPlayer.BottomSheetDialog
 import com.example.kathavichar.view.composables.songs.SongsListUI
-import com.example.kathavichar.view.composables.songs.typography
 import com.example.kathavichar.viewModel.SongsViewModel
 import kotlinx.coroutines.launch
 
@@ -53,7 +52,6 @@ fun Content(
     fullScreenState: ModalBottomSheetState,
     onBottomTabClick: () -> Unit,
 ) {
-    println("swfgfdg ${songsViewModel.selectedTrack}")
     ModalBottomSheetLayout(
         sheetContent = {
             if (songsViewModel.selectedTrack != null) {
@@ -65,23 +63,20 @@ fun Content(
         sheetElevation = 12.dp,
     ) {
         Scaffold(topBar = {
-            Surface(shadowElevation = 5.dp) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Katha Veechar",
-                            style = typography.titleLarge,
-                        )
-                    },
-                )
-            }
         }) { paddingValues ->
             Box(
                 modifier =
                     Modifier
-                        .padding(top = paddingValues.calculateTopPadding()),
+                        .padding(top = paddingValues.calculateTopPadding())
+                        .fillMaxSize(),
             ) {
-                Column {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(12.dp)),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                ) {
                     SongsListUI(songsViewModel)
                     AnimatedVisibility(
                         visible = songsViewModel.selectedTrack != null,

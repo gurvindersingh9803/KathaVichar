@@ -8,6 +8,7 @@ import com.example.kathavichar.repositories.HomeCategoriesFirebase
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ class MainViewModel : ViewModel() {
 
     fun getCategories() {
         viewModelScope.launch {
+            delay(2000)
             subscription.add(
                 homeCategoriesFirebase
                     .getdata()
