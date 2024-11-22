@@ -60,6 +60,9 @@ class SongsViewModel(
     var selectedTrack: Song? by mutableStateOf(null)
         private set
 
+    var prevPlayingTrack: Song? by mutableStateOf(null)
+        private set
+
     private var isTrackPlay: Boolean = false
 
     private var isAuto: Boolean = false
@@ -93,8 +96,8 @@ class SongsViewModel(
     fun getSongs(artistName: String) {
         println("egfrdegf ${selectedTrack?.artistName} $artistName ${_songs.size}")
         viewModelScope.launch {
-            if (_songs.size == 0 || selectedTrack?.artistName != artistName) {
-                _songs.clear()
+            if (selectedTrack?.artistName != artistName) {
+                prevPlayingTrack = selectedTrack
                 subscription.add(
                     sonsListFirebase
                         .getSongsList(artistName)
@@ -114,11 +117,20 @@ class SongsViewModel(
                             println("argts $songList")
 
                             // Add to _songs and initialize the music player
-                            _songs.addAll(songList)
-                            musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemListWithMetadata())
-                            observeMusicPlayerState()
+                            if (songList.isNotEmpty()) {
+                                _songs.clear()
+                                _songs.addAll(songList)
+                            }
+                            if (prevPlayingTrack == null) {
+                                musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemListWithMetadata())
+                                observeMusicPlayerState()
+                            }
+
+                            // TODO: need work
                             viewModelScope.launch {
-                                _uiStateSongs.emit(ServerResponse.onSuccess(songList.toMutableList()))
+                                if (selectedTrack?.artistName == artistName) {
+                                    _uiStateSongs.emit(ServerResponse.onSuccess(songList.toMutableList()))
+                                }
                             }
                         }, {
                             Log.i("edfgwegf", it.toString())
@@ -198,7 +210,7 @@ class SongsViewModel(
 
     private fun updateState(state: MusicPlayerStates) {
         println("erfergfwe $selectedTrack $selectedTrackIndex $state")
-        if (selectedTrackIndex != -1) {
+        if (selectedTrackIndex != -1 && prevPlayingTrack == null) {
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING || state == MusicPlayerStates.STATE_BUFFERING
             _songs[selectedTrackIndex].state = state
             _songs[selectedTrackIndex].isSelected = true
@@ -207,6 +219,9 @@ class SongsViewModel(
             updatePlaybackState(state)
 
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
+        } else {
+            isTrackPlay = state == MusicPlayerStates.STATE_PLAYING || state == MusicPlayerStates.STATE_BUFFERING
+            updatePlaybackState(state)
         }
     }
 
