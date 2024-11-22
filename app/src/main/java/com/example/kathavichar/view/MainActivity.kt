@@ -14,7 +14,9 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -73,7 +75,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 startMusicService()
-
+                println("fgbhdfghd kjlj")
                 val navController = rememberNavController()
                 Scaffold(topBar = {
                     Surface(shadowElevation = 5.dp) {
@@ -90,19 +92,36 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier.padding(innerPadding)) {
                         // SongScreenParent(songsViewModel)
 
-                        NavigationGraph(navigationController = navController, mainViewModel, songsViewModel)
+                        NavigationGraph(
+                            navigationController = navController,
+                            mainViewModel,
+                            songsViewModel,
+                        )
                     }
-                }
 
-                /*Surface(modifier = Modifier.fillMaxSize()) {
+                    MyEventListener {
+                        when (it) {
+                            Lifecycle.Event.ON_RESUME -> {
+                                println("ON_RESUME fgsdf ${songsViewModel.selectedTrack}")
+                            }
+                            Lifecycle.Event.ON_PAUSE -> {
+                                println("ON_PAUSE fgsdf ${songsViewModel.selectedTrack}")
+                            }
+                            else -> {}
+                        }
+                    }
+
+                    /*Surface(modifier = Modifier.fillMaxSize()) {
                     // Setup the HomeScreenParent with the viewModel.
                     SongScreenParent(songsViewModel)
                 }*/
+                }
             }
         }
     }
 
     private fun startMusicService() {
+        println("fgbhdfghd")
         if (!isServiceRunning) {
             val intent = Intent(this, MediaService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -111,6 +130,30 @@ class MainActivity : ComponentActivity() {
                 startService(intent)
             }
             isServiceRunning = true
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+    }
+}
+
+@Composable
+fun MyEventListener(OnEvent: (event: Lifecycle.Event) -> Unit) {
+    val eventHandler = rememberUpdatedState(newValue = OnEvent)
+    val lifecycleOwner = rememberUpdatedState(newValue = LocalLifecycleOwner.current)
+
+    DisposableEffect(lifecycleOwner.value) {
+        val lifecycle = lifecycleOwner.value.lifecycle
+        val observer =
+            LifecycleEventObserver { source, event ->
+                eventHandler.value(event)
+            }
+
+        lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycle.removeObserver(observer)
         }
     }
 }

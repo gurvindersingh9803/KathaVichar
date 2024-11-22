@@ -11,7 +11,6 @@ data class Song(
     var isSelected: Boolean = false
 )
 */
-
 data class Song(
     val title: String = "",
     val audioUrl: String = "",
@@ -34,10 +33,15 @@ data class Song(
         private var state: MusicPlayerStates = MusicPlayerStates.STATE_IDLE
 
         fun title(title: String) = apply { this.title = title }
+
         fun audioUrl(audioUrl: String) = apply { this.audioUrl = audioUrl }
+
         fun imgUrl(imgUrl: String?) = apply { this.imgUrl = imgUrl }
+
         fun artistName(artistName: String) = apply { this.artistName = artistName }
+
         fun isSelected(isSelected: Boolean) = apply { this.isSelected = isSelected }
+
         fun state(state: MusicPlayerStates) = apply { this.state = state }
 
         /**
@@ -45,8 +49,8 @@ data class Song(
          *
          * @return A [Song] instance.
          */
-        fun build(): Song {
-            return Song(
+        fun build(): Song =
+            Song(
                 title = title,
                 audioUrl = audioUrl,
                 imgUrl = imgUrl,
@@ -54,6 +58,5 @@ data class Song(
                 isSelected = isSelected,
                 state = state,
             )
-        }
     }
 }

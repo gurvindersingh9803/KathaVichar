@@ -43,6 +43,7 @@ class MainViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
+        println("onCleared")
         subscription.clear()
     }
 }

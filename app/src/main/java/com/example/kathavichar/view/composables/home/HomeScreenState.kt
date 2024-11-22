@@ -1,14 +1,10 @@
 package com.example.kathavichar.view.composables.home
 
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.kathavichar.common.utils.isDataLoading
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.viewModel.MainViewModel
 
@@ -23,7 +19,7 @@ fun HomeScreenState(
     val uiState by viewModel.uiState.collectAsState()
 
     when (uiState) {
-        is ServerResponse.isLoading -> isDataLoading(modifier = Modifier.size(50.dp))
+        is ServerResponse.isLoading -> { } // isDataLoading(modifier = Modifier.size(50.dp))
         is ServerResponse.onSuccess -> HomeCategories(uiState.data, navigationController)
         is ServerResponse.onError -> {}
     }

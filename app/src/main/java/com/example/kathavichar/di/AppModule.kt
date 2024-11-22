@@ -19,20 +19,21 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 @RequiresApi(Build.VERSION_CODES.O)
-val appModule = module {
-    single { Gson() }
-    single { HomeCategoriesFirebase() }
-    single { SongsListFirebase() }
-    viewModel { MainViewModel() }
-    viewModel { SongsViewModel() }
-    viewModel { MusicPlayerViewModel() }
-    single<MusicPlayerService> { DefaultMusicPlayerService(androidContext()) }
-    single { ExoPlayer.Builder(androidContext()).build() }
-    single {
-        MusicPlayerKathaVichar(get(), androidContext())
+val appModule =
+    module {
+        single { Gson() }
+        single { HomeCategoriesFirebase() }
+        single { SongsListFirebase() }
+        viewModel { MainViewModel() }
+        viewModel { SongsViewModel(get()) }
+        viewModel { MusicPlayerViewModel() }
+        single<MusicPlayerService> { DefaultMusicPlayerService(androidContext()) }
+        single { ExoPlayer.Builder(androidContext()).build() }
+        single {
+            MusicPlayerKathaVichar(get(), androidContext())
+        }
+        single { MediaService() }
+        factory {
+            MediaSession.Builder(get(), get<ExoPlayer>()).build()
+        }
     }
-    single { MediaService() }
-    factory {
-        MediaSession.Builder(get(), get<ExoPlayer>()).build()
-    }
-}

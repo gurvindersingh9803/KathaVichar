@@ -9,15 +9,17 @@ import androidx.media3.session.MediaSessionService
 import org.koin.android.ext.android.inject
 
 class MediaService : MediaSessionService() {
-
     val mediaSession: MediaSession by inject()
 
     val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject()
 
     @RequiresApi(Build.VERSION_CODES.O)
     @UnstableApi
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        println("dsfgaedfsgdfsgv")
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         musicPlayerKathaVichar.startMusicNotificationService(this, mediaSession)
         return super.onStartCommand(intent, flags, startId)
     }

@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.kathavichar.view.composables.home.HomeScreenState
 import com.example.kathavichar.view.composables.songs.SongsListState
 import com.example.kathavichar.viewModel.MainViewModel
@@ -70,6 +71,10 @@ fun NavigationGraph(
                     navArgument("artistName") {
                         type = NavType.StringType
                     },
+                ),
+            deepLinks =
+                listOf(
+                    navDeepLink { uriPattern = "musify://songslist/{artistName}" },
                 ),
         ) {
             val artistName = it.arguments?.getString("artistName")

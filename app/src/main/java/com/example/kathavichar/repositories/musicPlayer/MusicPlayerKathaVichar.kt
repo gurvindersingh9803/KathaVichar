@@ -4,8 +4,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
+import android.support.v4.media.session.MediaControllerCompat
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -35,6 +38,9 @@ class MusicPlayerKathaVichar(
     private val _playerState = MutableLiveData<MusicPlayerStates>()
     val playerStates: LiveData<MusicPlayerStates> get() = _playerState
     protected lateinit var mediaSession: MediaSession
+
+    private val _currentPlayingSongIndex = MutableLiveData<Int?>()
+    val currentPlayingSongIndex: LiveData<Int?> get() = _currentPlayingSongIndex
 
     val currentPlaybackPosition: Long
         get() = if (exoPlayer.currentPosition > 0) exoPlayer.currentPosition else 0L
@@ -86,9 +92,10 @@ class MusicPlayerKathaVichar(
         reason: Int,
     ) {
         super.onMediaItemTransition(mediaItem, reason)
+        _currentPlayingSongIndex.postValue(exoPlayer.currentMediaItemIndex)
+
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
             _playerState.postValue(MusicPlayerStates.STATE_NEXT_TRACK)
-            // _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
         }
     }
 
@@ -97,6 +104,7 @@ class MusicPlayerKathaVichar(
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {
+        println("onPlaybackStateChanged ghhjghj")
         when (playbackState) {
             Player.STATE_IDLE -> {
                 _playerState.postValue(MusicPlayerStates.STATE_IDLE)
@@ -126,6 +134,7 @@ class MusicPlayerKathaVichar(
         playWhenReady: Boolean,
         reason: Int,
     ) {
+        println("onPlayWhenReadyChanged ghhjghj")
         if (exoPlayer.playbackState == Player.STATE_READY) {
             if (playWhenReady) {
                 _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
@@ -155,6 +164,7 @@ class MusicPlayerKathaVichar(
 
     @UnstableApi
     private fun buildMusicNotification(mediaSession: MediaSession) {
+        val mediaController = MediaControllerCompat(context, mediaSession.sessionCompatToken)
         PlayerNotificationManager
             .Builder(
                 context,
@@ -162,8 +172,14 @@ class MusicPlayerKathaVichar(
                 Constants.NOTIFICATION_CHANNEL_ID,
             ).setMediaDescriptionAdapter(
                 MusicNotificationDescriptorAdapter(
-                    context = context,
-                    pendingIntent = mediaSession.sessionActivity,
+                    context,
+                    pendingIntent =
+                        PendingIntent.getActivity(
+                            context,
+                            0,
+                            Intent(Intent.ACTION_VIEW, Uri.parse("musify://songslist/Maskeen Ji")),
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                        ),
                 ),
             ).setSmallIconResourceId(R.drawable.headset)
             .build()
@@ -190,6 +206,7 @@ class MusicPlayerKathaVichar(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
+        println("etwdhyrthjuy ${exoPlayer.mediaMetadata.albumArtist}")
         val musicNotification =
             NotificationCompat
                 .Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
@@ -197,7 +214,14 @@ class MusicPlayerKathaVichar(
                 .setContentText("Playing music")
                 .setSmallIcon(R.drawable.headset)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .build()
+                .setContentIntent(
+                    PendingIntent.getActivity(
+                        context,
+                        0,
+                        Intent(Intent.ACTION_VIEW, Uri.parse("musify://songslist/Maskeen Ji")),
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                    ),
+                ).build()
 
         mediaSessionService.startForeground(Constants.NOTIFICATION_ID, musicNotification)
     }
