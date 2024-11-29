@@ -2,17 +2,13 @@ package com.example.kathavichar.view.composables.songs
 
 import android.app.Activity
 import android.os.Build
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,7 +18,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Text
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -37,10 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -61,22 +54,25 @@ import com.example.kathavichar.viewModel.SongsViewModel
 @Composable
 fun SongsListUI(songsViewModel: SongsViewModel) {
     val lazyListState = rememberLazyListState()
-    var scrolledY = 0f
-    var previousOffset = 0
 
-    val songsList = listOf("", "")
-    LazyColumn(
-        contentPadding = PaddingValues(5.dp),
-    ) {
-        items(songsViewModel.songs) { song ->
-            SongItem(
-                song = song,
-                onTrackClick = { songsViewModel.onTrackClicked(song) },
-            )
+    val songs = songsViewModel.songs
+    if (songs.first().artistName == songsViewModel.whichArtistSelected) {
+        LazyColumn(
+            state = lazyListState,
+            contentPadding = PaddingValues(5.dp),
+        ) {
+            items(songs) { song ->
+                SongItem(
+                    song = song,
+                    onTrackClick = { songsViewModel.onTrackClicked(song) },
+                )
+            }
         }
+    } else {
+        Text(text = "No Data")
     }
-
 }
+
 @Composable
 fun SongItem(
     song: Song,
@@ -88,18 +84,18 @@ fun SongItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
-            Modifier
-                .padding(all = 5.dp)
-                .clip(shape = RoundedCornerShape(8.dp))
-                .background(color = bgColor)
-                .clickable(onClick = onTrackClick),
+        Modifier
+            .padding(all = 5.dp)
+            .clip(shape = RoundedCornerShape(8.dp))
+            .background(color = bgColor)
+            .clickable(onClick = onTrackClick),
     ) {
         TrackImage(trackImage = song.imgUrl.toString(), modifier = Modifier.size(size = 64.dp))
         Column(
             modifier =
-                Modifier
-                    .padding(start = 10.dp, end = 10.dp)
-                    .weight(weight = 1f),
+            Modifier
+                .padding(start = 10.dp, end = 10.dp)
+                .weight(weight = 1f),
         ) {
             Text(text = song.title, style = com.example.kathavichar.view.composables.songs.typography.bodyLarge, color = textColor)
             Spacer(modifier = Modifier.height(5.dp))
@@ -118,7 +114,6 @@ fun LottieAnimationForPlayingSong() {
         modifier = Modifier.size(64.dp),
     )
 }
-
 
 /*val md_theme_light_primary = Color(0xFF00b59a)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
@@ -180,7 +175,6 @@ val md_theme_dark_surfaceTint = Color(0xFF00DFBF)
 val md_theme_dark_outlineVariant = Color(0xFF3F4946)
 val md_theme_dark_scrim = Color(0xFF000000)
 
-
 val md_theme_light_primary = Color(0xFFFF8A4C) // Primary orange
 val md_theme_light_onPrimary = Color(0xFFFFFFFF) // White text on primary
 val md_theme_light_primaryContainer = Color(0xFFFFD180) // Lighter orange container
@@ -216,7 +210,6 @@ val md_theme_light_surfaceTint = Color(0xFFFF9800) // Surface tint using primary
 val md_theme_light_outlineVariant = Color(0xFFBCAAA4) // Lighter outline variant
 val md_theme_light_scrim = Color(0xFF000000) // Scrim color (black for overlays)
 
-
 val typography =
     Typography(
         bodyLarge =
@@ -239,7 +232,6 @@ val typography =
             color = md_theme_light_onPrimary,
         ),
     )
-
 
 /**
  * Light color scheme used for the app's light theme.
@@ -355,4 +347,3 @@ fun MusicPlayerJetpackComposeTheme(
         content = content,
     )
 }
-

@@ -67,15 +67,15 @@ fun NavigationGraph(
         composable(
             route = "${Screen.SongsList.route}/{artistName}",
             arguments =
-                listOf(
-                    navArgument("artistName") {
-                        type = NavType.StringType
-                    },
-                ),
+            listOf(
+                navArgument("artistName") {
+                    type = NavType.StringType
+                },
+            ),
             deepLinks =
-                listOf(
-                    navDeepLink { uriPattern = "musify://songslist/{artistName}" },
-                ),
+            listOf(
+                navDeepLink { uriPattern = "musify://songslist/{artistName}" },
+            ),
         ) {
             val artistName = it.arguments?.getString("artistName")
             SongsListState(artistName.toString(), songsViewModel)

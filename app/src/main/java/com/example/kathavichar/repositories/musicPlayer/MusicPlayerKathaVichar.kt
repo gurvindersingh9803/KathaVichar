@@ -3,6 +3,7 @@ package com.example.kathavichar.repositories.musicPlayer
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -23,6 +24,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerNotificationManager
 import com.example.kathavichar.R
 import com.example.kathavichar.common.Constants
@@ -35,13 +37,15 @@ class MusicPlayerKathaVichar(
 ) : Player.Listener {
     private var isServiceRunning = false
 
-    private val _playerState = MutableLiveData<MusicPlayerStates>()
+/*    private val _playerState = MutableLiveData<MusicPlayerStates>()
     val playerStates: LiveData<MusicPlayerStates> get() = _playerState
     protected lateinit var mediaSession: MediaSession
 
-    private val _currentPlayingSongIndex = MutableLiveData<Int?>()
-    val currentPlayingSongIndex: LiveData<Int?> get() = _currentPlayingSongIndex
+    private val _currentPlayingSongIndex = MutableLiveData<Int?>()*/ //
+    // val currentPlayingSongIndex: LiveData<Int?> get() = _currentPlayingSongIndex
 
+    private val _playerState = MutableLiveData<MusicPlayerState>()
+    val playerStates: LiveData<MusicPlayerState> get() = _playerState
     val currentPlaybackPosition: Long
         get() = if (exoPlayer.currentPosition > 0) exoPlayer.currentPosition else 0L
 
@@ -60,6 +64,7 @@ class MusicPlayerKathaVichar(
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
+        println("fgfrgfg $songsList")
         exoPlayer.addListener(this)
         exoPlayer.setMediaItems(songsList)
         exoPlayer.prepare()
@@ -92,10 +97,9 @@ class MusicPlayerKathaVichar(
         reason: Int,
     ) {
         super.onMediaItemTransition(mediaItem, reason)
-        _currentPlayingSongIndex.postValue(exoPlayer.currentMediaItemIndex)
-
+        _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex))
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-            _playerState.postValue(MusicPlayerStates.STATE_NEXT_TRACK)
+            _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_NEXT_TRACK))
         }
     }
 
@@ -107,25 +111,37 @@ class MusicPlayerKathaVichar(
         println("onPlaybackStateChanged ghhjghj")
         when (playbackState) {
             Player.STATE_IDLE -> {
-                _playerState.postValue(MusicPlayerStates.STATE_IDLE)
+                _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_IDLE))
+
+                // _playerState.postValue(MusicPlayerStates.STATE_IDLE)
             }
 
             Player.STATE_BUFFERING -> {
-                _playerState.postValue(MusicPlayerStates.STATE_BUFFERING)
+                _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_BUFFERING))
+
+                // _playerState.postValue(MusicPlayerStates.STATE_BUFFERING)
             }
 
             Player.STATE_READY -> {
-                _playerState.postValue(MusicPlayerStates.STATE_READY)
+                _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_READY))
+
+                // _playerState.postValue(MusicPlayerStates.STATE_READY)
 
                 if (exoPlayer.playWhenReady) {
-                    _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+                    _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_PLAYING))
+
+                    // _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
                 } else {
-                    _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
+                    _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_PAUSE))
+
+                    //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
                 }
             }
 
             Player.STATE_ENDED -> {
-                _playerState.postValue(MusicPlayerStates.STATE_END)
+                _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_END))
+
+                // _playerState.postValue(MusicPlayerStates.STATE_END)
             }
         }
     }
@@ -137,9 +153,13 @@ class MusicPlayerKathaVichar(
         println("onPlayWhenReadyChanged ghhjghj")
         if (exoPlayer.playbackState == Player.STATE_READY) {
             if (playWhenReady) {
-                _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+                _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_PLAYING))
+
+                //  _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
             } else {
-                _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
+                _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex, MusicPlayerStates.STATE_PAUSE))
+
+                //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
             }
         }
     }
@@ -164,7 +184,6 @@ class MusicPlayerKathaVichar(
 
     @UnstableApi
     private fun buildMusicNotification(mediaSession: MediaSession) {
-        val mediaController = MediaControllerCompat(context, mediaSession.sessionCompatToken)
         PlayerNotificationManager
             .Builder(
                 context,
@@ -174,12 +193,12 @@ class MusicPlayerKathaVichar(
                 MusicNotificationDescriptorAdapter(
                     context,
                     pendingIntent =
-                        PendingIntent.getActivity(
-                            context,
-                            0,
-                            Intent(Intent.ACTION_VIEW, Uri.parse("musify://songslist/Maskeen Ji")),
-                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                        ),
+                    PendingIntent.getActivity(
+                        context,
+                        0,
+                        Intent(Intent.ACTION_VIEW, Uri.parse("musify://songslist/Maskeen Ji")),
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                    ),
                 ),
             ).setSmallIconResourceId(R.drawable.headset)
             .build()
@@ -247,3 +266,8 @@ class MusicNotificationDescriptorAdapter(
         return null
     }
 }
+
+data class MusicPlayerState(
+    val currentPlayingSongIndex: Int? = null,
+    val playerState: MusicPlayerStates? = null,
+)

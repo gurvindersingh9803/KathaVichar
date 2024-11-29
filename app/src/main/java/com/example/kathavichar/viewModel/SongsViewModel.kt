@@ -60,7 +60,7 @@ class SongsViewModel(
     var selectedTrack: Song? by mutableStateOf(null)
         private set
 
-    var prevPlayingTrack: Song? by mutableStateOf(null)
+    var whichArtistSelected: String? by mutableStateOf(null)
         private set
 
     private var isTrackPlay: Boolean = false
@@ -85,19 +85,19 @@ class SongsViewModel(
      */
     /*
     val playbackState: StateFlow<PlayerBackState> get() = _playbackState*/
-/*
+
     init {
         viewModelScope.launch {
-            getSongs("Maskeen Ji")
+            observeMusicPlayerState()
         }
-    }*/
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getSongs(artistName: String) {
         println("egfrdegf ${selectedTrack?.artistName} $artistName ${_songs.size}")
         viewModelScope.launch {
-            if (selectedTrack?.artistName != artistName) {
-                prevPlayingTrack = selectedTrack
+            whichArtistSelected = artistName
+            if (selectedTrack?.artistName != artistName || selectedTrack == null) {
                 subscription.add(
                     sonsListFirebase
                         .getSongsList(artistName)
@@ -120,15 +120,8 @@ class SongsViewModel(
                             if (songList.isNotEmpty()) {
                                 _songs.clear()
                                 _songs.addAll(songList)
-                            }
-                            if (prevPlayingTrack == null) {
                                 musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemListWithMetadata())
-                                observeMusicPlayerState()
-                            }
-
-                            // TODO: need work
-                            viewModelScope.launch {
-                                if (selectedTrack?.artistName == artistName) {
+                                viewModelScope.launch {
                                     _uiStateSongs.emit(ServerResponse.onSuccess(songList.toMutableList()))
                                 }
                             }
@@ -167,19 +160,13 @@ class SongsViewModel(
     private fun observeMusicPlayerState() {
         viewModelScope.launch {
             musicPlayerKathaVichar.playerStates.observeForever { state ->
-                if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
+                if (state.playerState == MusicPlayerStates.STATE_NEXT_TRACK) {
                     isAuto = true
                     onNextClicked()
                 } else {
-                    updateState(state)
-                }
-            }
-
-            musicPlayerKathaVichar.currentPlayingSongIndex.observeForever { mediaItemIndex ->
-                mediaItemIndex?.let {
-                    println("kghjk $mediaItemIndex")
-                    if (selectedTrackIndex != -1) {
-                        // onTrackSelected(mediaItemIndex)  // TODO: stop it to call on each firs launch
+                    state.playerState?.let {
+                        selectedTrackIndex = state.currentPlayingSongIndex!!
+                        updateState(it)
                     }
                 }
             }
@@ -209,9 +196,10 @@ class SongsViewModel(
     }
 
     private fun updateState(state: MusicPlayerStates) {
-        println("erfergfwe $selectedTrack $selectedTrackIndex $state")
-        if (selectedTrackIndex != -1 && prevPlayingTrack == null) {
-            isTrackPlay = state == MusicPlayerStates.STATE_PLAYING || state == MusicPlayerStates.STATE_BUFFERING
+        println("erfergfwe $state $selectedTrackIndex")
+        if (selectedTrackIndex != -1) {
+            _songs.resetTracks()
+            isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
             _songs[selectedTrackIndex].state = state
             _songs[selectedTrackIndex].isSelected = true
             selectedTrack = null
@@ -219,9 +207,6 @@ class SongsViewModel(
             updatePlaybackState(state)
 
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
-        } else {
-            isTrackPlay = state == MusicPlayerStates.STATE_PLAYING || state == MusicPlayerStates.STATE_BUFFERING
-            updatePlaybackState(state)
         }
     }
 
