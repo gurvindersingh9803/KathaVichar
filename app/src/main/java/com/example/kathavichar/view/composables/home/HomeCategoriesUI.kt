@@ -27,22 +27,33 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.kathavichar.common.Screen
+import com.example.kathavichar.model.ArtistData
+import com.example.kathavichar.model.ArtistSummary
 import com.example.kathavichar.model.Item
+import com.example.kathavichar.model.Section
 import com.example.kathavichar.model.SectionData
 
 @Composable
-fun HomeCategories(data: List<SectionData>?, navigationController: NavHostController) {
+fun HomeCategories(data: List<Section>?, navigationController: NavHostController) {
     Column {
         data?.forEach { sectionData ->
             Text(sectionData.sectionName, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
             Spacer(modifier = Modifier.height(15.dp))
             Column {
                 LazyRow(content = {
-                    items(sectionData.data.size) {
+                    /*items(sectionData.data) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             PlayListItem(sectionData.data[it], navigationController)
                         }
+                    }*/
+
+                    items(getArtistDataSize(sectionData.data)) { index ->
+                        val artist = when (sectionData.data) {
+                            is ArtistData.ArtistsMap -> sectionData.data.artists.values.toList()[index]
+                            is ArtistData.OthersList -> sectionData.data.others[index]
+                        }
+                        PlayListItem(ArtistSummary(artist.image, artist.name), navigationController)
                     }
                 })
             }
@@ -51,16 +62,22 @@ fun HomeCategories(data: List<SectionData>?, navigationController: NavHostContro
     }
 }
 
+fun getArtistDataSize(artistData: ArtistData): Int {
+    return when (artistData) {
+        is ArtistData.ArtistsMap -> artistData.artists.size
+        is ArtistData.OthersList -> artistData.others.size
+    }
+}
+
 @Composable
-fun PlayListItem(sectionItem: Item, navigationController: NavHostController) {
-    println("zazaaz $sectionItem")
+fun PlayListItem(sectionItem: ArtistSummary, navigationController: NavHostController) {
     Card(
         elevation = 4.dp,
         shape = RoundedCornerShape(10.dp),
         modifier = Modifier
             .size(150.dp, 150.dp)
             .padding(3.dp)
-            .clickable { navigationController.navigate("${Screen.SongsList.route}/${sectionItem.name}") },
+            .clickable { navigationController.navigate("${Screen.SongsList.route}/${sectionItem.name.toString()}") },
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(102.dp),
@@ -81,7 +98,7 @@ fun PlayListItem(sectionItem: Item, navigationController: NavHostController) {
 
             ) {
                 Text(
-                    sectionItem.name,
+                    sectionItem.name.toString(),
                     fontSize = 20.sp,
                     color = Color.White.copy(alpha = 0.5f),
                     modifier = Modifier.align(Alignment.BottomEnd),

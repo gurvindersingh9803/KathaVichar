@@ -1,5 +1,8 @@
 package com.example.kathavichar.repositories
 
+import com.example.kathavichar.model.ArtistData
+import com.example.kathavichar.model.ArtistSummary
+import com.example.kathavichar.model.Section
 import com.example.kathavichar.model.SectionData
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -7,6 +10,13 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonParseException
+import com.google.gson.reflect.TypeToken
+import java.lang.reflect.Type
 import io.reactivex.Single
 import org.koin.java.KoinJavaComponent.inject
 
@@ -21,31 +31,65 @@ class HomeCategoriesFirebase {
         databaseReference = firebaseDatabase!!.reference
     }
 
-    fun getdata(): Single<MutableList<SectionData>> =
+    fun getdata(): Single<MutableList<Section>> =
         Single.create { emitter ->
-            val list = mutableListOf<SectionData>()
             try {
                 databaseReference!!.addValueEventListener(
                     object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
-                            snapshot.children.forEach {
-                                println("rfgwes $it")
-                                val a = gson.fromJson(gson.toJson(it.value).toString(), SectionData::class.java)
-                                list.add(a)
+                            val gson = GsonBuilder()
+                                .registerTypeAdapter(ArtistData::class.java, ArtistDataDeserializer())
+                                .create()
+
+                            val list = mutableListOf<Section>() // Ensure the list is re-initialized each time.
+
+                            snapshot.children.forEach { child ->
+                                try {
+                                    val json = gson.toJson(child.value) // Convert the child value to JSON string.
+                                    val section = gson.fromJson(json, Section::class.java) // Deserialize JSON to Section.
+                                    list.add(section) // Add to the list.
+                                } catch (e: Exception) {
+                                    println("Error parsing section: ${e.message}")
+                                }
                             }
-                            println(list)
-                            emitter.onSuccess(list)
+
+                            println("Parsed List: $list")
+                            emitter.onSuccess(list) // Emit the final list.
                         }
 
                         override fun onCancelled(error: DatabaseError) {
-                            // calling on cancelled method when we receive
-                            // any error or we are not able to get the data.
-                            emitter.onError(Throwable(error.message))
+                            emitter.onError(Throwable(error.message)) // Handle errors.
                         }
-                    },
+                    }
                 )
             } catch (e: Exception) {
-                emitter.onError(e)
+                println("Unexpected Error: ${e.message}")
+                emitter.onError(e) // Handle unexpected errors.
             }
+
         }
+}
+
+class ArtistDataDeserializer : JsonDeserializer<ArtistData> {
+    override fun deserialize(
+        json: JsonElement,
+        typeOfT: Type,
+        context: JsonDeserializationContext
+    ): ArtistData {
+        return if (json.isJsonObject) {
+            val artistsMap = context.deserialize<Map<String, ArtistSummary>>(
+                json,
+                object : TypeToken<Map<String, ArtistSummary>>() {}.type
+            )
+            ArtistData.ArtistsMap(artistsMap)
+        } else if (json.isJsonArray) {
+            val othersList = context.deserialize<List<ArtistSummary>>(
+                json,
+                object : TypeToken<List<ArtistSummary>>() {}.type
+            )
+            ArtistData.OthersList(othersList)
+        } else {
+            throw JsonParseException("Unexpected JSON type for ArtistData")
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.example.kathavichar.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kathavichar.model.Section
 import com.example.kathavichar.model.SectionData
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.HomeCategoriesFirebase
@@ -17,7 +18,7 @@ import org.koin.java.KoinJavaComponent.inject
 class MainViewModel : ViewModel() {
     private val homeCategoriesFirebase: HomeCategoriesFirebase by inject(HomeCategoriesFirebase::class.java)
 
-    private val _uiState: MutableStateFlow<ServerResponse<MutableList<SectionData>>> = MutableStateFlow(ServerResponse.isLoading())
+    private val _uiState: MutableStateFlow<ServerResponse<MutableList<Section>>> = MutableStateFlow(ServerResponse.isLoading())
     val uiState = _uiState.asStateFlow()
 
     private val subscription: CompositeDisposable = CompositeDisposable()
