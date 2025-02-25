@@ -13,6 +13,7 @@ import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +47,7 @@ import kotlinx.coroutines.flow.StateFlow
 fun BottomSheetDialog(
     selectedTrack: Song,
     playerEvents: MusicPlayerEvents,
-    playbackState: LiveData<PlayerBackState>,
+    playbackState: StateFlow<PlayerBackState>,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -121,13 +122,13 @@ fun TrackInfo(
  */
 @Composable
 fun TrackProgressSlider(
-    playbackState: LiveData<PlayerBackState>,
+    playbackState: StateFlow<PlayerBackState>,
     onSeekBarPositionChanged: (Long) -> Unit,
 ) {
-    println("tgre ${playbackState.value}")
+    println("tgre ${playbackState.value.currentTrackDuration.toString()}")
     val playbackStateValue =
         playbackState
-            .observeAsState(
+            .collectAsState(
                 initial = PlayerBackState(0L, 0L),
             ).value
 

@@ -24,6 +24,12 @@ import androidx.media3.ui.PlayerNotificationManager
 import com.example.kathavichar.R
 import com.example.kathavichar.common.Constants
 import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableApi::class)
@@ -41,9 +47,14 @@ class MusicPlayerKathaVichar(
 
     private val _currentPlayingSongIndex = MutableLiveData<Int?>()*/ //
     // val currentPlayingSongIndex: LiveData<Int?> get() = _currentPlayingSongIndex
+/*    private val _playerStates = MutableStateFlow(MusicPlayerState())
+    val playerStates: StateFlow<MusicPlayerState> = _playerStates.asStateFlow()*/
 
-    private val _playerState = MutableLiveData<MusicPlayerState>()
-    val playerStates: LiveData<MusicPlayerState> get() = _playerState
+    val _playerStates = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
+
+
+    /* private val _playerState = MutableLiveData<MusicPlayerState>()
+    val playerStates: LiveData<MusicPlayerState> get() = _playerState*/
     val currentPlaybackPosition: Long
         get() = if (exoPlayer.currentPosition > 0) exoPlayer.currentPosition else 0L
 
@@ -208,6 +219,9 @@ class MusicPlayerKathaVichar(
         index: Int,
         isTrackPlay: Boolean,
     ) {
+
+        if (isTrackPlay) exoPlayer.playWhenReady = true
+        println("sadfdsfgsdf $index $isTrackPlay")
         if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
         exoPlayer.seekTo(index, 0)
         if (isTrackPlay) exoPlayer.playWhenReady = true
@@ -218,15 +232,13 @@ class MusicPlayerKathaVichar(
         reason: Int,
     ) {
         super.onMediaItemTransition(mediaItem, reason)
-        _playerState.postValue(MusicPlayerState(exoPlayer.currentMediaItemIndex))
-        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-            _playerState.postValue(
-                MusicPlayerState(
-                    exoPlayer.currentMediaItemIndex,
-                    MusicPlayerStates.STATE_NEXT_TRACK
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                _playerStates.tryEmit(
+                        MusicPlayerStates.STATE_NEXT_TRACK
+
                 )
-            )
-        }
+            }
+
     }
 
     override fun onTracksChanged(tracks: Tracks) {
@@ -235,71 +247,67 @@ class MusicPlayerKathaVichar(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         println("onPlaybackStateChanged ghhjghj")
-        when (playbackState) {
-            Player.STATE_IDLE -> {
-                _playerState.postValue(
-                    MusicPlayerState(
-                        exoPlayer.currentMediaItemIndex,
-                        MusicPlayerStates.STATE_IDLE
-                    )
-                )
+            when (playbackState) {
+                Player.STATE_IDLE -> {
+                        _playerStates.tryEmit(
+                                MusicPlayerStates.STATE_IDLE
 
-                // _playerState.postValue(MusicPlayerStates.STATE_IDLE)
-            }
-
-            Player.STATE_BUFFERING -> {
-                _playerState.postValue(
-                    MusicPlayerState(
-                        exoPlayer.currentMediaItemIndex,
-                        MusicPlayerStates.STATE_BUFFERING
-                    )
-                )
-
-                // _playerState.postValue(MusicPlayerStates.STATE_BUFFERING)
-            }
-
-            Player.STATE_READY -> {
-                _playerState.postValue(
-                    MusicPlayerState(
-                        exoPlayer.currentMediaItemIndex,
-                        MusicPlayerStates.STATE_READY
-                    )
-                )
-
-                // _playerState.postValue(MusicPlayerStates.STATE_READY)
-
-                if (exoPlayer.playWhenReady) {
-                    _playerState.postValue(
-                        MusicPlayerState(
-                            exoPlayer.currentMediaItemIndex,
-                            MusicPlayerStates.STATE_PLAYING
                         )
-                    )
 
-                    // _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
-                } else {
-                    _playerState.postValue(
-                        MusicPlayerState(
-                            exoPlayer.currentMediaItemIndex,
-                            MusicPlayerStates.STATE_PAUSE
+
+                    // _playerState.postValue(MusicPlayerStates.STATE_IDLE)
+                }
+
+                Player.STATE_BUFFERING -> {
+                        _playerStates.tryEmit(
+
+                                MusicPlayerStates.STATE_BUFFERING
+
                         )
-                    )
 
-                    //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
+
+                    // _playerState.postValue(MusicPlayerStates.STATE_BUFFERING)
+                }
+
+                Player.STATE_READY -> {
+                        _playerStates.tryEmit(
+                                MusicPlayerStates.STATE_READY
+
+                        )
+
+
+                    // _playerState.postValue(MusicPlayerStates.STATE_READY)
+
+                    if (exoPlayer.playWhenReady) {
+                            _playerStates.tryEmit(
+                                    MusicPlayerStates.STATE_PLAYING
+
+                            )
+
+
+                        // _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+                    } else {
+                            _playerStates.tryEmit(
+                                    MusicPlayerStates.STATE_PAUSE
+
+                            )
+
+
+                        //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
+                    }
+                }
+
+                Player.STATE_ENDED -> {
+                        _playerStates.tryEmit(
+                                MusicPlayerStates.STATE_END
+
+                        )
+
+
+                    // _playerState.postValue(MusicPlayerStates.STATE_END)
                 }
             }
 
-            Player.STATE_ENDED -> {
-                _playerState.postValue(
-                    MusicPlayerState(
-                        exoPlayer.currentMediaItemIndex,
-                        MusicPlayerStates.STATE_END
-                    )
-                )
-
-                // _playerState.postValue(MusicPlayerStates.STATE_END)
-            }
-        }
     }
 
     override fun onPlayWhenReadyChanged(
@@ -307,26 +315,23 @@ class MusicPlayerKathaVichar(
         reason: Int,
     ) {
         println("onPlayWhenReadyChanged ghhjghj")
-        if (exoPlayer.playbackState == Player.STATE_READY) {
-            if (playWhenReady) {
-                _playerState.postValue(
-                    MusicPlayerState(
-                        exoPlayer.currentMediaItemIndex,
-                        MusicPlayerStates.STATE_PLAYING
-                    )
-                )
+            if (exoPlayer.playbackState == Player.STATE_READY) {
+                if (playWhenReady) {
+                    _playerStates.tryEmit(
+                            MusicPlayerStates.STATE_PLAYING
 
-                //  _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
-            } else {
-                _playerState.postValue(
-                    MusicPlayerState(
-                        exoPlayer.currentMediaItemIndex,
-                        MusicPlayerStates.STATE_PAUSE
                     )
-                )
 
-                //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
-            }
+                    //  _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+                } else {
+                    _playerStates.tryEmit(
+                            MusicPlayerStates.STATE_PAUSE
+
+                    )
+
+                    //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
+                }
+
         }
     }
 

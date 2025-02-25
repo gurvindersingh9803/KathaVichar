@@ -78,6 +78,7 @@ fun SongItem(
     song: Song,
     onTrackClick: () -> Unit,
 ) {
+    println("dfgsdfg $song")
     val bgColor = if (song.isSelected) md_theme_light_primary else md_theme_light_surfaceVariant
     val textColor =
         if (song.isSelected) md_theme_light_onPrimary else md_theme_light_onSurfaceVariant

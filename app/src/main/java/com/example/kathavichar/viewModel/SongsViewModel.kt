@@ -31,6 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
@@ -74,8 +75,13 @@ class SongsViewModel(
      * It is used to emit updates about the playback state to observers.
      */
 
-    private val _playbackState = MutableLiveData(PlayerBackState(0L, 0L))
-    val playerStates: LiveData<PlayerBackState> get() = _playbackState
+    private val _playbackState = MutableStateFlow(PlayerBackState(0L, 0L))
+    /**
+     * A public property that exposes the [_playbackState] as an immutable [StateFlow] for observers.
+     */
+    val playbackState: StateFlow<PlayerBackState> get() = _playbackState
+
+    // val playerStates: LiveData<PlayerBackState> get() = _playbackState
     /*private val _playbackState = MutableStateFlow(PlayerBackState(0L, 0L))
 
      */
@@ -88,7 +94,7 @@ class SongsViewModel(
 
     init {
         viewModelScope.launch {
-            observeMusicPlayerState()
+            // observeMusicPlayerState()
         }
     }
 
@@ -121,9 +127,9 @@ class SongsViewModel(
                                 _songs.clear()
                                 _songs.addAll(songList)
                                 musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemListWithMetadata())
-                                viewModelScope.launch {
-                                    _uiStateSongs.emit(ServerResponse.onSuccess(songList.toMutableList()))
-                                }
+                                _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                                observeMusicPlayerState()
+
                             }
                         }, {
                             Log.i("edfgwegf", it.toString())
@@ -151,6 +157,7 @@ class SongsViewModel(
     override fun onTrackClicked(song: Song) {
         println("onTrackClicked")
         onTrackSelected(songs.indexOf(song))
+       // musicPlayerKathaVichar.playPause()
     }
 
     override fun onSeekBarPositionChanged(position: Long) {
@@ -159,24 +166,20 @@ class SongsViewModel(
 
     private fun observeMusicPlayerState() {
         viewModelScope.launch {
-            musicPlayerKathaVichar.playerStates.observeForever { state ->
-                if (state.playerState == MusicPlayerStates.STATE_NEXT_TRACK) {
-                    isAuto = true
-                    onNextClicked()
-                } else {
-                    state.playerState?.let {
-                        selectedTrackIndex = state.currentPlayingSongIndex!!
-                        updateState(it)
-                    }
-                }
+            musicPlayerKathaVichar._playerStates.collect { state ->
+                        updateState(state)
+
+
             }
         }
     }
 
     private fun onTrackSelected(index: Int) {
-        println("jhjh $index")
+        println("jhjh $selectedTrackIndex $index")
         if (selectedTrackIndex == -1) isTrackPlay = true
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
+            isTrackPlay = true
+            println("jhjh sfd $selectedTrackIndex")
             selectedTrackIndex = index
             _songs.resetTracks()
             setUpTrack()
@@ -195,7 +198,7 @@ class SongsViewModel(
         isAuto = false
     }
 
-    private fun updateState(state: MusicPlayerStates) {
+    /*private fun updateState(state: MusicPlayerStates) {
         println("erfergfwe $state $selectedTrackIndex")
         if (selectedTrackIndex != -1) {
             _songs.resetTracks()
@@ -208,16 +211,33 @@ class SongsViewModel(
 
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
         }
+    }*/
+
+    private fun updateState(state: MusicPlayerStates) {
+        println("rgthger $state $selectedTrackIndex")
+        if (selectedTrackIndex != -1) {
+            isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
+            _songs[selectedTrackIndex].state = state
+            _songs[selectedTrackIndex].isSelected = true
+            selectedTrack = null
+            selectedTrack = songs[selectedTrackIndex]
+
+            updatePlaybackState(state)
+            if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
+                isAuto = true
+                onNextClicked()
+            }
+            if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
+        }
     }
 
     private fun updatePlaybackState(state: MusicPlayerStates) {
         // TODO: store this scope in a var and destroy it when used may be.
         playbackStateJob?.cancel()
-
         playbackStateJob =
             viewModelScope.launch {
                 do {
-                    _playbackState.postValue(
+                    _playbackState.tryEmit(
                         PlayerBackState(
                             currentPlayBackPosition = musicPlayerKathaVichar.currentPlaybackPosition,
                             currentTrackDuration = musicPlayerKathaVichar.currentTrackDuration,

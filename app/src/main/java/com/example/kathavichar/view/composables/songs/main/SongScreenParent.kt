@@ -55,7 +55,7 @@ fun Content(
     ModalBottomSheetLayout(
         sheetContent = {
             if (songsViewModel.selectedTrack != null) {
-                BottomSheetDialog(songsViewModel.selectedTrack!!, songsViewModel, songsViewModel.playerStates)
+                BottomSheetDialog(songsViewModel.selectedTrack!!, songsViewModel, songsViewModel.playbackState)
             }
         },
         sheetState = fullScreenState,
