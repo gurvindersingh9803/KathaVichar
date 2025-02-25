@@ -74,8 +74,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                startMusicService()
-                println("fgbhdfghd kjlj")
                 val navController = rememberNavController()
                 Scaffold(topBar = {
                     Surface(shadowElevation = 5.dp) {
@@ -98,6 +96,7 @@ class MainActivity : ComponentActivity() {
                             songsViewModel,
                         )
                     }
+                    startMusicService()
 
                     MyEventListener {
                         when (it) {
@@ -121,16 +120,22 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startMusicService() {
-        println("fgbhdfghd")
-        if (!isServiceRunning) {
-            val intent = Intent(this, MediaService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-            isServiceRunning = true
-        }
+     try {
+
+         println("fgbhdfghd")
+         if (!isServiceRunning) {
+             val intent = Intent(this, MediaService::class.java)
+             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                 startForegroundService(intent)
+             } else {
+                 startService(intent)
+             }
+             isServiceRunning = true
+         }
+     } catch (e: Exception) {
+         println("fgbhdfghd $e")
+
+     }
     }
 
     override fun onResume() {

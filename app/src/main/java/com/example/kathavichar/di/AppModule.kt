@@ -1,5 +1,6 @@
 package com.example.kathavichar.di
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -13,11 +14,13 @@ import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.MusicPlayerViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
+import com.example.myapp.MediaPlayerNotificationManager
 import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
+@SuppressLint("UnsafeOptInUsageError")
 @RequiresApi(Build.VERSION_CODES.O)
 val appModule =
     module {
@@ -32,6 +35,7 @@ val appModule =
         single {
             MusicPlayerKathaVichar(get(), androidContext())
         }
+        single { MediaPlayerNotificationManager(androidContext()) }
         single { MediaService() }
         factory {
             MediaSession.Builder(get(), get<ExoPlayer>()).build()
