@@ -43,8 +43,11 @@ class MusicPlayerKathaVichar(
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
-        println("fgfrgfg $songsList")
-        exoPlayer.addListener(this)
+        if(!exoPlayer.isReleased) {
+            exoPlayer.addListener(this)
+            println("fgfrgfg 2 ${exoPlayer.isReleased}")
+        }
+
         exoPlayer.setMediaItems(songsList)
         exoPlayer.prepare()
 
