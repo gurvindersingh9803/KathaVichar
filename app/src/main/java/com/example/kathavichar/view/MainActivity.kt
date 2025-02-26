@@ -53,18 +53,28 @@ class MainActivity : ComponentActivity() {
                     }
 
                 val lifeCycleOwner = LocalLifecycleOwner.current
+                val notificationPermissionState =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        null
+                    }
+
 
                 DisposableEffect(key1 = lifeCycleOwner) {
                     val observer =
                         LifecycleEventObserver { _, event ->
                             if (event == Lifecycle.Event.ON_RESUME) {
-                                if (isPermissionGranted != null) {
-                                    if (!isPermissionGranted.status.isGranted) {
-                                        Log.d("Permissions", "Requesting permission")
-                                        isPermissionGranted.launchPermissionRequest()
+                                if (notificationPermissionState != null) {
+                                    if (!notificationPermissionState.status.isGranted) {
+                                        Log.d("Permissions", "Requesting notification permission")
+                                        notificationPermissionState.launchPermissionRequest()
                                     } else {
-                                        Log.d("Permissions", "Permission already granted")
+                                        Log.d("Permissions", "Notification permission already granted")
+                                        startMusicService() // Start the service only if permission is granted
                                     }
+                                } else {
+                                    startMusicService() // Start the service if no permission is required
                                 }
                             }
                         }
@@ -96,7 +106,6 @@ class MainActivity : ComponentActivity() {
                             songsViewModel,
                         )
                     }
-                    startMusicService()
 
                     MyEventListener {
                         when (it) {
@@ -122,7 +131,6 @@ class MainActivity : ComponentActivity() {
     private fun startMusicService() {
      try {
 
-         println("fgbhdfghd")
          if (!isServiceRunning) {
              val intent = Intent(this, MediaService::class.java)
              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

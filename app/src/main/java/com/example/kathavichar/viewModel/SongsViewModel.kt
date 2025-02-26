@@ -8,12 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.kathavichar.model.Song
@@ -31,7 +28,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
@@ -127,6 +123,7 @@ class SongsViewModel(
                                 _songs.clear()
                                 _songs.addAll(songList)
                                 musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemListWithMetadata())
+                                Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
                                 _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                                 observeMusicPlayerState()
 
@@ -151,13 +148,13 @@ class SongsViewModel(
     override fun onNextClicked() {
         println("fsdgsdgf ${songs.toMediaItemListWithMetadata()}")
 
-        if (selectedTrackIndex < songs.size - 1) onTrackSelected(selectedTrackIndex + 1)
+        if (selectedTrackIndex < songs.size - 1)
+        onTrackSelected(selectedTrackIndex + 1)
     }
 
     override fun onTrackClicked(song: Song) {
         println("onTrackClicked")
         onTrackSelected(songs.indexOf(song))
-       // musicPlayerKathaVichar.playPause()
     }
 
     override fun onSeekBarPositionChanged(position: Long) {
@@ -167,21 +164,20 @@ class SongsViewModel(
     private fun observeMusicPlayerState() {
         viewModelScope.launch {
             musicPlayerKathaVichar._playerStates.collect { state ->
+                println("sdfghdf $state")
                         updateState(state)
-
-
             }
         }
     }
 
     private fun onTrackSelected(index: Int) {
         println("jhjh $selectedTrackIndex $index")
-        if (selectedTrackIndex == -1) isTrackPlay = true
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
             isTrackPlay = true
-            println("jhjh sfd $selectedTrackIndex")
             selectedTrackIndex = index
             _songs.resetTracks()
+            _songs[selectedTrackIndex].isSelected = true
+            selectedTrack = songs[selectedTrackIndex]
             setUpTrack()
         }
     }
@@ -224,10 +220,32 @@ class SongsViewModel(
 
             updatePlaybackState(state)
             if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
-                isAuto = true
+               //  isAuto = true
                 onNextClicked()
             }
+
+            if (state == MusicPlayerStates.STATE_TRACK_CHANGED) {
+                updateSelectedTrackIndex()
+            }
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
+        }
+    }
+
+    private fun updateSelectedTrackIndex() {
+        val currentMediaItem = musicPlayerKathaVichar.getCurrentMediaItem()
+        if (currentMediaItem != null) {
+            val index = songs.toMediaItemListWithMetadata().indexOfFirst { song ->
+                println("regfghyy ${currentMediaItem.mediaMetadata.genre} ${song.mediaMetadata.genre}")
+                song.mediaMetadata.genre == currentMediaItem.mediaMetadata.genre
+            }
+
+            if (index != -1) {
+                println("sdgfwsd $index")
+                selectedTrackIndex = index
+                selectedTrack = songs[selectedTrackIndex]
+                _songs.resetTracks()
+                _songs[selectedTrackIndex].isSelected = true
+            }
         }
     }
 
@@ -248,17 +266,6 @@ class SongsViewModel(
             }
     }
 
-    /**
-     * Converts a list of [Track] objects into a mutable list of [MediaItem] objects.
-     *
-     * @return A mutable list of [MediaItem] objects.
-     */
-    fun List<Song>.toMediaItemList(): MutableList<MediaItem> =
-        this
-            .map {
-                MediaItem.fromUri(it.audioUrl)
-            }.toMutableList()
-
     fun List<Song>.toMediaItemListWithMetadata(): MutableList<MediaItem> =
         this
             .map { song ->
@@ -270,6 +277,7 @@ class SongsViewModel(
                             .Builder()
                             .setTitle(song.title)
                             .setArtist(song.artistName)
+                            .setGenre(song.audioUrl)
                             .build(),
                     ).build()
             }.toMutableList()

@@ -39,5 +39,7 @@ enum class MusicPlayerStates {
     /**
      * State when the player has moved to the next track.
      */
-    STATE_NEXT_TRACK
+    STATE_NEXT_TRACK,
+
+    STATE_TRACK_CHANGED
 }

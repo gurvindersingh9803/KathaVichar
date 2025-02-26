@@ -1,11 +1,14 @@
 package com.example.kathavichar.repositories.musicPlayer
+import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.media.app.NotificationCompat
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.example.kathavichar.common.Constants
 import org.koin.android.ext.android.inject
 
 class MediaService : MediaSessionService() {
@@ -20,8 +23,9 @@ class MediaService : MediaSessionService() {
         flags: Int,
         startId: Int,
     ): Int {
+        super.onStartCommand(intent, flags, startId)
         musicPlayerKathaVichar.startMusicNotificationService(this, mediaSession)
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
