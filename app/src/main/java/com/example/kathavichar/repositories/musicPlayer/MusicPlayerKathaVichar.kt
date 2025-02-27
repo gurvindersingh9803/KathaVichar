@@ -32,6 +32,7 @@ class MusicPlayerKathaVichar(
 ) : Player.Listener {
     private var isServiceRunning = false
     private lateinit var mediaService: MediaService
+    private var isListenerAdded = false
 
     private lateinit var playerNotification: PlayerNotificationManager
     val _playerStates = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
@@ -43,9 +44,9 @@ class MusicPlayerKathaVichar(
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
-        if(!exoPlayer.isReleased) {
+        if(!isListenerAdded) {
             exoPlayer.addListener(this)
-            println("fgfrgfg 2 ${exoPlayer.isReleased}")
+            isListenerAdded = true
         }
 
         exoPlayer.setMediaItems(songsList)
@@ -59,7 +60,7 @@ class MusicPlayerKathaVichar(
         mediaSessionService: MediaSessionService,
         mediaSession: MediaSession,
     ) {
-        // createNotificationChannel()
+        createNotificationChannel()
         startForegroundMusicService(mediaSessionService)
         buildMusicNotification(mediaSession)
     }
@@ -174,7 +175,7 @@ class MusicPlayerKathaVichar(
 
     fun releasePlayer() {
         exoPlayer.release()
-        playerNotification.setPlayer(null)
+        isListenerAdded = true
     }
 
     fun seekToPosition(position: Long) {
