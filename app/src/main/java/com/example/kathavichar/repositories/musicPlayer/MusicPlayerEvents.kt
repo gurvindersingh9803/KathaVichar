@@ -8,7 +8,7 @@ interface MusicPlayerEvents {
 
     fun onPreviousClicked()
 
-    fun onNextClicked()
+    fun onNextClicked(isBottomClick: Boolean = false, song: Song? = null)
 
     fun onTrackClicked(song: Song)
 

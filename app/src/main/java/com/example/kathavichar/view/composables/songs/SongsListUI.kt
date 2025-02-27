@@ -62,6 +62,7 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
             contentPadding = PaddingValues(5.dp),
         ) {
             items(songs) { song ->
+                println("jlhkjkh ${song.isSelected}")
                 SongItem(
                     song = song,
                     onTrackClick = { songsViewModel.onTrackClicked(song) },

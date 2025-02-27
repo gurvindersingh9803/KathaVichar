@@ -51,7 +51,7 @@ fun BottomPlayerTab(
                 onClick = musicPlayerEvents::onPlayPauseClicked,
                 isBottomTab = true,
             )
-            NextIcon(onClick = musicPlayerEvents::onNextClicked, isBottomTab = true)
+            NextIcon(onClick = { musicPlayerEvents.onNextClicked(true, song) }, isBottomTab = true)
         }
     }
 }

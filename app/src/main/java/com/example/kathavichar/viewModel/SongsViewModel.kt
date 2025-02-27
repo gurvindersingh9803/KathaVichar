@@ -47,6 +47,13 @@ class SongsViewModel(
      */
     val songs: List<Song> get() = _songs
 
+    private val _currentplayingsongs = mutableStateListOf<Song>()
+
+    /**
+     * An immutable snapshot of the current list of tracks.
+     */
+    val currentplayingsongs: List<Song> get() = _currentplayingsongs
+
     val subscription: CompositeDisposable = CompositeDisposable()
 
     private val musicPlayerKathaVichar: MusicPlayerKathaVichar by KoinJavaComponent.inject(
@@ -96,10 +103,9 @@ class SongsViewModel(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getSongs(artistName: String) {
-        println("egfrdegf ${selectedTrack?.artistName} $artistName ${_songs.size}")
+        println("egfrdegf ${selectedTrack}")
         viewModelScope.launch {
             whichArtistSelected = artistName
-            if (selectedTrack?.artistName != artistName || selectedTrack == null) {
                 subscription.add(
                     sonsListFirebase
                         .getSongsList(artistName)
@@ -120,9 +126,9 @@ class SongsViewModel(
 
                             // Add to _songs and initialize the music player
                             if (songList.isNotEmpty()) {
+                                selectedTrackIndex = -1
                                 _songs.clear()
                                 _songs.addAll(songList)
-                                musicPlayerKathaVichar.initMusicPlayer(songs.toMediaItemListWithMetadata())
                                 Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
                                 _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                                 observeMusicPlayerState()
@@ -132,7 +138,7 @@ class SongsViewModel(
                             Log.i("edfgwegf", it.toString())
                         }),
                 )
-            }
+
         }
     }
 
@@ -145,16 +151,41 @@ class SongsViewModel(
         if (selectedTrackIndex > 0) onTrackSelected(selectedTrackIndex - 1)
     }
 
-    override fun onNextClicked() {
-        println("fsdgsdgf ${songs.toMediaItemListWithMetadata()}")
+    override fun onNextClicked(isBottomClick: Boolean, song: Song?) {
+        if(isBottomClick && song != null) {
+            println("fsdgsdgf rfrfrfr ${isBottomClick} ${selectedTrackIndex} ${currentplayingsongs.size}")
+            if (selectedTrackIndex < currentplayingsongs.size - 1)
+                onTrackSelected(currentplayingsongs.indexOf(song) + 1, isBottomClick)
+        } else {
+            println("fsdgsdgf iupioup ${isBottomClick} ${selectedTrack?.artistName} $whichArtistSelected")
+            if (selectedTrackIndex < songs.size - 1)
+                onTrackSelected(selectedTrackIndex + 1, isBottomClick)
+        }
 
-        if (selectedTrackIndex < songs.size - 1)
-        onTrackSelected(selectedTrackIndex + 1)
+
+/*
+        if (selectedTrack?.artistName == whichArtistSelected) {
+            // change the UI and params
+            if (selectedTrackIndex < songs.size - 1)
+                onTrackSelected(selectedTrackIndex + 1)
+        } else {
+            // get index from current Playinglist
+            println("fsdgsdgf else ${currentplayingsongs.indexOf(song)}")
+*/
+
+
+
+
+      //  }
+
     }
 
     override fun onTrackClicked(song: Song) {
-        println("onTrackClicked")
-        onTrackSelected(songs.indexOf(song))
+        println("onTrackClicked $whichArtistSelected ${selectedTrack?.artistName} ${currentplayingsongs.indexOf(song)}")
+        _currentplayingsongs.clear()
+        _currentplayingsongs.addAll(songs)
+        // selectedTrackIndex = currentplayingsongs.indexOf(song)
+        onTrackSelected(currentplayingsongs.indexOf(song))
     }
 
     override fun onSeekBarPositionChanged(position: Long) {
@@ -170,16 +201,40 @@ class SongsViewModel(
         }
     }
 
-    private fun onTrackSelected(index: Int) {
-        println("jhjh $selectedTrackIndex $index")
-        if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
-            isTrackPlay = true
-            selectedTrackIndex = index
-            _songs.resetTracks()
-            _songs[selectedTrackIndex].isSelected = true
-            selectedTrack = songs[selectedTrackIndex]
-            setUpTrack()
+    private fun onTrackSelected(index: Int, isBottomClick: Boolean = false) {
+
+        if (isBottomClick || selectedTrack == null) {
+            println("jhjh currentplayingsongs $currentplayingsongs")
+            if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
+                isTrackPlay = true
+                selectedTrackIndex = index
+                _currentplayingsongs.resetTracks()
+                _currentplayingsongs[selectedTrackIndex].isSelected = true
+                selectedTrack = currentplayingsongs[selectedTrackIndex]
+                setUpTrack()
+            }
+        } else {
+           // _currentplayingsongs.clear()
+            println("jhjh songss $currentplayingsongs")
+            if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
+                isTrackPlay = true
+                selectedTrackIndex = index
+                _songs.resetTracks()
+                _songs[selectedTrackIndex].isSelected = true
+                selectedTrack = songs[selectedTrackIndex]
+                setUpTrack()
+            }
         }
+
+        /*if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
+        isTrackPlay = true
+        selectedTrackIndex = index
+        _currentplayingsongs.resetTracks()
+        _currentplayingsongs[selectedTrackIndex].isSelected = true
+        selectedTrack = currentplayingsongs[selectedTrackIndex]
+        setUpTrack()
+        }*/
+
     }
 
     private fun MutableList<Song>.resetTracks() {
