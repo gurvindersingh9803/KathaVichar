@@ -44,6 +44,7 @@ class MusicPlayerKathaVichar(
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
+        exoPlayer.clearMediaItems()
         if(!isListenerAdded) {
             exoPlayer.addListener(this)
             isListenerAdded = true

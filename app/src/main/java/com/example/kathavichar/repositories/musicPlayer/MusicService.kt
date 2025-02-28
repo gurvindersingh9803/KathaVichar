@@ -27,8 +27,7 @@ class MediaService : MediaSessionService() {
         musicPlayerKathaVichar.startMusicNotificationService(this, mediaSession)
         return START_STICKY
     }
-
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
+     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
 
     override fun onDestroy() {
         super.onDestroy()
