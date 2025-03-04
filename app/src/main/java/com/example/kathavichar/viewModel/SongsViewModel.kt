@@ -130,11 +130,34 @@ class SongsViewModel(
 
                         // Add to _songs and initialize the music player
                         if (songList.isNotEmpty()) {
-                            selectedTrackIndex = -1
-                            _songs.clear()
-                            _songs.addAll(songList)
-                            Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
-                            _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                            if(currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1){
+                                if(artistName ==  currentplayingsongs[selectedTrackIndex].artistName) {
+                                    println("opopop same artist  $selectedTrackIndex ")
+                                   /* _currentplayingsongs.clear()
+                                    _currentplayingsongs.addAll(songs)*/
+                                    _songs.clear()
+                                    _songs.addAll(currentplayingsongs)
+                                   // println("opopop same artist  $currentplayingsongs ")
+
+                                    /*_currentplayingsongs[selectedTrackIndex].isSelected = true
+                                    selectedTrack = currentplayingsongs[selectedTrackIndex]*/
+
+                                } else {
+
+                                    println("opopop diffe artist  $selectedTrackIndex")
+                                    _currentplayingsongs.resetTracks()
+                                    _songs.clear()
+                                    _songs.addAll(songList)
+                                    Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
+                                    _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                                }
+                            } else {
+                                _songs.clear()
+                                _songs.addAll(songList)
+                                Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
+                                _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                            }
+
                             observeMusicPlayerState()
 
                         }
@@ -158,17 +181,26 @@ class SongsViewModel(
     override fun onNextClicked(isBottomClick: Boolean, song: Song?) {
         if (isBottomClick && song != null) {
             if (currentplayingsongs.isNotEmpty()) {
+                val currentPlayingArtist = song.artistName
+                val whichArtistSongsAreDisplayingCurrently = whichArtistSelected
+                println("qwertyui $currentPlayingArtist $whichArtistSongsAreDisplayingCurrently $selectedTrackIndex")
                 val songIndex = currentplayingsongs.indexOf(song)
-                if (songIndex != -1) {
-                    if (songIndex < currentplayingsongs.size - 1) {
-                        val nextSong = currentplayingsongs[songIndex + 1]
-
-                        // Check if the next song is from the same artist
-                        if (nextSong.artistName == whichArtistSelected) {
+                if(currentPlayingArtist == whichArtistSongsAreDisplayingCurrently) {
+                    if (songIndex != -1) {
+                        if (songIndex < currentplayingsongs.size - 1) {
                             onTrackSelected(songIndex + 1, isBottomClick = true)
                         }
                     }
-                } /*else {
+                } else{
+
+                }
+                /*if (songIndex != -1) {
+                    if (songIndex < currentplayingsongs.size - 1) {
+                        val nextSong = currentplayingsongs[songIndex + 1]
+                            onTrackSelected(songIndex + 1, isBottomClick = true)
+
+                    }
+                }*/ /*else {
                     println("rtyuio sss $songIndex")
                     _currentplayingsongs.clear()
                     _currentplayingsongs.addAll(songs)
@@ -248,7 +280,6 @@ class SongsViewModel(
     private fun onTrackSelected(index: Int, isBottomClick: Boolean = false, isTrackClicked: Boolean = false) {
 
         println("rtyuio  onTrackSelected $index $selectedTrackIndex")
-        if (currentplayingsongs.isNotEmpty() && currentplayingsongs[index].artistName == whichArtistSelected) {
             if (isBottomClick || selectedTrack == null || isTrackClicked) {
                 if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
                     isTrackPlay = true
@@ -258,7 +289,7 @@ class SongsViewModel(
                     selectedTrack = currentplayingsongs[selectedTrackIndex]
                     setUpTrack()
                 }
-            }
+
         }
 
         /*if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
@@ -303,18 +334,20 @@ class SongsViewModel(
         println("rgthger $state $selectedTrackIndex")
         if (selectedTrackIndex != -1) {
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
-            _songs[selectedTrackIndex].state = state
-            _songs[selectedTrackIndex].isSelected = true
+            _currentplayingsongs[selectedTrackIndex].state = state
+            _currentplayingsongs[selectedTrackIndex].isSelected = true
             selectedTrack = null
-            selectedTrack = songs[selectedTrackIndex]
+            selectedTrack = currentplayingsongs[selectedTrackIndex]
 
             updatePlaybackState(state)
             if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
                //  isAuto = true
+                println("dfdfddfdf")
                 onNextClicked()
             }
 
             if (state == MusicPlayerStates.STATE_TRACK_CHANGED) {
+                println("dfdfddfdf dvdf")
                 updateSelectedTrackIndex()
             }
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)

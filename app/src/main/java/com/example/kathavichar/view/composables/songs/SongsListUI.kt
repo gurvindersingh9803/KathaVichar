@@ -56,6 +56,7 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
     val lazyListState = rememberLazyListState()
 
     val songs = songsViewModel.songs
+    val alreadyPlaying = songsViewModel.selectedTrack
     if (songs.first().artistName == songsViewModel.whichArtistSelected) {
         LazyColumn(
             state = lazyListState,
