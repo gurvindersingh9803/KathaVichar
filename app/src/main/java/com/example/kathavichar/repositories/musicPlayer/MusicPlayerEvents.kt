@@ -6,7 +6,7 @@ interface MusicPlayerEvents {
 
     fun onPlayPauseClicked()
 
-    fun onPreviousClicked()
+    fun onPreviousClicked(isBottomClick: Boolean = false, song: Song? = null)
 
     fun onNextClicked(isBottomClick: Boolean = false, song: Song? = null)
 
