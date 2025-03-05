@@ -63,7 +63,6 @@ class SongsViewModel(
 
     private var selectedTrackIndex: Int by mutableStateOf(-1)
 
-
     var selectedTrack: Song? by mutableStateOf(null)
         private set
 
@@ -110,7 +109,7 @@ class SongsViewModel(
     fun getSongs(artistName: String) {
         viewModelScope.launch {
             whichArtistSelected = artistName
-            println("egfrdegf ${selectedTrack}")
+            println("egfrdegf $selectedTrack")
             subscription.add(
                 sonsListFirebase
                     .getSongsList(artistName)
@@ -131,20 +130,18 @@ class SongsViewModel(
 
                         // Add to _songs and initialize the music player
                         if (songList.isNotEmpty()) {
-                            if(currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1){
-                                if(artistName ==  currentplayingsongs[selectedTrackIndex].artistName) {
+                            if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
+                                if (artistName == currentplayingsongs[selectedTrackIndex].artistName) {
                                     println("opopop same artist  $selectedTrackIndex ")
                                    /* _currentplayingsongs.clear()
                                     _currentplayingsongs.addAll(songs)*/
                                     _songs.clear()
                                     _songs.addAll(currentplayingsongs)
-                                   // println("opopop same artist  $currentplayingsongs ")
+                                    // println("opopop same artist  $currentplayingsongs ")
 
                                     /*_currentplayingsongs[selectedTrackIndex].isSelected = true
                                     selectedTrack = currentplayingsongs[selectedTrackIndex]*/
-
                                 } else {
-
                                     println("opopop diffe artist  $selectedTrackIndex")
                                     // _currentplayingsongs.resetTracks()
                                     _songs.clear()
@@ -160,14 +157,12 @@ class SongsViewModel(
                             }
 
                             observeMusicPlayerState()
-
                         }
                     }, {
                         Log.i("edfgwegf", it.toString())
                     }),
             )
         }
-
     }
 
     override fun onPlayPauseClicked() {
@@ -176,14 +171,13 @@ class SongsViewModel(
     }
 
     override fun onPreviousClicked(isBottomClick: Boolean, song: Song?) {
-        //if (selectedTrackIndex > 0) onTrackSelected(selectedTrackIndex - 1)
+        // if (selectedTrackIndex > 0) onTrackSelected(selectedTrackIndex - 1)
         if (isBottomClick && song != null) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artistName
 
             if (currentPlayingSongArtist == whichArtistSelected) {
-                    if (currentSongIndex > 0) onTrackSelected(selectedTrackIndex - 1)
-
+                if (currentSongIndex > 0) onTrackSelected(selectedTrackIndex - 1)
             } else {
                 isBottomClicked = true
                 if (currentSongIndex > 0) onTrackSelected(selectedTrackIndex - 1)
@@ -192,26 +186,22 @@ class SongsViewModel(
     }
 
     override fun onNextClicked(isBottomClick: Boolean, song: Song?) {
-        isBottomClicked = true
         if (isBottomClick && song != null) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artistName
 
-            if(currentPlayingSongArtist == whichArtistSelected) {
-                if (currentSongIndex < currentplayingsongs.size - 1)
-                onTrackSelected(currentplayingsongs.indexOf(song) + 1)
+            if (currentPlayingSongArtist == whichArtistSelected) {
+                if (currentSongIndex < currentplayingsongs.size - 1) {
+                    onTrackSelected(currentplayingsongs.indexOf(song) + 1)
+                }
             } else {
-                if (currentSongIndex < currentplayingsongs.size - 1)
-                 isBottomClicked = true
-                onTrackSelected(currentplayingsongs.indexOf(song) + 1)
+                if (currentSongIndex < currentplayingsongs.size - 1) {
+                    isBottomClicked = true
+                    onTrackSelected(currentplayingsongs.indexOf(song) + 1)
+                }
             }
-
         }
-
-
     }
-
-
 
     override fun onTrackClicked(song: Song) {
         // this logic checks on each song tap if the there is any current song
@@ -221,25 +211,21 @@ class SongsViewModel(
         // list OR else it will updated currentPlayingSongsList and update the UI.
 
         isBottomClicked = false
-        if(currentplayingsongs.isEmpty()){
-
+        if (currentplayingsongs.isEmpty()) {
             _currentplayingsongs.clear()
             _currentplayingsongs.addAll(songs)
-            println("onTrackClicked ${currentplayingsongs}}")
+            println("onTrackClicked $currentplayingsongs}")
             musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
             onTrackSelected(currentplayingsongs.indexOf(song))
         } else {
-
             val songIndex = currentplayingsongs.indexOf(song)
-            if(songIndex == -1) {
-
+            if (songIndex == -1) {
                 _currentplayingsongs.clear()
                 _currentplayingsongs.addAll(songs)
                 musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
                 println("onTrackClicked 1 $song ${currentplayingsongs.indexOf(song)}")
                 println("onTrackClicked 1 $currentplayingsongs")
                 onTrackSelected(currentplayingsongs.indexOf(song))
-
             } else {
                 println("onTrackClicked} 2")
                 onTrackSelected(currentplayingsongs.indexOf(song))
@@ -259,27 +245,24 @@ class SongsViewModel(
         viewModelScope.launch {
             musicPlayerKathaVichar._playerStates.collect { state ->
                 println("sdfghdf $state")
-                        updateState(state)
+                updateState(state)
             }
         }
     }
 
     private fun onTrackSelected(index: Int) {
-
-        println("ghfrghdfjjj $isBottomClicked")
-                if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
-                    isTrackPlay = true
-                    selectedTrackIndex = index
-                    _currentplayingsongs.resetTracks()
-                    if(!isBottomClicked) {
-                        println("gygygygy")
-                        _currentplayingsongs[selectedTrackIndex].isSelected = true
-                        selectedTrack = currentplayingsongs[selectedTrackIndex]
-                    }
-                    setUpTrack()
-                }
-
-
+        println("ghfrghdfjjj $index")
+        if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
+            isTrackPlay = true
+            selectedTrackIndex = index
+            _currentplayingsongs.resetTracks()
+            if (!isBottomClicked) {
+                println("gygygygy")
+                _currentplayingsongs[selectedTrackIndex].isSelected = true
+                selectedTrack = currentplayingsongs[selectedTrackIndex]
+            }
+            setUpTrack()
+        }
 
         /*if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
         isTrackPlay = true
@@ -289,7 +272,6 @@ class SongsViewModel(
         selectedTrack = currentplayingsongs[selectedTrackIndex]
         setUpTrack()
         }*/
-
     }
 
     private fun MutableList<Song>.resetTracks() {
@@ -330,7 +312,7 @@ class SongsViewModel(
 
             updatePlaybackState(state)
             if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
-               //  isAuto = true
+                //  isAuto = true
                 println("dfdfddfdf")
                 onNextClicked()
             }
@@ -346,23 +328,16 @@ class SongsViewModel(
     private fun updateSelectedTrackIndex() {
         val currentMediaItem = musicPlayerKathaVichar.getCurrentMediaItem()
         if (currentMediaItem != null) {
-            val index = songs.toMediaItemListWithMetadata().indexOfFirst { song ->
-                println("regfghyy ${currentMediaItem.mediaMetadata.genre} ${song.mediaMetadata.genre}")
-                song.mediaMetadata.genre == currentMediaItem.mediaMetadata.genre
+            val index = currentplayingsongs.toMediaItemListWithMetadata().indexOfFirst { currentplayingson ->
+                currentplayingson.mediaMetadata.genre == currentMediaItem.mediaMetadata.genre
             }
-
             if (index != -1) {
-                println("sdgfwsd $index")
-                selectedTrackIndex = index
-                selectedTrack = songs[selectedTrackIndex]
-                _songs.resetTracks()
-                _songs[selectedTrackIndex].isSelected = true
+                onTrackSelected(index)
             }
         }
     }
 
     private fun updatePlaybackState(state: MusicPlayerStates) {
-        // TODO: store this scope in a var and destroy it when used may be.
         playbackStateJob?.cancel()
         playbackStateJob =
             viewModelScope.launch {
