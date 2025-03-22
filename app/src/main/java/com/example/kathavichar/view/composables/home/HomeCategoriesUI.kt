@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -27,17 +26,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.kathavichar.common.Screen
-import com.example.kathavichar.model.ArtistData
 import com.example.kathavichar.model.ArtistSummary
-import com.example.kathavichar.model.Item
-import com.example.kathavichar.model.Section
-import com.example.kathavichar.model.SectionData
+import com.example.kathavichar.model.ArtistsData
+import com.example.kathavichar.model.ArtistsItem
 
 @Composable
-fun HomeCategories(data: List<Section>?, navigationController: NavHostController) {
+fun HomeCategories(data: List<ArtistsItem>?, navigationController: NavHostController) {
     Column {
         data?.forEach { sectionData ->
-            Text(sectionData.sectionName, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
+            println("dfgthdfgh $sectionData")
+            // Text(sectionData.sectionName, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
             Spacer(modifier = Modifier.height(15.dp))
             Column {
                 LazyRow(content = {
@@ -48,12 +46,8 @@ fun HomeCategories(data: List<Section>?, navigationController: NavHostController
                         }
                     }*/
 
-                    items(getArtistDataSize(sectionData.data)) { index ->
-                        val artist = when (sectionData.data) {
-                            is ArtistData.ArtistsMap -> sectionData.data.artists.values.toList()[index]
-                            is ArtistData.OthersList -> sectionData.data.others[index]
-                        }
-                        PlayListItem(ArtistSummary(artist.image, artist.name), navigationController)
+                    items(data.size) { index ->
+                        PlayListItem(sectionData, navigationController)
                     }
                 })
             }
@@ -62,22 +56,15 @@ fun HomeCategories(data: List<Section>?, navigationController: NavHostController
     }
 }
 
-fun getArtistDataSize(artistData: ArtistData): Int {
-    return when (artistData) {
-        is ArtistData.ArtistsMap -> artistData.artists.size
-        is ArtistData.OthersList -> artistData.others.size
-    }
-}
-
 @Composable
-fun PlayListItem(sectionItem: ArtistSummary, navigationController: NavHostController) {
+fun PlayListItem(sectionItem: ArtistsItem, navigationController: NavHostController) {
     Card(
         elevation = 4.dp,
         shape = RoundedCornerShape(10.dp),
         modifier = Modifier
             .size(150.dp, 150.dp)
             .padding(3.dp)
-            .clickable { navigationController.navigate("${Screen.SongsList.route}/${sectionItem.name.toString()}") },
+            .clickable { navigationController.navigate("${Screen.SongsList.route}/${sectionItem.name}") },
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(102.dp),
@@ -85,7 +72,7 @@ fun PlayListItem(sectionItem: ArtistSummary, navigationController: NavHostContro
         ) {
             Box() {
                 AsyncImage(
-                    model = sectionItem.image,
+                    model = sectionItem.imgurl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxHeight()

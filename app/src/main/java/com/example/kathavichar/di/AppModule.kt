@@ -5,6 +5,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
+import com.example.kathavichar.repositories.ArtistsDataRepository
+import com.example.kathavichar.repositories.DefaultArtistsDataRepository
 import com.example.kathavichar.repositories.HomeCategoriesFirebase
 import com.example.kathavichar.repositories.SongsListFirebase
 import com.example.kathavichar.repositories.musicPlayer.MediaService
@@ -30,6 +32,7 @@ val appModule =
         viewModel { MainViewModel() }
         viewModel { SongsViewModel(get()) }
         viewModel { MusicPlayerViewModel() }
+        single<ArtistsDataRepository> { DefaultArtistsDataRepository() }
         single<MusicPlayerService> { DefaultMusicPlayerService(androidContext()) }
         single { ExoPlayer.Builder(androidContext()).build() }
         single {

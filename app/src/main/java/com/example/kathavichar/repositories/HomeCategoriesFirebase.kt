@@ -3,7 +3,6 @@ package com.example.kathavichar.repositories
 import com.example.kathavichar.model.ArtistData
 import com.example.kathavichar.model.ArtistSummary
 import com.example.kathavichar.model.Section
-import com.example.kathavichar.model.SectionData
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -16,19 +15,21 @@ import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
 import com.google.gson.reflect.TypeToken
-import java.lang.reflect.Type
 import io.reactivex.Single
 import org.koin.java.KoinJavaComponent.inject
+import java.lang.reflect.Type
 
 class HomeCategoriesFirebase {
     var firebaseDatabase: FirebaseDatabase? = null
 
+    private lateinit var artistsDataRepository: ArtistsDataRepository
     private val gson: Gson by inject(Gson::class.java)
     var databaseReference: DatabaseReference? = null
 
     init {
         firebaseDatabase = FirebaseDatabase.getInstance()
         databaseReference = firebaseDatabase!!.reference
+       // artistsDataRepository.fetchArtists()
     }
 
     fun getdata(): Single<MutableList<Section>> =
@@ -60,13 +61,12 @@ class HomeCategoriesFirebase {
                         override fun onCancelled(error: DatabaseError) {
                             emitter.onError(Throwable(error.message)) // Handle errors.
                         }
-                    }
+                    },
                 )
             } catch (e: Exception) {
                 println("Unexpected Error: ${e.message}")
                 emitter.onError(e) // Handle unexpected errors.
             }
-
         }
 }
 
@@ -74,18 +74,18 @@ class ArtistDataDeserializer : JsonDeserializer<ArtistData> {
     override fun deserialize(
         json: JsonElement,
         typeOfT: Type,
-        context: JsonDeserializationContext
+        context: JsonDeserializationContext,
     ): ArtistData {
         return if (json.isJsonObject) {
             val artistsMap = context.deserialize<Map<String, ArtistSummary>>(
                 json,
-                object : TypeToken<Map<String, ArtistSummary>>() {}.type
+                object : TypeToken<Map<String, ArtistSummary>>() {}.type,
             )
             ArtistData.ArtistsMap(artistsMap)
         } else if (json.isJsonArray) {
             val othersList = context.deserialize<List<ArtistSummary>>(
                 json,
-                object : TypeToken<List<ArtistSummary>>() {}.type
+                object : TypeToken<List<ArtistSummary>>() {}.type,
             )
             ArtistData.OthersList(othersList)
         } else {
