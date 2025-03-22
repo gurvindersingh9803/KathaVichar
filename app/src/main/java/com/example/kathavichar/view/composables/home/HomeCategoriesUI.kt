@@ -72,7 +72,7 @@ fun HomeCategories(data: List<ArtistsItem>?, navigationController: NavHostContro
                 columns = GridCells.Fixed(2), // 2 items per row
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.height(400.dp) // Adjust height as needed
+                modifier = Modifier.fillMaxHeight() // Adjust height as needed
             ) {
                 items(artists.size) { index ->
                     val sectionData = artists[index]
@@ -94,7 +94,7 @@ fun PlayListItem(
         elevation = 4.dp,
         shape = RoundedCornerShape(10.dp),
         modifier = Modifier
-            .size(150.dp, 150.dp)
+            .size(400.dp, 400.dp)
             .padding(3.dp)
             .clickable { navigationController.navigate("${Screen.SongsList.route}/${sectionItem.name}") },
     ) {
@@ -114,7 +114,6 @@ fun PlayListItem(
             Box(
                 modifier = Modifier
                     .background(color = Color(0Xffff9f64)),
-
             ) {
                 Text(
                     sectionItem.name.toString(),
