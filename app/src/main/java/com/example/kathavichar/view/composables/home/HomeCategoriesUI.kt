@@ -26,15 +26,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.kathavichar.common.Screen
-import com.example.kathavichar.model.ArtistSummary
-import com.example.kathavichar.model.ArtistsData
 import com.example.kathavichar.model.ArtistsItem
 
 @Composable
 fun HomeCategories(data: List<ArtistsItem>?, navigationController: NavHostController) {
     Column {
         data?.forEach { sectionData ->
-            println("dfgthdfgh $sectionData")
+            val imageUrl = sectionData.imgurl.replace("127.0.0.1", "10.0.2.2")
+
+            println("dfgthdfgh $imageUrl")
             // Text(sectionData.sectionName, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
             Spacer(modifier = Modifier.height(15.dp))
             Column {
@@ -47,7 +47,7 @@ fun HomeCategories(data: List<ArtistsItem>?, navigationController: NavHostContro
                     }*/
 
                     items(data.size) { index ->
-                        PlayListItem(sectionData, navigationController)
+                        PlayListItem(sectionData, navigationController, imageUrl)
                     }
                 })
             }
@@ -57,7 +57,11 @@ fun HomeCategories(data: List<ArtistsItem>?, navigationController: NavHostContro
 }
 
 @Composable
-fun PlayListItem(sectionItem: ArtistsItem, navigationController: NavHostController) {
+fun PlayListItem(
+    sectionItem: ArtistsItem,
+    navigationController: NavHostController,
+    imageUrl: String
+) {
     Card(
         elevation = 4.dp,
         shape = RoundedCornerShape(10.dp),
@@ -72,7 +76,7 @@ fun PlayListItem(sectionItem: ArtistsItem, navigationController: NavHostControll
         ) {
             Box() {
                 AsyncImage(
-                    model = sectionItem.imgurl,
+                    model = imageUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxHeight()
