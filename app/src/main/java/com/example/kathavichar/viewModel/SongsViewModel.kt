@@ -15,6 +15,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.kathavichar.model.Song
 import com.example.kathavichar.network.ServerResponse
+import com.example.kathavichar.repositories.SongsDataRepository
 import com.example.kathavichar.repositories.SongsListFirebase
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
+import org.koin.java.KoinJavaComponent.inject
 
 class SongsViewModel(
     savedStateHandle: SavedStateHandle,
@@ -42,6 +44,8 @@ class SongsViewModel(
     private val sonsListFirebase: SongsListFirebase by KoinJavaComponent.inject(SongsListFirebase::class.java)
 
     private val _songs = mutableStateListOf<Song>()
+
+    private val songsDataRepository: SongsDataRepository by inject(SongsDataRepository::class.java)
 
     /**
      * An immutable snapshot of the current list of tracks.
@@ -100,9 +104,6 @@ class SongsViewModel(
     val playbackState: StateFlow<PlayerBackState> get() = _playbackState*/
 
     init {
-        viewModelScope.launch {
-            // observeMusicPlayerState()
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -162,6 +163,59 @@ class SongsViewModel(
                         Log.i("edfgwegf", it.toString())
                     }),
             )
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun getAllSongs(artistName: String) {
+        viewModelScope.launch {
+            println("dsgs $artistName")
+            // TODO: Change Song data class approach structure and we are good to go.
+            whichArtistSelected = artistName
+            songsDataRepository.fetchSongs(artistName).let {
+                val songList =
+                    it.map { rawSong ->
+                        Song
+                            .Builder()
+                            .title(rawSong.title)
+                            .audioUrl(rawSong.audiourl)
+                            .imgUrl(rawSong.imgurl)
+                            .artistName(rawSong.artist_id)
+                            .build()
+                    }
+                println("argts $it")
+
+                // Add to _songs and initialize the music player
+                if (songList.isNotEmpty()) {
+                    if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
+                        if (artistName == currentplayingsongs[selectedTrackIndex].artistName) {
+                            println("opopop same artist  $selectedTrackIndex ")
+                            /* _currentplayingsongs.clear()
+                             _currentplayingsongs.addAll(songs)*/
+                            _songs.clear()
+                            _songs.addAll(currentplayingsongs)
+                            // println("opopop same artist  $currentplayingsongs ")
+
+                            /*_currentplayingsongs[selectedTrackIndex].isSelected = true
+                            selectedTrack = currentplayingsongs[selectedTrackIndex]*/
+                        } else {
+                            println("opopop diffe artist  $selectedTrackIndex")
+                            // _currentplayingsongs.resetTracks()
+                            _songs.clear()
+                            _songs.addAll(songList)
+                            Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
+                            _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                        }
+                    } else {
+                        _songs.clear()
+                        _songs.addAll(songList)
+                        Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
+                        _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                    }
+
+                    observeMusicPlayerState()
+                }
+            }
         }
     }
 

@@ -3,9 +3,6 @@ import com.google.gson.annotations.SerializedName
 
 data class Item(var image: String = "", var name: String = "")
 data class SectionData(var sectionName: String = "", var data: List<Item> = listOf())
-
-
-
 data class Section(
     @SerializedName("sectionName") val sectionName: String,
     @SerializedName("data") val data: ArtistData
