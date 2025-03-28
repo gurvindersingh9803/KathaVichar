@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
@@ -45,9 +43,8 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.kathavichar.R
-import com.example.kathavichar.model.Song
+import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
-import com.example.kathavichar.ui.theme.Typography
 import com.example.kathavichar.view.composables.musicPlayer.TrackImage
 import com.example.kathavichar.viewModel.SongsViewModel
 
@@ -57,16 +54,15 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
 
     val songs = songsViewModel.songs
     val alreadyPlaying = songsViewModel.selectedTrack
-    if (songs.first().artistName == songsViewModel.whichArtistSelected) {
+    if (songs.first().artist_id == songsViewModel.whichArtistSelected) {
         LazyColumn(
             state = lazyListState,
             contentPadding = PaddingValues(5.dp),
         ) {
-            items(songs) { song ->
-                println("jlhkjkh ${song.isSelected}")
+            items(songs.size) { index ->
                 SongItem(
-                    song = song,
-                    onTrackClick = { songsViewModel.onTrackClicked(song) },
+                    song = songs[index],
+                    onTrackClick = { songsViewModel.onTrackClicked(songs[index]) },
                 )
             }
         }
@@ -77,7 +73,7 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
 
 @Composable
 fun SongItem(
-    song: Song,
+    song: Songs,
     onTrackClick: () -> Unit,
 ) {
     println("dfgsdfg $song")
@@ -93,7 +89,7 @@ fun SongItem(
             .background(color = bgColor)
             .clickable(onClick = onTrackClick),
     ) {
-        TrackImage(trackImage = song.imgUrl.toString(), modifier = Modifier.size(size = 64.dp))
+        TrackImage(trackImage = song.imgurl.toString(), modifier = Modifier.size(size = 64.dp))
         Column(
             modifier =
             Modifier

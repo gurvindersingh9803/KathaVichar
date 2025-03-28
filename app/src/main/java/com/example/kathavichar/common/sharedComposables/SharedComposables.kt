@@ -1,6 +1,5 @@
 package com.example.kathavichar.common.sharedComposables
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,12 +15,12 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.kathavichar.R
-import com.example.kathavichar.model.Song
+import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 
 @Composable
 fun PausePlayIcon(
-    currentSong: Song,
+    currentSong: Songs,
     onClick: () -> Unit,
     isBottomTab: Boolean,
 ) {
@@ -36,14 +35,14 @@ fun PausePlayIcon(
         } else {
             Icon(
                 painter =
-                    painterResource(
-                        id =
-                            if (currentSong.state == MusicPlayerStates.STATE_PLAYING) {
-                                R.drawable.baseline_pause_24
-                            } else {
-                                R.drawable.baseline_play_arrow_24
-                            },
-                    ),
+                painterResource(
+                    id =
+                    if (currentSong.state == MusicPlayerStates.STATE_PLAYING) {
+                        R.drawable.baseline_pause_24
+                    } else {
+                        R.drawable.baseline_play_arrow_24
+                    },
+                ),
                 contentDescription = "play/pause",
                 modifier = Modifier.size(48.dp),
             )

@@ -60,7 +60,6 @@ class MainActivity : ComponentActivity() {
                         null
                     }
 
-
                 DisposableEffect(key1 = lifeCycleOwner) {
                     val observer =
                         LifecycleEventObserver { _, event ->
@@ -129,21 +128,19 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startMusicService() {
-     try {
-
-         if (!isServiceRunning) {
-             val intent = Intent(this, MediaService::class.java)
-             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                 startForegroundService(intent)
-             } else {
-                 startService(intent)
-             }
-             isServiceRunning = true
-         }
-     } catch (e: Exception) {
-         println("fgbhdfghd $e")
-
-     }
+        try {
+            if (!isServiceRunning) {
+                val intent = Intent(this, MediaService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent)
+                } else {
+                    startService(intent)
+                }
+                isServiceRunning = true
+            }
+        } catch (e: Exception) {
+            println("fgbhdfghd $e")
+        }
     }
 
     override fun onResume() {

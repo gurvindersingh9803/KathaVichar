@@ -14,7 +14,7 @@ fun SongsListState(
     viewModel: SongsViewModel,
 ) {
     LaunchedEffect(Unit) {
-        viewModel.getAllSongs("cb1861ef-1ff4-44df-93f9-ff9df08552e7")
+        viewModel.getAllSongs(artistName.toString())
     }
     val uiState by viewModel.uiStateSongs.collectAsState()
 

@@ -6,14 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -65,18 +63,18 @@ fun HomeCategories(data: List<ArtistsItem>?, navigationController: NavHostContro
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 8.dp),
     ) {
         data?.let { artists ->
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2), // 2 items per row
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxHeight() // Adjust height as needed
+                modifier = Modifier.fillMaxHeight(), // Adjust height as needed
             ) {
                 items(artists.size) { index ->
                     val sectionData = artists[index]
-                    val imageUrl = sectionData.imgurl.replace("127.0.0.1", "10.0.2.2")
+                    val imageUrl = sectionData.imgurl
                     PlayListItem(sectionData, navigationController, imageUrl)
                 }
             }
@@ -88,7 +86,7 @@ fun HomeCategories(data: List<ArtistsItem>?, navigationController: NavHostContro
 fun PlayListItem(
     sectionItem: ArtistsItem,
     navigationController: NavHostController,
-    imageUrl: String
+    imageUrl: String,
 ) {
     Card(
         elevation = 4.dp,
@@ -96,7 +94,7 @@ fun PlayListItem(
         modifier = Modifier
             .size(400.dp, 400.dp)
             .padding(3.dp)
-            .clickable { navigationController.navigate("${Screen.SongsList.route}/${sectionItem.name}") },
+            .clickable { navigationController.navigate("${Screen.SongsList.route}/${sectionItem.id}") },
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(102.dp),

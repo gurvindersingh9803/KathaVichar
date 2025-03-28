@@ -78,6 +78,7 @@ fun NavigationGraph(
             ),
         ) {
             val artistName = it.arguments?.getString("artistName")
+            println("sdtgfetjyu $artistName")
             SongsListState(artistName.toString(), songsViewModel)
         }
     }

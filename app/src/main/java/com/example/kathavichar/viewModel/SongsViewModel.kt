@@ -13,17 +13,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import com.example.kathavichar.model.Song
+import com.example.kathavichar.model.Songs
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.SongsDataRepository
-import com.example.kathavichar.repositories.SongsListFirebase
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,26 +35,24 @@ class SongsViewModel(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel(),
     MusicPlayerEvents {
-    private val _uiStateSongs: MutableStateFlow<ServerResponse<MutableList<Song>>> =
+    private val _uiStateSongs: MutableStateFlow<ServerResponse<MutableList<Songs>>> =
         MutableStateFlow(ServerResponse.isLoading())
     val uiStateSongs = _uiStateSongs.asStateFlow()
-    private val sonsListFirebase: SongsListFirebase by KoinJavaComponent.inject(SongsListFirebase::class.java)
-
-    private val _songs = mutableStateListOf<Song>()
+    private val _songs = mutableStateListOf<Songs>()
 
     private val songsDataRepository: SongsDataRepository by inject(SongsDataRepository::class.java)
 
     /**
      * An immutable snapshot of the current list of tracks.
      */
-    val songs: List<Song> get() = _songs
+    val songs: List<Songs> get() = _songs
 
-    private val _currentplayingsongs = mutableStateListOf<Song>()
+    private val _currentplayingsongs = mutableStateListOf<Songs>()
 
     /**
      * An immutable snapshot of the current list of tracks.
      */
-    val currentplayingsongs: List<Song> get() = _currentplayingsongs
+    val currentplayingsongs: List<Songs> get() = _currentplayingsongs
 
     val subscription: CompositeDisposable = CompositeDisposable()
 
@@ -67,7 +62,7 @@ class SongsViewModel(
 
     private var selectedTrackIndex: Int by mutableStateOf(-1)
 
-    var selectedTrack: Song? by mutableStateOf(null)
+    var selectedTrack: Songs? by mutableStateOf(null)
         private set
 
     var whichArtistSelected: String? by mutableStateOf(null)
@@ -107,66 +102,6 @@ class SongsViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getSongs(artistName: String) {
-        viewModelScope.launch {
-            whichArtistSelected = artistName
-            println("egfrdegf $selectedTrack")
-            subscription.add(
-                sonsListFirebase
-                    .getSongsList(artistName)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        val songList =
-                            it.map { rawSong ->
-                                Song
-                                    .Builder()
-                                    .title(rawSong.title)
-                                    .audioUrl(rawSong.audioUrl)
-                                    .imgUrl(rawSong.imgUrl)
-                                    .artistName(rawSong.artistName)
-                                    .build()
-                            }
-                        println("argts $songList")
-
-                        // Add to _songs and initialize the music player
-                        if (songList.isNotEmpty()) {
-                            if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
-                                if (artistName == currentplayingsongs[selectedTrackIndex].artistName) {
-                                    println("opopop same artist  $selectedTrackIndex ")
-                                   /* _currentplayingsongs.clear()
-                                    _currentplayingsongs.addAll(songs)*/
-                                    _songs.clear()
-                                    _songs.addAll(currentplayingsongs)
-                                    // println("opopop same artist  $currentplayingsongs ")
-
-                                    /*_currentplayingsongs[selectedTrackIndex].isSelected = true
-                                    selectedTrack = currentplayingsongs[selectedTrackIndex]*/
-                                } else {
-                                    println("opopop diffe artist  $selectedTrackIndex")
-                                    // _currentplayingsongs.resetTracks()
-                                    _songs.clear()
-                                    _songs.addAll(songList)
-                                    Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
-                                    _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
-                                }
-                            } else {
-                                _songs.clear()
-                                _songs.addAll(songList)
-                                Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
-                                _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
-                            }
-
-                            observeMusicPlayerState()
-                        }
-                    }, {
-                        Log.i("edfgwegf", it.toString())
-                    }),
-            )
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSongs(artistName: String) {
         viewModelScope.launch {
             println("dsgs $artistName")
@@ -175,12 +110,12 @@ class SongsViewModel(
             songsDataRepository.fetchSongs(artistName).let {
                 val songList =
                     it.map { rawSong ->
-                        Song
+                        Songs
                             .Builder()
                             .title(rawSong.title)
-                            .audioUrl(rawSong.audiourl.replace("127.0.0.1", "10.0.2.2"))
-                            .imgUrl(rawSong.imgurl.replace("127.0.0.1", "10.0.2.2"))
-                            .artistName(rawSong.artist_id)
+                            .audioUrl(rawSong.audiourl)
+                            .imgUrl(rawSong.imgurl)
+                            .artistId(rawSong.artist_id)
                             .build()
                     }
                 println("argts $it")
@@ -188,7 +123,7 @@ class SongsViewModel(
                 // Add to _songs and initialize the music player
                 if (songList.isNotEmpty()) {
                     if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
-                        if (artistName == currentplayingsongs[selectedTrackIndex].artistName) {
+                        if (artistName == currentplayingsongs[selectedTrackIndex].artist_id) {
                             println("opopop same artist  $selectedTrackIndex ")
                             /* _currentplayingsongs.clear()
                              _currentplayingsongs.addAll(songs)*/
@@ -224,11 +159,11 @@ class SongsViewModel(
         musicPlayerKathaVichar.playPause()
     }
 
-    override fun onPreviousClicked(isBottomClick: Boolean, song: Song?) {
+    override fun onPreviousClicked(isBottomClick: Boolean, song: Songs?) {
         // if (selectedTrackIndex > 0) onTrackSelected(selectedTrackIndex - 1)
         if (isBottomClick && song != null) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
-            val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artistName
+            val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
             if (currentPlayingSongArtist == whichArtistSelected) {
                 if (currentSongIndex > 0) onTrackSelected(selectedTrackIndex - 1)
@@ -239,10 +174,10 @@ class SongsViewModel(
         }
     }
 
-    override fun onNextClicked(isBottomClick: Boolean, song: Song?) {
+    override fun onNextClicked(isBottomClick: Boolean, song: Songs?) {
         if (isBottomClick && song != null) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
-            val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artistName
+            val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
             if (currentPlayingSongArtist == whichArtistSelected) {
                 if (currentSongIndex < currentplayingsongs.size - 1) {
@@ -257,7 +192,7 @@ class SongsViewModel(
         }
     }
 
-    override fun onTrackClicked(song: Song) {
+    override fun onTrackClicked(song: Songs) {
         // this logic checks on each song tap if the there is any current song
         // playing or not is no song is playing then it will create a currentplayingsongs list
         // Moreover, in else condition it will check if current tapped song exist in previously
@@ -328,7 +263,7 @@ class SongsViewModel(
         }*/
     }
 
-    private fun MutableList<Song>.resetTracks() {
+    private fun MutableList<Songs>.resetTracks() {
         this.forEach { track ->
             track.isSelected = false
             track.state = MusicPlayerStates.STATE_IDLE
@@ -407,18 +342,18 @@ class SongsViewModel(
             }
     }
 
-    fun List<Song>.toMediaItemListWithMetadata(): MutableList<MediaItem> =
+    fun List<Songs>.toMediaItemListWithMetadata(): MutableList<MediaItem> =
         this
             .map { song ->
                 MediaItem
                     .Builder()
-                    .setUri(song.audioUrl)
+                    .setUri(song.audiourl)
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
                             .setTitle(song.title)
-                            .setArtist(song.artistName)
-                            .setGenre(song.audioUrl)
+                            .setArtist(song.artist_id)
+                            .setGenre(song.audiourl)
                             .build(),
                     ).build()
             }.toMutableList()

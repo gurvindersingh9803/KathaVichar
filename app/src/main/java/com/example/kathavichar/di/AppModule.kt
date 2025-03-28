@@ -9,10 +9,8 @@ import com.example.kathavichar.repositories.ArtistsDataRepository
 import com.example.kathavichar.repositories.ArtistsService
 import com.example.kathavichar.repositories.DefaultArtistsDataRepository
 import com.example.kathavichar.repositories.DefaultSongsDataRepository
-import com.example.kathavichar.repositories.HomeCategoriesFirebase
 import com.example.kathavichar.repositories.RetrofitClient
 import com.example.kathavichar.repositories.SongsDataRepository
-import com.example.kathavichar.repositories.SongsListFirebase
 import com.example.kathavichar.repositories.SongsService
 import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
@@ -32,8 +30,6 @@ import org.koin.dsl.module
 val appModule =
     module {
         single { Gson() }
-        single { HomeCategoriesFirebase() }
-        single { SongsListFirebase() }
         viewModel { MainViewModel() }
         viewModel { SongsViewModel(get()) }
         viewModel { MusicPlayerViewModel() }

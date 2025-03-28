@@ -18,13 +18,13 @@ import com.example.kathavichar.common.sharedComposables.PausePlayIcon
 import com.example.kathavichar.common.sharedComposables.PreviousIcon
 import com.example.kathavichar.common.sharedComposables.SongImage
 import com.example.kathavichar.common.sharedComposables.SongName
-import com.example.kathavichar.model.Song
+import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.view.composables.songs.md_theme_light_primary
 
 @Composable
 fun BottomPlayerTab(
-    song: Song,
+    song: Songs,
     musicPlayerEvents: MusicPlayerEvents,
     onBottomTabClick: () -> Unit,
 ) {
@@ -43,7 +43,7 @@ fun BottomPlayerTab(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SongImage(songImage = song.imgUrl.toString(), modifier = Modifier.size(70.dp))
+            SongImage(songImage = song.imgurl.toString(), modifier = Modifier.size(70.dp))
             SongName(songName = song.title.toString(), modifier = Modifier.weight(1f))
             PreviousIcon(onClick = { musicPlayerEvents.onPreviousClicked(true, song) }, isBottomTab = true)
             PausePlayIcon(
