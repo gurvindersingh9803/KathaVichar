@@ -7,7 +7,6 @@ import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.ArtistsDataRepository
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -42,10 +41,10 @@ class MainViewModel : ViewModel() {
 
     fun getCategories() {
         viewModelScope.launch {
-            delay(2000)
-            withContext(Dispatchers.IO) {
+            // delay(2000)
+            withContext(Dispatchers.Main) {
                 artistsDataRepository.fetchArtists().let {
-                    println("dfgvdsfg $it")
+                    println("retyeter $it")
                     _uiState.emit(ServerResponse.onSuccess(it))
                 }
             }

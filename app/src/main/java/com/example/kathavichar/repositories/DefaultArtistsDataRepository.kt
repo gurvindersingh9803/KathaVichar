@@ -6,10 +6,10 @@ import kotlinx.coroutines.withContext
 
 class DefaultArtistsDataRepository(private val artistsService: ArtistsService) : ArtistsDataRepository {
     override suspend fun fetchArtists(): List<ArtistsItem> {
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.Main) {
             try {
                 artistsService.getArtists().artists
-            } catch (e: Exception) {
+             } catch (e: Exception) {
                 emptyList()
             }
         }
