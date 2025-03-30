@@ -33,7 +33,7 @@ class MainViewModel : ViewModel() {
                             println("dfgvdsfg $it")
                             _uiState.emit(ServerResponse.onSuccess(it))
                         }
-                    }, {
+                }, {
                     }),
             )
         }

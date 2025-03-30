@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -27,7 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableApi::class)
 class MusicPlayerKathaVichar(
-    private  val exoPlayer: ExoPlayer,
+    private val exoPlayer: ExoPlayer,
     private val context: Context,
 ) : Player.Listener {
     private var isServiceRunning = false
@@ -45,14 +46,13 @@ class MusicPlayerKathaVichar(
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
         exoPlayer.clearMediaItems()
-        if(!isListenerAdded) {
+        if (!isListenerAdded) {
             exoPlayer.addListener(this)
             isListenerAdded = true
         }
-
+        println("fdtyrfytjujtrufw ${songsList.get(0).mediaMetadata}")
         exoPlayer.setMediaItems(songsList)
         exoPlayer.prepare()
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -68,13 +68,13 @@ class MusicPlayerKathaVichar(
 
     private fun createStubNotification(): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel()  // Ensure channel exists
+            createNotificationChannel() // Ensure channel exists
         }
 
         return NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
             .setContentTitle("Music Player")
             .setContentText("Playing music")
-            .setSmallIcon(R.drawable.headset)  // Ensure this icon exists in res/drawable
+            .setSmallIcon(R.drawable.headset) // Ensure this icon exists in res/drawable
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
     }
@@ -82,9 +82,9 @@ class MusicPlayerKathaVichar(
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            Constants.NOTIFICATION_CHANNEL_ID,  // Use the same ID in notification
+            Constants.NOTIFICATION_CHANNEL_ID, // Use the same ID in notification
             "Music Playback",
-            NotificationManager.IMPORTANCE_LOW // Low importance to avoid intrusive behavior
+            NotificationManager.IMPORTANCE_LOW, // Low importance to avoid intrusive behavior
         )
         channel.description = "Channel for music playback notifications"
 
@@ -93,7 +93,6 @@ class MusicPlayerKathaVichar(
     }
 
     fun getCurrentMediaItem(): MediaItem? {
-
         exoPlayer.currentMediaItem?.mediaMetadata?.let { mediaMetadata ->
             println("MediaMetadata Properties:")
             println("Title: ${mediaMetadata.title}")
@@ -103,7 +102,7 @@ class MusicPlayerKathaVichar(
             println("Subtitle: ${mediaMetadata.subtitle}")
             println("Description: ${mediaMetadata.description}")
             println("Artwork URI: ${mediaMetadata.artworkUri}")
-            println("Extras: ${mediaMetadata.extras}")  // Print extras if any
+            println("Extras: ${mediaMetadata.extras}") // Print extras if any
             println("Track Number: ${mediaMetadata.trackNumber}")
             println("Total Track Count: ${mediaMetadata.totalTrackCount}")
             println("Folder Type: ${mediaMetadata.folderType}")
@@ -176,7 +175,7 @@ class MusicPlayerKathaVichar(
 
     fun releasePlayer() {
         exoPlayer.release()
-        isListenerAdded = true
+        isListenerAdded = false
     }
 
     fun seekToPosition(position: Long) {
@@ -187,7 +186,6 @@ class MusicPlayerKathaVichar(
         index: Int,
         isTrackPlay: Boolean,
     ) {
-
         if (isTrackPlay) exoPlayer.playWhenReady = true
         println("sadfdsfgsdf $index $isTrackPlay")
         if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
@@ -195,32 +193,30 @@ class MusicPlayerKathaVichar(
         if (isTrackPlay) exoPlayer.playWhenReady = true
     }
 
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        super.onMediaItemTransition(mediaItem, reason)
+        when (reason) {
+            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
+                // Automatic transition to the next track
+                println("MEDIA_ITEM_TRANSITION_REASON_AUTO onMediaItemTransition")
+                _playerStates.tryEmit(MusicPlayerStates.STATE_NEXT_TRACK)
+            }
+            Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
+                println("MEDIA_ITEM_TRANSITION_REASON_SEEK onMediaItemTransition")
+                // Transition caused by seeking (e.g., next/previous button)
+                _playerStates.tryEmit(MusicPlayerStates.STATE_TRACK_CHANGED)
+            }
+            Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED -> {
+                println("MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED onMediaItemTransition")
+                // Transition caused by a playlist change
+                _playerStates.tryEmit(MusicPlayerStates.STATE_TRACK_CHANGED)
+            }
 
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            super.onMediaItemTransition(mediaItem, reason)
-            when (reason) {
-                Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
-                    // Automatic transition to the next track
-                    println("MEDIA_ITEM_TRANSITION_REASON_AUTO onMediaItemTransition")
-                    _playerStates.tryEmit(MusicPlayerStates.STATE_NEXT_TRACK)
-                }
-                Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
-                    println("MEDIA_ITEM_TRANSITION_REASON_SEEK onMediaItemTransition")
-                    // Transition caused by seeking (e.g., next/previous button)
-                    _playerStates.tryEmit(MusicPlayerStates.STATE_TRACK_CHANGED)
-                }
-                Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED -> {
-                    println("MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED onMediaItemTransition")
-                    // Transition caused by a playlist change
-                    _playerStates.tryEmit(MusicPlayerStates.STATE_TRACK_CHANGED)
-                }
-
-                Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT -> {
-                    TODO()
-                }
+            Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT -> {
+                TODO()
             }
         }
-
+    }
 
     override fun onTracksChanged(tracks: Tracks) {
         super.onTracksChanged(tracks)
@@ -228,67 +224,60 @@ class MusicPlayerKathaVichar(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         println("onPlaybackStateChanged ghhjghj")
-            when (playbackState) {
-                Player.STATE_IDLE -> {
-                        _playerStates.tryEmit(
-                                MusicPlayerStates.STATE_IDLE
+        when (playbackState) {
+            Player.STATE_IDLE -> {
+                _playerStates.tryEmit(
+                    MusicPlayerStates.STATE_IDLE,
 
-                        )
+                )
 
+                // _playerState.postValue(MusicPlayerStates.STATE_IDLE)
+            }
 
-                    // _playerState.postValue(MusicPlayerStates.STATE_IDLE)
-                }
+            Player.STATE_BUFFERING -> {
+                _playerStates.tryEmit(
 
-                Player.STATE_BUFFERING -> {
-                        _playerStates.tryEmit(
+                    MusicPlayerStates.STATE_BUFFERING,
 
-                                MusicPlayerStates.STATE_BUFFERING
+                )
 
-                        )
+                // _playerState.postValue(MusicPlayerStates.STATE_BUFFERING)
+            }
 
+            Player.STATE_READY -> {
+                _playerStates.tryEmit(
+                    MusicPlayerStates.STATE_READY,
 
-                    // _playerState.postValue(MusicPlayerStates.STATE_BUFFERING)
-                }
+                )
 
-                Player.STATE_READY -> {
-                        _playerStates.tryEmit(
-                                MusicPlayerStates.STATE_READY
+                // _playerState.postValue(MusicPlayerStates.STATE_READY)
 
-                        )
+                if (exoPlayer.playWhenReady) {
+                    _playerStates.tryEmit(
+                        MusicPlayerStates.STATE_PLAYING,
 
+                    )
 
-                    // _playerState.postValue(MusicPlayerStates.STATE_READY)
+                    // _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+                } else {
+                    _playerStates.tryEmit(
+                        MusicPlayerStates.STATE_PAUSE,
 
-                    if (exoPlayer.playWhenReady) {
-                            _playerStates.tryEmit(
-                                    MusicPlayerStates.STATE_PLAYING
+                    )
 
-                            )
-
-
-                        // _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
-                    } else {
-                            _playerStates.tryEmit(
-                                    MusicPlayerStates.STATE_PAUSE
-
-                            )
-
-
-                        //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
-                    }
-                }
-
-                Player.STATE_ENDED -> {
-                        _playerStates.tryEmit(
-                                MusicPlayerStates.STATE_END
-
-                        )
-
-
-                    // _playerState.postValue(MusicPlayerStates.STATE_END)
+                    //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
                 }
             }
 
+            Player.STATE_ENDED -> {
+                _playerStates.tryEmit(
+                    MusicPlayerStates.STATE_END,
+
+                )
+
+                // _playerState.postValue(MusicPlayerStates.STATE_END)
+            }
+        }
     }
 
     override fun onPlayWhenReadyChanged(
@@ -296,26 +285,24 @@ class MusicPlayerKathaVichar(
         reason: Int,
     ) {
         println("onPlayWhenReadyChanged ghhjghj")
-            if (exoPlayer.playbackState == Player.STATE_READY) {
-                if (playWhenReady) {
-                    _playerStates.tryEmit(
-                            MusicPlayerStates.STATE_PLAYING
+        if (exoPlayer.playbackState == Player.STATE_READY) {
+            if (playWhenReady) {
+                _playerStates.tryEmit(
+                    MusicPlayerStates.STATE_PLAYING,
 
-                    )
+                )
 
-                    //  _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
-                } else {
-                    _playerStates.tryEmit(
-                            MusicPlayerStates.STATE_PAUSE
+                //  _playerState.postValue(MusicPlayerStates.STATE_PLAYING)
+            } else {
+                _playerStates.tryEmit(
+                    MusicPlayerStates.STATE_PAUSE,
 
-                    )
+                )
 
-                    //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
-                }
-
+                //  _playerState.postValue(MusicPlayerStates.STATE_PAUSE)
+            }
         }
     }
-
 
     @UnstableApi
     class MusicNotificationDescriptorAdapter(

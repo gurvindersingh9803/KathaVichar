@@ -1,6 +1,7 @@
 package com.example.kathavichar.viewModel
 
 import android.media.session.PlaybackState
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -118,7 +119,7 @@ class SongsViewModel(
                             .artistId(rawSong.artist_id)
                             .build()
                     }
-                println("argts $it")
+                println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
 
                 // Add to _songs and initialize the music player
                 if (songList.isNotEmpty()) {
@@ -200,6 +201,8 @@ class SongsViewModel(
         // list OR else it will updated currentPlayingSongsList and update the UI.
 
         isBottomClicked = false
+        println("sdftghfgsdh ${song.audiourl}")
+
         if (currentplayingsongs.isEmpty()) {
             _currentplayingsongs.clear()
             _currentplayingsongs.addAll(songs)
@@ -207,7 +210,9 @@ class SongsViewModel(
             musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
             onTrackSelected(currentplayingsongs.indexOf(song))
         } else {
-            val songIndex = currentplayingsongs.indexOf(song)
+           /* println("wwewew $selectedTrackIndex")
+            val songIndex = songs.indexOf(song)
+            println("wwewew nn $selectedTrackIndex")
             if (songIndex == -1) {
                 _currentplayingsongs.clear()
                 _currentplayingsongs.addAll(songs)
@@ -218,9 +223,26 @@ class SongsViewModel(
             } else {
                 println("onTrackClicked} 2")
                 onTrackSelected(currentplayingsongs.indexOf(song))
-            }
-            println("fgfgg $songIndex")
+            }*/
+            // println("fgfgg $songIndex")
             // onTrackSelected(currentplayingsongs.indexOf(song), isTrackClicked = true)
+
+            if (currentplayingsongs.indexOf(song) == -1) {
+                println("artist change $songs")
+                selectedTrackIndex = currentplayingsongs.indexOf(song)
+                _currentplayingsongs.clear()
+                _currentplayingsongs.addAll(songs)
+                musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
+                println("onTrackClicked 1 $song ${currentplayingsongs.indexOf(song)}")
+                println("onTrackClicked 1 $currentplayingsongs")
+                onTrackSelected(currentplayingsongs.indexOf(song))
+            } else {
+                onTrackSelected(currentplayingsongs.indexOf(song))
+            }
+
+
+           /* onTrackSelected(currentplayingsongs.indexOf(song))
+            println("sdafg")*/
         }
 
         // selectedTrackIndex = currentplayingsongs.indexOf(song)
@@ -291,7 +313,7 @@ class SongsViewModel(
     }*/
 
     private fun updateState(state: MusicPlayerStates) {
-        println("rgthger $state $selectedTrackIndex")
+        println("rgthger $selectedTrackIndex $_currentplayingsongs")
         if (selectedTrackIndex != -1) {
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
             _currentplayingsongs[selectedTrackIndex].state = state
@@ -305,10 +327,10 @@ class SongsViewModel(
                 println("dfdfddfdf")
                 onNextClicked()
             }
-
             if (state == MusicPlayerStates.STATE_TRACK_CHANGED) {
-                println("dfdfddfdf dvdf")
-                updateSelectedTrackIndex()
+                println("dfdfddfdf dvdf $selectedTrack")
+                // TODO: check if the changes track is currentlyplaying artist or a new artist song is selected.
+                // updateSelectedTrackIndex()
             }
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
         }
@@ -361,6 +383,6 @@ class SongsViewModel(
     override fun onCleared() {
         super.onCleared()
         println("kjkhlkj")
-        musicPlayerKathaVichar.releasePlayer()
+        //  musicPlayerKathaVichar.releasePlayer()
     }
 }
