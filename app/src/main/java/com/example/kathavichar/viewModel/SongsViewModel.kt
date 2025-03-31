@@ -121,7 +121,7 @@ class SongsViewModel(
                             .build()
                     }
                 println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
-                println("argts ${it}")
+                println("argts $it")
 
                 // Add to _songs and initialize the music player
                 if (songList.isNotEmpty()) {
@@ -178,7 +178,6 @@ class SongsViewModel(
     }
 
     override fun onNextClicked(isBottomClick: Boolean, song: Songs?) {
-        println("fdghjfdghj")
         if (isBottomClick && song != null) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
@@ -192,6 +191,11 @@ class SongsViewModel(
                     isBottomClicked = true
                     onTrackSelected(currentplayingsongs.indexOf(song) + 1)
                 }
+            }
+        } else {
+            val nextSongIndex = selectedTrackIndex + 1
+            if (nextSongIndex < currentplayingsongs.size) {
+                onTrackSelected(nextSongIndex)
             }
         }
     }
@@ -242,7 +246,6 @@ class SongsViewModel(
             } else {
                 onTrackSelected(currentplayingsongs.indexOf(song))
             }
-
 
            /* onTrackSelected(currentplayingsongs.indexOf(song))
             println("sdafg")*/
