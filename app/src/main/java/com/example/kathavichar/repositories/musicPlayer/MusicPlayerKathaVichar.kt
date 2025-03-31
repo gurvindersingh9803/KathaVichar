@@ -34,7 +34,7 @@ class MusicPlayerKathaVichar(
     private var isServiceRunning = false
     private lateinit var mediaService: MediaService
     private var isListenerAdded = false
-
+    var currentMediaItemId = ""
     private lateinit var playerNotification: PlayerNotificationManager
     val _playerStates = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
     val currentPlaybackPosition: Long
@@ -195,6 +195,10 @@ class MusicPlayerKathaVichar(
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
+
+        currentMediaItemId = mediaItem?.mediaId.toString()
+
+        println("yutuyrytry dsqwafa $currentMediaItemId")
         when (reason) {
             Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
                 // Automatic transition to the next track

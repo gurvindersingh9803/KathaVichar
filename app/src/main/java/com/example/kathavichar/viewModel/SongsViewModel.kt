@@ -113,6 +113,7 @@ class SongsViewModel(
                     it.map { rawSong ->
                         Songs
                             .Builder()
+                            .songId(rawSong.id)
                             .title(rawSong.title)
                             .audioUrl(rawSong.audiourl)
                             .imgUrl(rawSong.imgurl)
@@ -120,6 +121,7 @@ class SongsViewModel(
                             .build()
                     }
                 println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
+                println("argts ${it}")
 
                 // Add to _songs and initialize the music player
                 if (songList.isNotEmpty()) {
@@ -176,6 +178,7 @@ class SongsViewModel(
     }
 
     override fun onNextClicked(isBottomClick: Boolean, song: Songs?) {
+        println("fdghjfdghj")
         if (isBottomClick && song != null) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
@@ -313,7 +316,7 @@ class SongsViewModel(
     }*/
 
     private fun updateState(state: MusicPlayerStates) {
-        println("rgthger $selectedTrackIndex $_currentplayingsongs")
+        println("rgthger $state")
         if (selectedTrackIndex != -1) {
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
             _currentplayingsongs[selectedTrackIndex].state = state
@@ -324,27 +327,26 @@ class SongsViewModel(
             updatePlaybackState(state)
             if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
                 //  isAuto = true
-                println("dfdfddfdf")
+                println("rtyrt7ryurf")
                 onNextClicked()
             }
             if (state == MusicPlayerStates.STATE_TRACK_CHANGED) {
-                println("dfdfddfdf dvdf $selectedTrack")
+                println("dfdfddfdf dvdf $selectedTrackIndex")
                 // TODO: check if the changes track is currentlyplaying artist or a new artist song is selected.
-                // updateSelectedTrackIndex()
+                updateSelectedTrackIndex()
             }
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
         }
     }
 
     private fun updateSelectedTrackIndex() {
-        val currentMediaItem = musicPlayerKathaVichar.getCurrentMediaItem()
-        if (currentMediaItem != null) {
-            val index = currentplayingsongs.toMediaItemListWithMetadata().indexOfFirst { currentplayingson ->
-                currentplayingson.mediaMetadata.genre == currentMediaItem.mediaMetadata.genre
-            }
-            if (index != -1) {
-                onTrackSelected(index)
-            }
+        val currentMediaItem = musicPlayerKathaVichar.currentMediaItemId
+        val index = currentplayingsongs.toMediaItemListWithMetadata().indexOfFirst { currentplayingson ->
+            currentplayingson.mediaId == currentMediaItem
+        }
+        println("yutuyrytry $currentMediaItem $index")
+        if (index != -1) {
+            onTrackSelected(index)
         }
     }
 
@@ -370,12 +372,12 @@ class SongsViewModel(
                 MediaItem
                     .Builder()
                     .setUri(song.audiourl)
+                    .setMediaId(song.id)
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
                             .setTitle(song.title)
                             .setArtist(song.artist_id)
-                            .setGenre(song.audiourl)
                             .build(),
                     ).build()
             }.toMutableList()
