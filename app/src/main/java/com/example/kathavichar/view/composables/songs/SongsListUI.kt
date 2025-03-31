@@ -3,19 +3,35 @@ package com.example.kathavichar.view.composables.songs
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme.typography
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -24,10 +40,12 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -44,6 +62,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.kathavichar.R
 import com.example.kathavichar.model.Songs
+import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.view.composables.musicPlayer.TrackImage
 import com.example.kathavichar.viewModel.SongsViewModel
@@ -53,22 +72,87 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
     val lazyListState = rememberLazyListState()
 
     val songs = songsViewModel.songs
-    val alreadyPlaying = songsViewModel.selectedTrack
-    if (songs.first().artist_id == songsViewModel.whichArtistSelected) {
-        LazyColumn(
-            state = lazyListState,
-            contentPadding = PaddingValues(5.dp),
+    val searchQuery by songsViewModel.searchQuery.collectAsState()
+    val filteredSongs by songsViewModel.filteredSongs.collectAsState()
+
+    Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+
         ) {
-            items(songs.size) { index ->
-                SongItem(
-                    song = songs[index],
-                    onTrackClick = { songsViewModel.onTrackClicked(songs[index]) },
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp),
+                shape = RoundedCornerShape(24.dp),
+                elevation = 4.dp,
+                color = MaterialTheme.colorScheme.surface)
+            {
+                TextField(
+                    value = searchQuery,
+                    onValueChange = { songsViewModel.onSearchQueryChanged(it) },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            "Search tracks...",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            ),
+                            modifier = Modifier.offset(y = 5.dp)
+
+                        )
+                    },
+                    shape = RoundedCornerShape(28.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = MaterialTheme.colorScheme.surface,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(
+                                onClick = { songsViewModel.onSearchQueryChanged("") }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear",
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    }
                 )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            if (songs.firstOrNull()?.artist_id == songsViewModel.whichArtistSelected) {
+                if (songs.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No songs found", style = MaterialTheme.typography.bodyLarge)
+                    }
+                } else {
+                    LazyColumn {
+                        items(songs.size) { index ->
+                            SongItem(
+                                song = songs[index],
+                                onTrackClick = { songsViewModel.onTrackClicked(songs[index]) }
+                            )
+                        }
+                    }
+                }
+            }
         }
-    } else {
-        Text(text = "No Data")
-    }
 }
 
 @Composable
@@ -84,7 +168,7 @@ fun SongItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
         Modifier
-            .padding(all = 5.dp)
+            .padding(top = 5.dp)
             .clip(shape = RoundedCornerShape(8.dp))
             .background(color = bgColor)
             .clickable(onClick = onTrackClick),

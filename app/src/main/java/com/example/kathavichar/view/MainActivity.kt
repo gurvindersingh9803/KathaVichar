@@ -10,23 +10,22 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.material3.Surface
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.compose.rememberNavController
 import com.example.kathavichar.common.NavigationGraph
+import com.example.kathavichar.common.sharedComposables.ScaffoldWithTopBar
 import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.ui.theme.KathaVicharTheme
-import com.example.kathavichar.view.composables.songs.typography
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -84,22 +83,21 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val navController = rememberNavController()
-                Scaffold(topBar = {
-                    Surface(shadowElevation = 5.dp) {
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    text = "Katha Veechar",
-                                    style = typography.titleLarge,
-                                )
-                            },
-                        )
+                ScaffoldWithTopBar(
+                    false,
+                    title = "Artists",
+                    actions = {
+                        // Optional actions can be added here
+                        IconButton(onClick = { /* Handle search */ }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search")
+                        }
                     }
-                }) { innerPadding ->
+                ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
                         // SongScreenParent(songsViewModel)
 
                         NavigationGraph(
+                            innerPadding,
                             navigationController = navController,
                             mainViewModel,
                             songsViewModel,

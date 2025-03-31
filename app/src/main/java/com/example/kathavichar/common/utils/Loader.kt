@@ -10,10 +10,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun isDataLoading(modifier: Modifier) {
+fun isDataLoading() {
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
         CircularProgressIndicator(
-            modifier = modifier,
             color = Color.LightGray,
             strokeWidth = 2.dp,
         )

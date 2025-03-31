@@ -1,5 +1,6 @@
 package com.example.kathavichar.common
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.MaterialTheme
@@ -53,13 +54,14 @@ fun BottomNavigationBar(navigationController: NavHostController) {
 
 @Composable
 fun NavigationGraph(
+    innerPadding: PaddingValues,
     navigationController: NavHostController,
     mainViewModel: MainViewModel,
     songsViewModel: SongsViewModel,
 ) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
-            HomeScreenState(navigationController, mainViewModel)
+            HomeScreenState(navigationController, mainViewModel, innerPadding)
         }
         composable(route = Screen.Download.route) {
             DownloadScreen()

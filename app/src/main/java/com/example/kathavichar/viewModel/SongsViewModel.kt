@@ -25,8 +25,11 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent
@@ -100,6 +103,29 @@ class SongsViewModel(
     val playbackState: StateFlow<PlayerBackState> get() = _playbackState*/
 
     init {
+    }
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> get() = _searchQuery
+
+    private val _filteredSongs = MutableStateFlow<List<Songs>>(emptyList())
+    val filteredSongs: StateFlow<List<Songs>> get() = _filteredSongs
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+        updateSearchResults()
+    }
+
+    private fun updateSearchResults() {
+        val query = _searchQuery.value.lowercase()
+        _filteredSongs.value = if (query.isEmpty()) {
+            _currentplayingsongs
+        } else {
+            _currentplayingsongs.filter {
+                it.title.contains(query, ignoreCase = true) ||
+                        it.title.contains(query, ignoreCase = true)
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

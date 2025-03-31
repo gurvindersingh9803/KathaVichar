@@ -5,6 +5,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,17 +64,12 @@ fun Content(
         sheetElevation = 12.dp,
     ) {
         Scaffold(topBar = {
-        }) { paddingValues ->
-            Box(
-                modifier =
-                    Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .fillMaxSize(),
-            ) {
+        },contentWindowInsets = WindowInsets(0, 0, 0, 0)) { paddingValues ->
                 Column(
                     modifier =
                         Modifier
                             .fillMaxSize()
+                            .padding(paddingValues)
                             .clip(RoundedCornerShape(12.dp)),
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -89,7 +85,7 @@ fun Content(
                         )
                     }
                 }
-            }
+
         }
     }
 }

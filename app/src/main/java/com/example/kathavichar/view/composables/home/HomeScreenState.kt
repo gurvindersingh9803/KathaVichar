@@ -1,5 +1,6 @@
 package com.example.kathavichar.view.composables.home
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -12,6 +13,7 @@ import com.example.kathavichar.viewModel.MainViewModel
 fun HomeScreenState(
     navigationController: NavHostController,
     viewModel: MainViewModel,
+    innerPadding: PaddingValues,
 ) {
     LaunchedEffect(Unit) {
         viewModel.getCategories()
@@ -20,7 +22,7 @@ fun HomeScreenState(
 
     when (uiState) {
         is ServerResponse.isLoading -> { } // isDataLoading(modifier = Modifier.size(50.dp))
-        is ServerResponse.onSuccess -> HomeCategories(uiState.data, navigationController)
+        is ServerResponse.onSuccess -> ArtistSearchScreen(uiState.data, navigationController, innerPadding, viewModel)
         is ServerResponse.onError -> {}
     }
 }
