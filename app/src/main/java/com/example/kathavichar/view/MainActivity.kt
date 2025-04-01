@@ -87,13 +87,9 @@ class MainActivity : ComponentActivity() {
                     false,
                     title = "Artists",
                     actions = {
-                        // Optional actions can be added here
-                        IconButton(onClick = { /* Handle search */ }) {
-                            Icon(Icons.Default.Search, contentDescription = "Search")
-                        }
                     }
                 ) { innerPadding ->
-                    Box(modifier = Modifier.padding(innerPadding)) {
+                    Box(modifier = Modifier.padding()) {
                         // SongScreenParent(songsViewModel)
 
                         NavigationGraph(

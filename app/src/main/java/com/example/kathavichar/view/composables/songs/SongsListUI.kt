@@ -5,9 +5,15 @@ import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -47,6 +53,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -54,6 +61,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.kathavichar.R
+import com.example.kathavichar.common.sharedComposables.ScaffoldWithTopBar
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.view.composables.musicPlayer.TrackImage
@@ -67,16 +75,29 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
     val searchQuery by songsViewModel.searchQuery.collectAsState()
     val filteredSongs by songsViewModel.filteredSongs.collectAsState()
 
+    ScaffoldWithTopBar(true ,"Songs") { innerPadding ->
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+            .fillMaxHeight().fillMaxWidth()
 
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    PaddingValues(
+                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr) + 16.dp,
+                    top = innerPadding.calculateTopPadding(),
+                    end = innerPadding.calculateEndPadding(LayoutDirection.Ltr) + 16.dp,
+                    bottom = innerPadding.calculateBottomPadding()
+                )
+                ),
+
+            ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp, bottom = 8.dp),
+                .padding(top = 16.dp, bottom = 16.dp),
             shape = RoundedCornerShape(24.dp),
             elevation = 4.dp,
             color = MaterialTheme.colorScheme.surface,
@@ -94,7 +115,7 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
                         ),
                         modifier = Modifier.offset(y = 5.dp),
 
-                    )
+                        )
                 },
                 shape = RoundedCornerShape(28.dp),
                 colors = TextFieldDefaults.textFieldColors(
@@ -123,27 +144,38 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
                     }
                 },
             )
+
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-        when {
-            filteredSongs.isNullOrEmpty() && searchQuery.isNotEmpty() -> Text(
-                "No artists found",
-                modifier = Modifier.padding(16.dp),
-            )
-            else -> {
-                LazyColumn {
-                    filteredSongs?.let {
-                        items(it.size) { index ->
-                            SongItem(
-                                song = filteredSongs!![index],
-                                onTrackClick = { songsViewModel.onTrackClicked(filteredSongs!![index]) },
-                            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 90.dp), // Add spacing between search and content
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+                when {
+                    filteredSongs.isNullOrEmpty() && searchQuery.isNotEmpty() -> Text(
+                        "No artists found",
+                        modifier = Modifier.padding(16.dp),
+                    )
+                    else -> {
+                        LazyColumn {
+                            filteredSongs?.let {
+                                items(it.size) { index ->
+                                    SongItem(
+                                        song = filteredSongs!![index],
+                                        onTrackClick = { songsViewModel.onTrackClicked(filteredSongs!![index]) },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
+
+    }
+
+
 
        /* println("fgdhjdfg $filteredSongs")
         if (filteredSongs.isEmpty()) {
@@ -163,6 +195,7 @@ fun SongsListUI(songsViewModel: SongsViewModel) {
                 }
             }
         }*/
+        }
     }
 }
 
