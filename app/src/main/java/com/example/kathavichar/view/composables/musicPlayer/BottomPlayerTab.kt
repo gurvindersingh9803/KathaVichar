@@ -30,16 +30,16 @@ fun BottomPlayerTab(
 ) {
     Column(
         modifier =
-            Modifier
-                .clip(RoundedCornerShape(12.dp)),
+        Modifier
+            .clip(RoundedCornerShape(12.dp)),
     ) {
         Row(
             modifier =
-                Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .background(md_theme_light_primary),
+            Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(md_theme_light_primary),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {

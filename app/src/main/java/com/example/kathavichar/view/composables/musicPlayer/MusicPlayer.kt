@@ -82,33 +82,33 @@ fun TrackInfo(
 ) {
     Box(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(height = 350.dp),
+        Modifier
+            .fillMaxWidth()
+            .height(height = 350.dp),
     ) {
         TrackImage(
             trackImage = trackImage,
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(all = 16.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(all = 16.dp),
         )
     }
     Text(
         text = trackName,
         style = typography.bodyLarge,
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
     )
     Text(
         text = artistName,
         style = typography.bodySmall,
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp),
     )
 }
 
@@ -123,7 +123,7 @@ fun TrackProgressSlider(
     playbackState: StateFlow<PlayerBackState>,
     onSeekBarPositionChanged: (Long) -> Unit,
 ) {
-    println("tgre ${playbackState.value.currentTrackDuration.toString()}")
+    println("tgre ${playbackState.value.currentTrackDuration}")
     val playbackStateValue =
         playbackState
             .collectAsState(
@@ -144,15 +144,15 @@ fun TrackProgressSlider(
         },
         valueRange = 0f..playbackStateValue.currentTrackDuration.toFloat(),
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
     )
     Row(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
@@ -183,9 +183,9 @@ fun TrackControls(
 ) {
     Row(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically,
     ) {

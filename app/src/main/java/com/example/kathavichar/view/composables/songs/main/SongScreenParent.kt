@@ -1,13 +1,12 @@
 package com.example.kathavichar.view.composables.songs.main
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
@@ -15,7 +14,6 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -37,12 +35,22 @@ fun SongScreenParent(songsViewModel: SongsViewModel) {
         )
 
     val scope = rememberCoroutineScope()
-    val onBottomTabClick: () -> Unit = { scope.launch { fullScreenState.show() } }
+
+    val onBottomTabClick: () -> Unit = {
+        Log.d("BottomTab", "BottomTab clicked")
+        scope.launch {
+            if (fullScreenState.isVisible) {
+                fullScreenState.hide()
+            } else {
+                fullScreenState.show()
+            }
+        }
+    }
 
     Content(
         songsViewModel = songsViewModel,
-        fullScreenState,
-        onBottomTabClick,
+        fullScreenState = fullScreenState,
+        onBottomTabClick = onBottomTabClick,
     )
 }
 
@@ -55,37 +63,34 @@ fun Content(
 ) {
     ModalBottomSheetLayout(
         sheetContent = {
-            if (songsViewModel.selectedTrack != null) {
-                BottomSheetDialog(songsViewModel.selectedTrack!!, songsViewModel, songsViewModel.playbackState)
+            songsViewModel.selectedTrack?.let { track ->
+                BottomSheetDialog(track, songsViewModel, songsViewModel.playbackState)
             }
         },
         sheetState = fullScreenState,
         sheetShape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
         sheetElevation = 12.dp,
     ) {
-        Scaffold(topBar = {
-        },contentWindowInsets = WindowInsets(0, 0, 0, 0)) { paddingValues ->
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .clip(RoundedCornerShape(12.dp)),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    SongsListUI(songsViewModel)
-                    AnimatedVisibility(
-                        visible = songsViewModel.selectedTrack != null,
-                        enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
-                    ) {
-                        BottomPlayerTab(
-                            song = songsViewModel.selectedTrack!!,
-                            songsViewModel,
-                            onBottomTabClick,
-                        )
-                    }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable { onBottomTabClick() }
+                .clip(RoundedCornerShape(12.dp)),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            SongsListUI(songsViewModel)
+            AnimatedVisibility(
+                visible = songsViewModel.selectedTrack != null,
+                enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
+            ) {
+                songsViewModel.selectedTrack?.let { track ->
+                    BottomPlayerTab(
+                        song = track,
+                        songsViewModel,
+                        onBottomTabClick = onBottomTabClick,
+                    )
                 }
-
+            }
         }
     }
 }

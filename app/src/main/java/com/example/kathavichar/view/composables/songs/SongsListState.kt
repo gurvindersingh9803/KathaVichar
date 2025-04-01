@@ -21,6 +21,8 @@ fun SongsListState(
     when (uiState) {
         is ServerResponse.isLoading -> {} // isDataLoading(modifier = Modifier.size(50.dp))
         is ServerResponse.onSuccess -> {
+            println("hgtfdrgsfd")
+
             SongScreenParent(songsViewModel = viewModel)
         }
         is ServerResponse.onError -> {}

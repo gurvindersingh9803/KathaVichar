@@ -1,7 +1,6 @@
 package com.example.kathavichar.viewModel
 
 import android.media.session.PlaybackState
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -152,7 +151,7 @@ class SongsViewModel(
                             .artistId(rawSong.artist_id)
                             .build()
                     }
-               // println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
+                // println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
                 println("argts $it")
 
                 // Add to _songs and initialize the music player
