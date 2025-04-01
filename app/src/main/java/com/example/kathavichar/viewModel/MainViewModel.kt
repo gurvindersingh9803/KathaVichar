@@ -22,9 +22,6 @@ class MainViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<ServerResponse<List<ArtistsItem>>> = MutableStateFlow(ServerResponse.isLoading())
     val uiState = _uiState.asStateFlow()
 
-
-
-
     private val subscription: CompositeDisposable = CompositeDisposable()
 
     // Search state
@@ -34,7 +31,7 @@ class MainViewModel : ViewModel() {
     // Combined state for UI
     val filteredArtists: StateFlow<List<ArtistsItem>?> = combine(
         _uiState,
-        _searchQuery
+        _searchQuery,
     ) { response, query ->
         when (response) {
             is ServerResponse.onSuccess -> {
@@ -51,7 +48,7 @@ class MainViewModel : ViewModel() {
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = null
+        initialValue = null,
     )
 
     fun onSearchQueryChanged(query: String) {
@@ -69,7 +66,6 @@ class MainViewModel : ViewModel() {
             }
         }
     }
-
 
     override fun onCleared() {
         super.onCleared()

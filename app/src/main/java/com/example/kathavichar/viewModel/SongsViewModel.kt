@@ -108,31 +108,37 @@ class SongsViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> get() = _searchQuery
 
-    private val _filteredSongs = MutableStateFlow<List<Songs>>(emptyList())
-    val filteredSongs: StateFlow<List<Songs>> get() = _filteredSongs
+    // Convert to StateFlow using MutableStateFlow
+    private val _songsFlow = MutableStateFlow<List<Songs>>(emptyList())
 
-    fun onSearchQueryChanged(query: String) {
-        _searchQuery.value = query
-        updateSearchResults()
+    // Update the flow whenever _currentplayingsongs changes
+    private fun updateCurrentPlayingSongs() {
+        _songsFlow.value = _songs.toList()
     }
 
-    private fun updateSearchResults() {
-        val query = _searchQuery.value.lowercase()
-        _filteredSongs.value = if (query.isEmpty()) {
-            _currentplayingsongs
+    // Combined state for UI
+    val filteredSongs: StateFlow<List<Songs>> = combine(
+        _searchQuery,
+        _songsFlow,
+    ) { query, songs ->
+        if (query.isEmpty()) {
+            _songs
         } else {
-            _currentplayingsongs.filter {
-                it.title.contains(query, ignoreCase = true) ||
-                        it.title.contains(query, ignoreCase = true)
-            }
+            _songs.filter { it.title.contains(query, ignoreCase = true) }
         }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList(),
+    )
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSongs(artistName: String) {
         viewModelScope.launch {
             println("dsgs $artistName")
-            // TODO: Change Song data class approach structure and we are good to go.
             whichArtistSelected = artistName
             songsDataRepository.fetchSongs(artistName).let {
                 val songList =
@@ -146,7 +152,7 @@ class SongsViewModel(
                             .artistId(rawSong.artist_id)
                             .build()
                     }
-                println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
+               // println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
                 println("argts $it")
 
                 // Add to _songs and initialize the music player
@@ -158,6 +164,7 @@ class SongsViewModel(
                              _currentplayingsongs.addAll(songs)*/
                             _songs.clear()
                             _songs.addAll(currentplayingsongs)
+                            updateCurrentPlayingSongs()
                             // println("opopop same artist  $currentplayingsongs ")
 
                             /*_currentplayingsongs[selectedTrackIndex].isSelected = true
@@ -167,6 +174,7 @@ class SongsViewModel(
                             // _currentplayingsongs.resetTracks()
                             _songs.clear()
                             _songs.addAll(songList)
+                            updateCurrentPlayingSongs()
                             Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
                             _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                         }
@@ -174,9 +182,11 @@ class SongsViewModel(
                         _songs.clear()
                         _songs.addAll(songList)
                         Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
+                        updateCurrentPlayingSongs()
                         _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                     }
 
+                    _searchQuery.value = ""
                     observeMusicPlayerState()
                 }
             }
