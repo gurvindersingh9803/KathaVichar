@@ -61,7 +61,7 @@ fun NavigationGraph(
 ) {
     NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
         composable(route = Screen.MainPlayList.route) {
-            HomeScreenState(navigationController, mainViewModel, innerPadding)
+            HomeScreenState(navigationController, mainViewModel, innerPadding, songsViewModel)
         }
         composable(route = Screen.Download.route) {
             DownloadScreen()

@@ -16,7 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kathavichar.view.composables.songs.typography
-import java.nio.file.WatchEvent.Modifier
 
 class CustomScaffoldWithTopBar
 
@@ -44,15 +43,15 @@ fun ScaffoldWithTopBar(
                         title = {
                             Text(
                                 text = title, // Makes text uppercase for a modern look
-                                style = typography.labelLarge.copy(
+                                style = typography.titleMedium .copy(
                                     color = Color.Black, // Pure black color
-                                    fontWeight = FontWeight.Bold, // Bold for emphasis
-                                    fontSize = 32.sp, // Increased font size
-                                    letterSpacing = 1.1.sp, // Better spacing for clarity
+                                    fontWeight = FontWeight.Light, // Bold for emphasis
+                                    fontSize = 26.sp, // Increased font size
+                                    letterSpacing = 1.0.sp, // Better spacing for clarity
                                     shadow = Shadow( // Subtle shadow for depth
-                                        color = Color.Gray.copy(alpha = 0.3f),
+                                        color = Color.Gray.copy(alpha = 0.6f),
                                         offset = Offset(1f, 1f),
-                                        blurRadius = 3f,
+                                        blurRadius = 8f,
                                     ),
                                 ),
                                 modifier = androidx.compose.ui.Modifier.padding(horizontal = 14.dp),
@@ -63,7 +62,7 @@ fun ScaffoldWithTopBar(
                 }
             }
         },
-        content = content,
-        bottomBar = bottomBar
+        bottomBar = bottomBar,
+        content = content
     )
 }

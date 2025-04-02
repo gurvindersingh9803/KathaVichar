@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.kathavichar.R
+import com.example.kathavichar.common.utils.isDataLoading
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 
@@ -27,11 +28,7 @@ fun PausePlayIcon(
     IconButton(onClick = onClick) {
         println("ewrfw")
         if (currentSong.state == MusicPlayerStates.STATE_BUFFERING) {
-            /*CircularProgressIndicator(
-                modifier = Modifier.size(36.dp),
-                color = Color.White,
-                strokeWidth = 3.dp,
-            )*/
+            isDataLoading()
         } else {
             Icon(
                 painter =
@@ -71,7 +68,7 @@ fun SongImage(
         model = songImage,
         contentScale = ContentScale.Crop,
         contentDescription = "track string",
-        modifier = modifier.clip(shape = RoundedCornerShape(8.dp)),
+        modifier = modifier.clip(shape = RoundedCornerShape(6.dp)),
     )
 }
 

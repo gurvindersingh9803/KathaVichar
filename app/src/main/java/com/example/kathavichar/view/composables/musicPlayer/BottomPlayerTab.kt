@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import com.example.kathavichar.common.sharedComposables.NextIcon
 import com.example.kathavichar.common.sharedComposables.PausePlayIcon
@@ -29,17 +30,25 @@ fun BottomPlayerTab(
     musicPlayerEvents: MusicPlayerEvents,
     onBottomTabClick: () -> Unit,
 ) {
-    println("fdgyhkgtrjufyu")
     Column(
-        Modifier.clickable { onBottomTabClick.invoke() },
+        Modifier.clickable { onBottomTabClick.invoke() }
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        md_theme_light_primary.copy(alpha = 1f),
+                        md_theme_light_primary.copy(alpha = 0.7f)
+                    )
+                ),
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            )
+            .padding(vertical = 4.dp)
     ) {
         Row(
             modifier =
             Modifier
                 .clip(RoundedCornerShape(12.dp))
                 .fillMaxWidth()
-                .padding(16.dp)
-                .background(md_theme_light_primary),
+                .padding(16.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -48,7 +57,7 @@ fun BottomPlayerTab(
             PreviousIcon(onClick = { musicPlayerEvents.onPreviousClicked(true, song) }, isBottomTab = true)
             PausePlayIcon(
                 currentSong = song,
-                onClick = musicPlayerEvents::onPlayPauseClicked,
+                onClick = {musicPlayerEvents.onPlayPauseClicked(song)},
                 isBottomTab = true,
             )
             NextIcon(onClick = { musicPlayerEvents.onNextClicked(true, song) }, isBottomTab = true)

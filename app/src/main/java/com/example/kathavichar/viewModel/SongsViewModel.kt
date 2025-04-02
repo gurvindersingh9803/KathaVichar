@@ -137,7 +137,8 @@ class SongsViewModel(
     @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSongs(artistName: String) {
         viewModelScope.launch {
-            println("dsgs $artistName")
+            if(whichArtistSelected == null || whichArtistSelected != artistName)
+                println("dsgs $artistName")
             whichArtistSelected = artistName
             songsDataRepository.fetchSongs(artistName).let {
                 val songList =
@@ -192,13 +193,14 @@ class SongsViewModel(
         }
     }
 
-    override fun onPlayPauseClicked() {
-        println("qrfeqw")
+    override fun onPlayPauseClicked(song: Songs?) {
         musicPlayerKathaVichar.playPause()
+        println("qrfeqw $song")
     }
 
     override fun onPreviousClicked(isBottomClick: Boolean, song: Songs?) {
         // if (selectedTrackIndex > 0) onTrackSelected(selectedTrackIndex - 1)
+        println("fhjkljjlk $isBottomClick")
         if (isBottomClick && song != null) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id

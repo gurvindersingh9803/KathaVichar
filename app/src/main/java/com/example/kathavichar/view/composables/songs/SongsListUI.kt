@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,9 +59,14 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.airbnb.lottie.LottieProperty
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieDynamicProperties
+import com.airbnb.lottie.compose.LottieDynamicProperty
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.rememberLottieDynamicProperties
+import com.airbnb.lottie.model.KeyPath
 import com.example.kathavichar.R
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
@@ -104,8 +111,7 @@ fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
                     value = searchQuery,
                     onValueChange = { songsViewModel.onSearchQueryChanged(it) },
                     modifier = Modifier
-                        .heightIn(min = 50.dp)
-                        .fillMaxWidth(),
+                        .heightIn(min = 50.dp),
                     placeholder = {
                         Text(
                             "Search songs...",
@@ -117,9 +123,12 @@ fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
                     textStyle = TextStyle(fontSize = 12.sp), // Smaller input text
                     shape = RoundedCornerShape(10.dp),
                     colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = MaterialTheme.colorScheme.surface,
+                        backgroundColor = MaterialTheme.colorScheme.background,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
+                        placeholderColor = MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.5f
+                        ),
                     ),
                     leadingIcon = {
                         Icon(
@@ -148,22 +157,22 @@ fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 0.dp), // Add spacing between search and content
+                .padding(0.dp), // Add spacing between search and content
         ) {
             when {
-                filteredSongs.isNullOrEmpty() && searchQuery.isNotEmpty() -> Text(
-                    "No artists found",
+                filteredSongs.isEmpty() && searchQuery.isNotEmpty() -> Text(
+                    "No songs found",
                     modifier = Modifier.padding(16.dp),
                 )
                 else -> {
                     LazyColumn(
                         modifier = Modifier.padding(16.dp),
                     ) {
-                        filteredSongs?.let {
+                        filteredSongs.let {
                             items(it.size) { index ->
                                 SongItem(
-                                    song = filteredSongs!![index],
-                                    onTrackClick = { songsViewModel.onTrackClicked(filteredSongs!![index]) },
+                                    song = filteredSongs[index],
+                                    onTrackClick = { songsViewModel.onTrackClicked(filteredSongs[index]) },
                                 )
                             }
                         }
@@ -202,18 +211,21 @@ fun SongItem(
             Spacer(modifier = Modifier.height(5.dp))
             Text(text = "artist name", style = typography.bodySmall, color = textColor)
         }
-        if (song.state == MusicPlayerStates.STATE_PLAYING) LottieAnimationForPlayingSong()
+        if (song.state == MusicPlayerStates.STATE_PLAYING) LottieAnimationForPlayingSong(modifier = Modifier.size(64.dp))
     }
 }
 
 @Composable
-fun LottieAnimationForPlayingSong() {
+fun LottieAnimationForPlayingSong(dynamicProperties: LottieDynamicProperties? = null, modifier: Modifier?) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.audio_wave))
-    LottieAnimation(
-        composition = composition,
-        iterations = Int.MAX_VALUE,
-        modifier = Modifier.size(64.dp),
-    )
+    if (modifier != null) {
+        LottieAnimation(
+            modifier = modifier,
+            composition = composition,
+            iterations = Int.MAX_VALUE,
+            dynamicProperties = dynamicProperties
+        )
+    }
 }
 
 /*val md_theme_light_primary = Color(0xFF00b59a)

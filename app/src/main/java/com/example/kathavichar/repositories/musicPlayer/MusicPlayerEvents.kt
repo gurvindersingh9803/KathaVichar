@@ -4,7 +4,7 @@ import com.example.kathavichar.model.Songs
 
 interface MusicPlayerEvents {
 
-    fun onPlayPauseClicked()
+    fun onPlayPauseClicked(song: Songs? = null)
 
     fun onPreviousClicked(isBottomClick: Boolean = false, song: Songs? = null)
 

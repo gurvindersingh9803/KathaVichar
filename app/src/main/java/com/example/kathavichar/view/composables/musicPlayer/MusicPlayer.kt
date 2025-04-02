@@ -1,5 +1,6 @@
 package com.example.kathavichar.view.composables.musicPlayer
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -31,6 +34,10 @@ import com.example.kathavichar.common.sharedComposables.PreviousIcon
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
+import com.example.kathavichar.view.composables.songs.md_theme_light_onPrimary
+import com.example.kathavichar.view.composables.songs.md_theme_light_onPrimaryContainer
+import com.example.kathavichar.view.composables.songs.md_theme_light_primary
+import com.example.kathavichar.view.composables.songs.md_theme_light_primaryContainer
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -48,7 +55,7 @@ fun BottomSheetDialog(
     playbackState: StateFlow<PlayerBackState>,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
     ) {
         TrackInfo(
             trackImage = selectedTrack.imgurl.toString(),
@@ -60,7 +67,7 @@ fun BottomSheetDialog(
         }
         TrackControls(
             selectedTrack = selectedTrack,
-            onPreviousClick = playerEvents::onPreviousClicked,
+            onPreviousClick = { playerEvents.onPreviousClicked(true, selectedTrack) },
             onPlayPauseClick = playerEvents::onPlayPauseClicked,
             onNextClick = playerEvents::onNextClicked,
         )
