@@ -3,9 +3,7 @@ package com.example.kathavichar.view.composables.songs.main
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
@@ -18,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.view.composables.musicPlayer.BottomPlayerTab
@@ -50,9 +47,38 @@ fun SongScreenParent(songsViewModel: SongsViewModel) {
         }
     }
 
+    ModalBottomSheetLayout(
+        sheetContent = {
+            selectedTrack?.let { track ->
+                BottomSheetDialog(track, songsViewModel, songsViewModel.playbackState)
+            }
+        },
+        sheetState = fullScreenState,
+        sheetShape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
+        sheetElevation = 12.dp,
+    ) {
+        Scaffold(
+            content = { padding ->
+                SongsListUI(songsViewModel, padding)
+            },
+            bottomBar = {
+                AnimatedVisibility(
+                    visible = selectedTrack != null,
+                    enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
+                ) {
+                    selectedTrack?.let { track ->
+                        BottomPlayerTab(
+                            song = track,
+                            songsViewModel,
+                            onBottomTabClick = onBottomTabClick,
+                        )
+                    }
+                }
+            },
+        )
+    }
 
-
-    Scaffold(
+    /*Scaffold(
         content = { padding ->
             Content(
                 songsViewModel = songsViewModel,
@@ -76,7 +102,7 @@ fun SongScreenParent(songsViewModel: SongsViewModel) {
                 }
             }
         },
-    )
+    )*/
 }
 
 fun BottomPlayerTab(song: Songs, viewModel: SongsViewModel, onBottomTabClick: () -> Unit) {
