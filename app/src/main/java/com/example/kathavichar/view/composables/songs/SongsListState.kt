@@ -1,5 +1,6 @@
 package com.example.kathavichar.view.composables.songs
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -21,8 +22,6 @@ fun SongsListState(
     when (uiState) {
         is ServerResponse.isLoading -> {} // isDataLoading(modifier = Modifier.size(50.dp))
         is ServerResponse.onSuccess -> {
-            println("hgtfdrgsfd")
-
             SongScreenParent(songsViewModel = viewModel)
         }
         is ServerResponse.onError -> {}

@@ -1,6 +1,7 @@
 package com.example.kathavichar.view.composables.musicPlayer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,10 +29,9 @@ fun BottomPlayerTab(
     musicPlayerEvents: MusicPlayerEvents,
     onBottomTabClick: () -> Unit,
 ) {
+    println("fdgyhkgtrjufyu")
     Column(
-        modifier =
-        Modifier
-            .clip(RoundedCornerShape(12.dp)),
+        Modifier.clickable { onBottomTabClick.invoke() },
     ) {
         Row(
             modifier =

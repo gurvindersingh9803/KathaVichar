@@ -3,21 +3,18 @@ package com.example.kathavichar.view.composables.home
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -35,14 +32,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -76,117 +71,112 @@ fun ArtistSearchScreen(
         true,
         title = "Artists",
         actions = {
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxHeight().fillMaxWidth(),
-        ) {
-            Box(
+        },
+        { innerPadding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(PaddingValues(
-                        start = innerPadding.calculateStartPadding(LayoutDirection.Ltr) + 16.dp,
-                        top = innerPadding.calculateTopPadding(),
-                        end = innerPadding.calculateEndPadding(LayoutDirection.Ltr) + 16.dp,
-                        bottom = innerPadding.calculateBottomPadding()
-                    )),
-
-                ) {
+                    .fillMaxHeight().fillMaxWidth(),
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(40.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.background, // Mimics Surface background
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .shadow(
-                            elevation = 5.dp,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .border(
-                            width = 0.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                ) {
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = { viewModel.onSearchQueryChanged(it) },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        placeholder = {
-                            Text(
-                                "Search artists...",
-                                fontSize = 10.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
-                        textStyle = TextStyle(fontSize = 12.sp), // Smaller input text
-                        shape = RoundedCornerShape(10.dp),
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = MaterialTheme.colorScheme.background,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        .padding(
+                            PaddingValues(
+                                start = innerPadding.calculateStartPadding(LayoutDirection.Ltr) + 16.dp,
+                                top = innerPadding.calculateTopPadding(),
+                                end = innerPadding.calculateEndPadding(LayoutDirection.Ltr) + 16.dp,
+                                bottom = innerPadding.calculateBottomPadding(),
+                            ),
                         ),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            )
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(
-                                    onClick = { viewModel.onSearchQueryChanged("") },
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Clear",
-                                        modifier = Modifier.size(18.dp),
-                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    )
-                                }
-                            }
-                        },
-                    )
-                }
 
-                // Content Area (scrollable below search bar)
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 90.dp), // Add spacing between search and content
                 ) {
-                    when {
-                        isLoading -> isDataLoading()
-                        filteredArtists.isNullOrEmpty() && searchQuery.isNotEmpty() -> Text(
-                            "No songs found",
-                            modifier = Modifier.padding(16.dp),
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, bottom = 16.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        elevation = 4.dp,
+                        color = MaterialTheme.colorScheme.surface,
+                    ) {
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = { viewModel.onSearchQueryChanged(it) },
+                            modifier = Modifier
+                                .heightIn(min = 5.dp)
+                                .fillMaxWidth(),
+                            placeholder = {
+                                Text(
+                                    "Search artists...",
+                                    fontSize = 10.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            },
+                            textStyle = TextStyle(fontSize = 12.sp), // Smaller input text
+                            shape = RoundedCornerShape(10.dp),
+                            colors = TextFieldDefaults.textFieldColors(
+                                backgroundColor = MaterialTheme.colorScheme.background,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            ),
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                )
+                            },
+                            trailingIcon = {
+                                if (searchQuery.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { viewModel.onSearchQueryChanged("") },
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Clear",
+                                            modifier = Modifier.size(18.dp),
+                                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        )
+                                    }
+                                }
+                            },
                         )
+                    }
 
-                        else -> LazyVerticalGrid(
-                            columns = GridCells.Fixed(2), // 2 items per row
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(30.dp),
-                            modifier = Modifier.fillMaxHeight()
-                        ) {
-                            if (filteredArtists != null) {
-                                items(20) { index ->
-                                    val sectionData = filteredArtists!![0]
-                                    ArtistCard(sectionData, navigationController)
+                    // Content Area (scrollable below search bar)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 90.dp), // Add spacing between search and content
+                    ) {
+                        when {
+                            isLoading -> isDataLoading()
+                            filteredArtists.isNullOrEmpty() && searchQuery.isNotEmpty() -> Text(
+                                "No songs found",
+                                modifier = Modifier.padding(16.dp),
+                            )
+
+                            else -> LazyVerticalGrid(
+                                columns = GridCells.Fixed(2), // 2 items per row
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(30.dp),
+                                modifier = Modifier.fillMaxHeight(),
+                            ) {
+                                if (filteredArtists != null) {
+                                    items(filteredArtists!!.size) { index ->
+                                        val sectionData = filteredArtists!![index]
+                                        ArtistCard(sectionData, navigationController)
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
+        },
+    ) {
     }
 }
 
@@ -226,8 +216,8 @@ fun ArtistCard(
                                 Color.Transparent,
                                 Color.Black.copy(alpha = 0.9f),
                             ),
-                            startY =  100f,
-                            endY = 0.9f* Float.POSITIVE_INFINITY
+                            startY = 100f,
+                            endY = 0.9f * Float.POSITIVE_INFINITY,
                         ),
                     ),
             )
@@ -267,7 +257,5 @@ fun ArtistCard(
                 overflow = TextOverflow.Clip,
             )
         }
-
-
     }
 }

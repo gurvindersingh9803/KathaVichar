@@ -10,10 +10,6 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberUpdatedState
@@ -87,35 +83,39 @@ class MainActivity : ComponentActivity() {
                     false,
                     title = "Artists",
                     actions = {
-                    }
-                ) { innerPadding ->
-                    Box(modifier = Modifier.padding()) {
-                        // SongScreenParent(songsViewModel)
+                    },
+                    { innerPadding ->
+                        Box(modifier = Modifier.padding()) {
+                            // SongScreenParent(songsViewModel)
 
-                        NavigationGraph(
-                            innerPadding,
-                            navigationController = navController,
-                            mainViewModel,
-                            songsViewModel,
-                        )
-                    }
-
-                    MyEventListener {
-                        when (it) {
-                            Lifecycle.Event.ON_RESUME -> {
-                                println("ON_RESUME fgsdf ${songsViewModel.selectedTrack}")
-                            }
-                            Lifecycle.Event.ON_PAUSE -> {
-                                println("ON_PAUSE fgsdf ${songsViewModel.selectedTrack}")
-                            }
-                            else -> {}
+                            NavigationGraph(
+                                innerPadding,
+                                navigationController = navController,
+                                mainViewModel,
+                                songsViewModel,
+                            )
                         }
-                    }
 
-                    /*Surface(modifier = Modifier.fillMaxSize()) {
-                    // Setup the HomeScreenParent with the viewModel.
-                    SongScreenParent(songsViewModel)
-                }*/
+                        MyEventListener {
+                            when (it) {
+                                Lifecycle.Event.ON_RESUME -> {
+                                    println("ON_RESUME fgsdf ${songsViewModel.selectedTrack}")
+                                }
+
+                                Lifecycle.Event.ON_PAUSE -> {
+                                    println("ON_PAUSE fgsdf ${songsViewModel.selectedTrack}")
+                                }
+
+                                else -> {}
+                            }
+                        }
+
+                        /*Surface(modifier = Modifier.fillMaxSize()) {
+                                        // Setup the HomeScreenParent with the viewModel.
+                                        SongScreenParent(songsViewModel)
+                                    }*/
+                    },
+                ) {
                 }
             }
         }
