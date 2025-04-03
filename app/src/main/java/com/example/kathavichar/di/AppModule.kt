@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
+import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.common.DefaultSharedPrefsManager
 import com.example.kathavichar.common.SharedPrefsManager
 import com.example.kathavichar.repositories.ArtistsDataRepository
@@ -40,6 +41,7 @@ val appModule =
         single<SongsDataRepository> { DefaultSongsDataRepository(get()) }
         single<MusicPlayerService> { DefaultMusicPlayerService(androidContext()) }
         single { ExoPlayer.Builder(androidContext()).build() }
+        single { AndroidNetworkStatusProvider(androidContext()) }
         single {
             MusicPlayerKathaVichar(get(), androidContext())
         }

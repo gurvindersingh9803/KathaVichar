@@ -28,31 +28,29 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableApi::class)
 class MusicPlayerKathaVichar(
-    private val exoPlayer: ExoPlayer,
+    private val mediaService: MediaService,
     private val context: Context,
 ) : Player.Listener {
     private var isServiceRunning = false
-    private lateinit var mediaService: MediaService
     private var isListenerAdded = false
     var currentMediaItemId = ""
     private lateinit var playerNotification: PlayerNotificationManager
     val _playerStates = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
     val currentPlaybackPosition: Long
-        get() = if (exoPlayer.currentPosition > 0) exoPlayer.currentPosition else 0L
+        get() = if (mediaService.exoPlayer.currentPosition > 0) mediaService.exoPlayer.currentPosition else 0L
 
     val currentTrackDuration: Long
-        get() = if (exoPlayer.duration > 0) exoPlayer.duration else 0L
+        get() = if (mediaService.exoPlayer.duration > 0) mediaService.exoPlayer.duration else 0L
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
-        exoPlayer.clearMediaItems()
+        mediaService.exoPlayer.clearMediaItems()
         if (!isListenerAdded) {
-            exoPlayer.addListener(this)
+            mediaService.exoPlayer.addListener(this)
             isListenerAdded = true
         }
-        println("fdtyrfytjujtrufw ${songsList.get(0).mediaMetadata}")
-        exoPlayer.setMediaItems(songsList)
-        exoPlayer.prepare()
+        mediaService.exoPlayer.setMediaItems(songsList)
+        mediaService.exoPlayer.prepare()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -92,8 +90,13 @@ class MusicPlayerKathaVichar(
         notificationManager.createNotificationChannel(channel)
     }
 
+    // Getter for ExoPlayer instance
+    fun getExoPlayer(): ExoPlayer {
+        return mediaService.exoPlayer
+    }
+
     fun getCurrentMediaItem(): MediaItem? {
-        exoPlayer.currentMediaItem?.mediaMetadata?.let { mediaMetadata ->
+        mediaService.exoPlayer.currentMediaItem?.mediaMetadata?.let { mediaMetadata ->
             println("MediaMetadata Properties:")
             println("Title: ${mediaMetadata.title}")
             println("Artist: ${mediaMetadata.artist}")
@@ -113,7 +116,7 @@ class MusicPlayerKathaVichar(
             println("User Rating: ${mediaMetadata.userRating}")
             println("Media Type: ${mediaMetadata.mediaType}")
         }
-        return exoPlayer.currentMediaItem
+        return mediaService.exoPlayer.currentMediaItem
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -164,33 +167,32 @@ class MusicPlayerKathaVichar(
                 it.setUseNextActionInCompactView(true)
                 it.setUsePreviousActionInCompactView(true)
                 it.setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                it.setPlayer(exoPlayer)
+                it.setPlayer(mediaService.exoPlayer)
             }
     }
 
     fun playPause() {
-        if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
-        exoPlayer.playWhenReady = !exoPlayer.playWhenReady
+        if (mediaService.exoPlayer.playbackState == Player.STATE_IDLE) mediaService.exoPlayer.prepare()
+        mediaService.exoPlayer.playWhenReady = !mediaService.exoPlayer.playWhenReady
     }
 
     fun releasePlayer() {
-        exoPlayer.release()
+        mediaService.exoPlayer.release()
         isListenerAdded = false
     }
 
     fun seekToPosition(position: Long) {
-        exoPlayer.seekTo(position)
+        mediaService.exoPlayer.seekTo(position)
     }
 
     fun setUpTrack(
         index: Int,
         isTrackPlay: Boolean,
-    ) {
-        if (isTrackPlay) exoPlayer.playWhenReady = true
+    ) { if (isTrackPlay) mediaService.exoPlayer.playWhenReady = true
         println("sadfdsfgsdf $index $isTrackPlay")
-        if (exoPlayer.playbackState == Player.STATE_IDLE) exoPlayer.prepare()
-        exoPlayer.seekTo(index, 0)
-        if (isTrackPlay) exoPlayer.playWhenReady = true
+        if (mediaService.exoPlayer.playbackState == Player.STATE_IDLE) mediaService.exoPlayer.prepare()
+        mediaService.exoPlayer.seekTo(index, 0)
+        if (isTrackPlay) mediaService.exoPlayer.playWhenReady = true
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -227,7 +229,7 @@ class MusicPlayerKathaVichar(
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {
-        println("onPlaybackStateChanged ghhjghj")
+        println("onPlaybackStateChanged ghhjghj $playbackState")
         when (playbackState) {
             Player.STATE_IDLE -> {
                 _playerStates.tryEmit(
@@ -256,7 +258,7 @@ class MusicPlayerKathaVichar(
 
                 // _playerState.postValue(MusicPlayerStates.STATE_READY)
 
-                if (exoPlayer.playWhenReady) {
+                if (mediaService.exoPlayer.playWhenReady) {
                     _playerStates.tryEmit(
                         MusicPlayerStates.STATE_PLAYING,
 
@@ -289,7 +291,7 @@ class MusicPlayerKathaVichar(
         reason: Int,
     ) {
         println("onPlayWhenReadyChanged ghhjghj")
-        if (exoPlayer.playbackState == Player.STATE_READY) {
+        if (mediaService.exoPlayer.playbackState == Player.STATE_READY) {
             if (playWhenReady) {
                 _playerStates.tryEmit(
                     MusicPlayerStates.STATE_PLAYING,

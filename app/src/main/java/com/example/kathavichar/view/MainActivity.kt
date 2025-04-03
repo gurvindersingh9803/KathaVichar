@@ -1,11 +1,17 @@
 package com.example.kathavichar.view
 import android.Manifest
 import android.app.Activity
+import android.content.Context.ACTIVITY_SERVICE
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +19,7 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberUpdatedState
@@ -21,10 +28,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.compose.rememberNavController
+import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.common.NavigationGraph
 import com.example.kathavichar.common.sharedComposables.ScaffoldWithTopBar
 import com.example.kathavichar.repositories.musicPlayer.MediaService
@@ -34,10 +43,12 @@ import com.example.kathavichar.viewModel.SongsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import org.koin.java.KoinJavaComponent.inject
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()
     private val songsViewModel by viewModels<SongsViewModel>()
+    private val androidNetworkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
     private var isServiceRunning = false
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -45,6 +56,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // TODO: stop firebase duplicacy of data.
+
+        // Restore playback state only if app was previously terminated
+        if (!songsViewModel.isPlaybackRestored) {
+            songsViewModel.restorePlaybackState()
+            songsViewModel.isPlaybackRestored = true // Prevents multiple restores
+        }
         setContent {
             KathaVicharTheme {
                 enableEdgeToEdge()
@@ -71,12 +88,13 @@ class MainActivity : ComponentActivity() {
                                     if (!notificationPermissionState.status.isGranted) {
                                         Log.d("Permissions", "Requesting notification permission")
                                         notificationPermissionState.launchPermissionRequest()
+                                        startMusicService()
                                     } else {
                                         Log.d("Permissions", "Notification permission already granted")
                                         startMusicService() // Start the service only if permission is granted
                                     }
                                 } else {
-                                    startMusicService() // Start the service if no permission is required
+                                   // startMusicService() // Start the service if no permission is required
                                 }
                             }
                         }
@@ -95,7 +113,6 @@ class MainActivity : ComponentActivity() {
                     { innerPadding ->
                         Box(modifier = Modifier.padding()) {
                             // SongScreenParent(songsViewModel)
-
                             NavigationGraph(
                                 innerPadding,
                                 navigationController = navController,
@@ -131,11 +148,15 @@ class MainActivity : ComponentActivity() {
 
     private fun startMusicService() {
         try {
+            println("khgkjhkghgjh $isServiceRunning")
             if (!isServiceRunning) {
                 val intent = Intent(this, MediaService::class.java)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    println("khgkjhkghgjh 1 $isServiceRunning")
                     startForegroundService(intent)
                 } else {
+                    println("khgkjhkghgjh 2 $isServiceRunning")
+
                     startService(intent)
                 }
                 isServiceRunning = true
@@ -145,19 +166,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        songsViewModel.selectedTrack?.let {
+        /*songsViewModel.selectedTrack?.let {
             songsViewModel.savePlaybackState(
                 it,
                 songsViewModel.selectedTrack!!.artist_id,
                 songsViewModel.playbackState.value.currentPlayBackPosition,
             )
         }
+        isServiceRunning = false*/
     }
 }
 

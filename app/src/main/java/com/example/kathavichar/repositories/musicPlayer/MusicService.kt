@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.media.app.NotificationCompat
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.example.kathavichar.common.Constants
@@ -13,6 +14,8 @@ import org.koin.android.ext.android.inject
 
 class MediaService : MediaSessionService() {
     val mediaSession: MediaSession by inject()
+
+    val exoPlayer: ExoPlayer by inject()
 
     val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject()
 
@@ -33,11 +36,11 @@ class MediaService : MediaSessionService() {
         super.onDestroy()
         mediaSession.apply {
             release()
-            if (player.playbackState != Player.STATE_IDLE) {
-                player.seekTo(0)
-                player.playWhenReady = false
-                player.stop()
-            }
+            if (exoPlayer.playbackState != Player.STATE_IDLE) {
+                println("fgsfdgads")
+                exoPlayer.seekTo(0)
+                exoPlayer.playWhenReady = false
+                exoPlayer.stop() }
         }
     }
 }

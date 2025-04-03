@@ -130,7 +130,7 @@ fun TrackProgressSlider(
     playbackState: StateFlow<PlayerBackState>,
     onSeekBarPositionChanged: (Long) -> Unit,
 ) {
-    println("tgre ${playbackState.value.currentTrackDuration}")
+    println("tgre ${playbackState.value.currentPlayBackPosition}")
     val playbackStateValue =
         playbackState
             .collectAsState(

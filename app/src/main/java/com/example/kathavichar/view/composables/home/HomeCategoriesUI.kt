@@ -39,13 +39,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.rememberModalBottomSheetState
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -83,27 +81,20 @@ import com.example.kathavichar.view.composables.songs.LottieAnimationForPlayingS
 import com.example.kathavichar.view.composables.songs.md_theme_light_primary
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.lang.Error
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ArtistSearchScreen(
-    artists: List<ArtistsItem>?,
+    artists: List<ArtistsItem>? = null,
     navigationController: NavHostController,
     innerPadding: PaddingValues,
     viewModel: MainViewModel,
     songsViewModel: SongsViewModel,
+    errorMessage: String?,
 ) {
     var isExecuted by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        if (!isExecuted) {
-            songsViewModel.restorePlaybackState()
-            isExecuted = true
-        }
-    }
-
     val filteredArtists by viewModel.filteredArtists.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isLoading = viewModel.uiState.collectAsState().value is ServerResponse.isLoading
@@ -126,6 +117,7 @@ fun ArtistSearchScreen(
             }
         }
     }
+
 
     ModalBottomSheetLayout(
         sheetContent = {
@@ -167,7 +159,10 @@ fun ArtistSearchScreen(
                         .padding(top = 10.dp)
                         .fillMaxHeight()
                         .fillMaxWidth(),
-                ) {
+                )
+
+
+                {
                     Box(
                         modifier = Modifier
                             .background(Color(0xFFFAFAFA))
@@ -180,7 +175,9 @@ fun ArtistSearchScreen(
                                     bottom = innerPadding.calculateBottomPadding(),
                                 ),
                             ),
-                    ) {
+                    )
+
+                    {
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -246,6 +243,7 @@ fun ArtistSearchScreen(
                                 .fillMaxSize()
                                 .padding(top = 60.dp), // Add spacing between search and content
                         ) {
+                            println("sfgg $errorMessage")
                             when {
                                 isLoading -> { isDataLoading() } // isDataLoading()
                                 filteredArtists.isNullOrEmpty() && searchQuery.isNotEmpty() -> Text(
@@ -253,23 +251,33 @@ fun ArtistSearchScreen(
                                     modifier = Modifier.padding(16.dp),
                                 )
 
-                                else -> LazyVerticalGrid(
-                                    columns = GridCells.Fixed(2), // 2 items per row
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(30.dp),
-                                    modifier = Modifier.fillMaxHeight(),
-                                ) {
-                                    if (filteredArtists != null) {
-                                        items(filteredArtists!!.size) { index ->
-                                            val sectionData = filteredArtists!![index]
-                                            ArtistCard(sectionData, navigationController, selectedTrack)
+                                else ->
+                                    if(errorMessage == null) {
+                                        LazyVerticalGrid(
+                                            columns = GridCells.Fixed(2), // 2 items per row
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(30.dp),
+                                            modifier = Modifier.fillMaxHeight(),
+                                        ) {
+                                            if (filteredArtists != null) {
+                                                items(filteredArtists!!.size) { index ->
+                                                    val sectionData = filteredArtists!![index]
+                                                    ArtistCard(
+                                                        sectionData,
+                                                        navigationController,
+                                                        selectedTrack
+                                                    )
+                                                }
+                                            }
                                         }
+                                    } else {
+                                        Text("Check your network")
                                     }
-                                }
                             }
                         }
                     }
                 }
+
             },
             bottomBar = {
                 AnimatedVisibility(

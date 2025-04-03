@@ -1,7 +1,11 @@
 package com.example.kathavichar.viewModel
 
+import android.net.ConnectivityManager
+import android.net.Network
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.model.ArtistsItem
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.ArtistsDataRepository
@@ -28,6 +32,9 @@ class MainViewModel : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
+    private val networkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
+
+    val isNetworkAvailable: StateFlow<Boolean> = networkStatusProvider.networkStatusFlow
     // Combined state for UI
     val filteredArtists: StateFlow<List<ArtistsItem>?> = combine(
         _uiState,
@@ -57,12 +64,15 @@ class MainViewModel : ViewModel() {
 
     fun getCategories() {
         viewModelScope.launch {
-            // delay(2000)
-            withContext(Dispatchers.Main) {
-                artistsDataRepository.fetchArtists().let {
-                    println("retyeter $it")
-                    _uiState.emit(ServerResponse.onSuccess(it))
+            if(isNetworkAvailable.value) {
+                withContext(Dispatchers.Main) {
+                    artistsDataRepository.fetchArtists().let {
+                        _uiState.emit(ServerResponse.onSuccess(it))
+                    }
                 }
+            }else {
+                _uiState.emit(ServerResponse.onError(data = null, message = "No internet connection"))
+
             }
         }
     }
@@ -70,6 +80,6 @@ class MainViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         println("onCleared")
-        subscription.clear()
+        // subscription.clear()
     }
 }
