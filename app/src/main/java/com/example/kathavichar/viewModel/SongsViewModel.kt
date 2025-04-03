@@ -48,23 +48,52 @@ class SongsViewModel(
     // Save the current playback state (song ID, playing status, etc.)
 
     private val sharedPreferences: SharedPrefsManager by inject(SharedPrefsManager::class.java)
-    fun savePlaybackState(selectedTrack: Songs) {
+    fun savePlaybackState(selectedTrack: Songs, artistName: String, position: Long) {
         try {
-            sharedPreferences.savePlaybackState(selectedTrack)
+            sharedPreferences.saveString("LAST_PLAYING_SONG_ID", selectedTrack.id)
+            sharedPreferences.saveString("LAST_PLAYING_PLAYLIST", artistName)
+            sharedPreferences.saveLong("LAST_PLAYING_POSITION", position)
         } catch (e: Exception) {
-            println("sharedPreferences saving error $e")
+            println("SharedPreferences saving error: $e")
         }
     }
 
-    // Restore the saved playback state
+    //TODO: stop this function to call unnecessary until restore is required.
     fun restorePlaybackState() {
         viewModelScope.launch {
-            val track = sharedPreferences.restorePlaybackState()
-            println("fghfdgh $track")
-            selectedTrack = track
-            observeMusicPlayerState()
+            val lastSongId = sharedPreferences.getString("LAST_PLAYING_SONG_ID", null)
+            val lastPlaylistName = sharedPreferences.getString("LAST_PLAYING_PLAYLIST", null)
+            val lastPosition = sharedPreferences.getLong("LAST_PLAYING_POSITION", 0L)
+
+            if (lastPlaylistName != null) {
+                /*val savedPlaylist = songsDataRepository.fetchSongs(lastPlaylistName)
+
+                selectedTrackIndex = savedPlaylist.indexOfFirst { it.id == musicPlayerKathaVichar.currentMediaItemId }
+                _currentplayingsongs.clear()
+                _currentplayingsongs.addAll(savedPlaylist)
+                // musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
+                println("onTrackClicked 1 ")
+                println("onTrackClicked 1 fsdg $currentplayingsongs $selectedTrackIndex")*/
+                // onTrackSelected(selectedTrackIndex)
+
+                /*if (savedPlaylist.isNotEmpty()) {
+                    _currentplayingsongs.clear()
+                    _currentplayingsongs.addAll(savedPlaylist)
+                    updateCurrentPlayingSongs()
+
+                    val songIndex = savedPlaylist.indexOfFirst { it.id == lastSongId }
+                    if (songIndex != -1) {
+                        selectedTrackIndex = songIndex
+                        selectedTrack = savedPlaylist[songIndex]
+                        musicPlayerKathaVichar.seekToPosition(lastPosition)
+                    }
+                }*/
+            }
+
+            // observeMusicPlayerState()
         }
     }
+
 
     /**
      * An immutable snapshot of the current list of tracks.
@@ -220,7 +249,7 @@ class SongsViewModel(
 
     override fun onPlayPauseClicked(song: Songs?) {
         musicPlayerKathaVichar.playPause()
-        println("qrfeqw $song")
+        println("qrfeqw $song $currentplayingsongs")
     }
 
     override fun onPreviousClicked(isBottomClick: Boolean, song: Songs?) {
@@ -381,8 +410,8 @@ class SongsViewModel(
     }*/
 
     private fun updateState(state: MusicPlayerStates) {
-        println("rgthger $state")
         if (selectedTrackIndex != -1) {
+            println("rgthger $state")
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
             _currentplayingsongs[selectedTrackIndex].state = state
             _currentplayingsongs[selectedTrackIndex].isSelected = true

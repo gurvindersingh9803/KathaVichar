@@ -7,29 +7,42 @@ import com.google.gson.Gson
 
 class DefaultSharedPrefsManager(context: Context, private val gson: Gson): SharedPrefsManager {
 
-    private val sharedPreferences: SharedPreferences =
-        context.getSharedPreferences("playback_prefs", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE)
 
-    companion object {
-        private const val SELECTED_TRACK_KEY = "selected_track"
+    override fun saveString(key: String, value: String) {
+        prefs.edit().putString(key, value).apply()
     }
 
-    override fun savePlaybackState(selectedTrack: Songs) {
-        println("drf $selectedTrack")
-        val editor = sharedPreferences.edit()
-        val json = gson.toJson(selectedTrack)
-        editor.putString(SELECTED_TRACK_KEY, json)
-        editor.apply()
+    override fun getString(key: String, defaultValue: String?): String? {
+        return prefs.getString(key, defaultValue)
     }
 
-    override fun restorePlaybackState(): Songs? {
-        val json = sharedPreferences.getString(SELECTED_TRACK_KEY, null)
-        return json?.let {
-            gson.fromJson(it, Songs::class.java)
-        }
+    override fun saveLong(key: String, value: Long) {
+        prefs.edit().putLong(key, value).apply()
     }
 
-    override fun clearPlaybackState() {
-        sharedPreferences.edit().remove(SELECTED_TRACK_KEY).apply()
+    override fun getLong(key: String, defaultValue: Long): Long {
+        return prefs.getLong(key, defaultValue)
+    }
+
+    override fun saveInt(key: String, value: Int) {
+        prefs.edit().putInt(key, value).apply()
+    }
+
+    override fun getInt(key: String, defaultValue: Int): Int {
+        return prefs.getInt(key, defaultValue)
+    }
+
+    override fun saveBoolean(key: String, value: Boolean) {
+        prefs.edit().putBoolean(key, value).apply()
+    }
+
+    override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+        return prefs.getBoolean(key, defaultValue)
+    }
+
+    override fun clear() {
+        prefs.edit().clear().apply()
     }
 }
