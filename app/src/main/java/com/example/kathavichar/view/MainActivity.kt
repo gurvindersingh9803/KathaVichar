@@ -34,19 +34,19 @@ import com.example.kathavichar.viewModel.SongsViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.gson.Gson
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()
     private val songsViewModel by viewModels<SongsViewModel>()
     private var isServiceRunning = false
-
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // TODO: stop firebase duplicacy of data.
-
-
         setContent {
             KathaVicharTheme {
                 enableEdgeToEdge()
@@ -149,6 +149,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        songsViewModel.selectedTrack?.let { songsViewModel.savePlaybackState(it) }
     }
 }
 

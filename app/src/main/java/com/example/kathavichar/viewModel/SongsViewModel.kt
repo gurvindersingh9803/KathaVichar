@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import com.example.kathavichar.common.SharedPrefsManager
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.SongsDataRepository
@@ -31,11 +32,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent
 import org.koin.java.KoinJavaComponent.inject
 
 class SongsViewModel(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel(),
     MusicPlayerEvents {
     private val _uiStateSongs: MutableStateFlow<ServerResponse<MutableList<Songs>>> =
@@ -44,6 +44,27 @@ class SongsViewModel(
     private val _songs = mutableStateListOf<Songs>()
 
     private val songsDataRepository: SongsDataRepository by inject(SongsDataRepository::class.java)
+
+    // Save the current playback state (song ID, playing status, etc.)
+
+    private val sharedPreferences: SharedPrefsManager by inject(SharedPrefsManager::class.java)
+    fun savePlaybackState(selectedTrack: Songs) {
+        try {
+            sharedPreferences.savePlaybackState(selectedTrack)
+        } catch (e: Exception) {
+            println("sharedPreferences saving error $e")
+        }
+    }
+
+    // Restore the saved playback state
+    fun restorePlaybackState() {
+        viewModelScope.launch {
+            val track = sharedPreferences.restorePlaybackState()
+            println("fghfdgh $track")
+            selectedTrack = track
+            observeMusicPlayerState()
+        }
+    }
 
     /**
      * An immutable snapshot of the current list of tracks.
@@ -59,7 +80,7 @@ class SongsViewModel(
 
     val subscription: CompositeDisposable = CompositeDisposable()
 
-    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by KoinJavaComponent.inject(
+    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(
         MusicPlayerKathaVichar::class.java,
     )
 
@@ -137,57 +158,61 @@ class SongsViewModel(
     @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSongs(artistName: String) {
         viewModelScope.launch {
-            if(whichArtistSelected == null || whichArtistSelected != artistName)
+            if (whichArtistSelected == null || whichArtistSelected != artistName) {
                 println("dsgs $artistName")
-            whichArtistSelected = artistName
-            songsDataRepository.fetchSongs(artistName).let {
-                val songList =
-                    it.map { rawSong ->
-                        Songs
-                            .Builder()
-                            .songId(rawSong.id)
-                            .title(rawSong.title)
-                            .audioUrl(rawSong.audiourl)
-                            .imgUrl(rawSong.imgurl)
-                            .artistId(rawSong.artist_id)
-                            .build()
-                    }
-                // println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
-                println("argts $it")
+                _uiStateSongs.tryEmit(ServerResponse.isLoading())
+                whichArtistSelected = artistName
+                songsDataRepository.fetchSongs(artistName).let {
+                    val songList =
+                        it.map { rawSong ->
+                            Songs
+                                .Builder()
+                                .songId(rawSong.id)
+                                .title(rawSong.title)
+                                .audioUrl(rawSong.audiourl)
+                                .imgUrl(rawSong.imgurl)
+                                .artistId(rawSong.artist_id)
+                                .build()
+                        }
+                    // println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
+                    println("argts $it")
 
-                // Add to _songs and initialize the music player
-                if (songList.isNotEmpty()) {
-                    if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
-                        if (artistName == currentplayingsongs[selectedTrackIndex].artist_id) {
-                            println("opopop same artist  $selectedTrackIndex ")
+                    // Add to _songs and initialize the music player
+                    if (songList.isNotEmpty()) {
+                        if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
+                            if (artistName == currentplayingsongs[selectedTrackIndex].artist_id) {
+                                println("opopop same artist  $selectedTrackIndex ")
                             /* _currentplayingsongs.clear()
                              _currentplayingsongs.addAll(songs)*/
-                            _songs.clear()
-                            _songs.addAll(currentplayingsongs)
-                            updateCurrentPlayingSongs()
-                            // println("opopop same artist  $currentplayingsongs ")
+                                _songs.clear()
+                                _songs.addAll(currentplayingsongs)
+                                updateCurrentPlayingSongs()
+                                // println("opopop same artist  $currentplayingsongs ")
 
                             /*_currentplayingsongs[selectedTrackIndex].isSelected = true
                             selectedTrack = currentplayingsongs[selectedTrackIndex]*/
+                            } else {
+                                println("opopop diffe artist  $selectedTrackIndex")
+                                // _currentplayingsongs.resetTracks()
+                                _songs.clear()
+                                _songs.addAll(songList)
+                                updateCurrentPlayingSongs()
+                                Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
+                                _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                            }
                         } else {
-                            println("opopop diffe artist  $selectedTrackIndex")
-                            // _currentplayingsongs.resetTracks()
                             _songs.clear()
                             _songs.addAll(songList)
+                            Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
                             updateCurrentPlayingSongs()
-                            Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
                             _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                         }
-                    } else {
-                        _songs.clear()
-                        _songs.addAll(songList)
-                        Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
-                        updateCurrentPlayingSongs()
-                        _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
-                    }
 
-                    _searchQuery.value = ""
-                    observeMusicPlayerState()
+                        println("dghyjghfjdg")
+                        _searchQuery.value = ""
+                        _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                        observeMusicPlayerState()
+                    }
                 }
             }
         }

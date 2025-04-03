@@ -21,7 +21,7 @@ fun SongsListState(
     val uiState by viewModel.uiStateSongs.collectAsState()
 
     when (uiState) {
-        is ServerResponse.isLoading -> { isDataLoading() } // isDataLoading(modifier = Modifier.size(50.dp))
+        is ServerResponse.isLoading -> { isDataLoading() }
         is ServerResponse.onSuccess -> {
             SongScreenParent(songsViewModel = viewModel)
         }

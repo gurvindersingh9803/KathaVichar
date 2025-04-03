@@ -12,15 +12,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +30,7 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -59,14 +57,10 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
-import com.airbnb.lottie.LottieProperty
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieDynamicProperties
-import com.airbnb.lottie.compose.LottieDynamicProperty
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.airbnb.lottie.compose.rememberLottieDynamicProperties
-import com.airbnb.lottie.model.KeyPath
 import com.example.kathavichar.R
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
@@ -127,7 +121,7 @@ fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         placeholderColor = MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
+                            alpha = 0.5f,
                         ),
                     ),
                     leadingIcon = {
@@ -212,6 +206,13 @@ fun SongItem(
             Text(text = "artist name", style = typography.bodySmall, color = textColor)
         }
         if (song.state == MusicPlayerStates.STATE_PLAYING) LottieAnimationForPlayingSong(modifier = Modifier.size(64.dp))
+        if (song.state == MusicPlayerStates.STATE_BUFFERING) {
+            CircularProgressIndicator(
+                color = Color.White,
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(50.dp).padding(12.dp), // Explicit size for better control
+            )
+        }
     }
 }
 
@@ -223,7 +224,7 @@ fun LottieAnimationForPlayingSong(dynamicProperties: LottieDynamicProperties? = 
             modifier = modifier,
             composition = composition,
             iterations = Int.MAX_VALUE,
-            dynamicProperties = dynamicProperties
+            dynamicProperties = dynamicProperties,
         )
     }
 }

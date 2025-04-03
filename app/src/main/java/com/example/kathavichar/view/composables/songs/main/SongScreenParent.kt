@@ -5,11 +5,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
@@ -18,20 +16,15 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +32,6 @@ import com.example.kathavichar.model.Songs
 import com.example.kathavichar.view.composables.musicPlayer.BottomPlayerTab
 import com.example.kathavichar.view.composables.musicPlayer.BottomSheetDialog
 import com.example.kathavichar.view.composables.songs.SongsListUI
-import com.example.kathavichar.view.composables.songs.typography
 import com.example.kathavichar.viewModel.SongsViewModel
 import kotlinx.coroutines.launch
 
@@ -88,15 +80,16 @@ fun SongScreenParent(songsViewModel: SongsViewModel) {
                                 style = MaterialTheme.typography.displayLarge.copy(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 32.sp,
-                                    color = Color(0xFF909090)
+                                    color = Color(0xFF909090),
                                 ),
                             )
                             Divider(
                                 modifier = Modifier
                                     .fillMaxWidth() // Make sure it spans the full width
                                     .height(1.dp), // Increased height to make it visible
-                                color = Color.LightGray // Light color for the divider
-                            )            }
+                                color = Color.LightGray, // Light color for the divider
+                            )
+                        }
                     },
                 )
             },

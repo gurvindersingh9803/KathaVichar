@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.example.kathavichar.view.composables.SplashScreen
 import com.example.kathavichar.view.composables.home.HomeScreenState
 import com.example.kathavichar.view.composables.songs.SongsListState
 import com.example.kathavichar.viewModel.MainViewModel
@@ -59,7 +60,10 @@ fun NavigationGraph(
     mainViewModel: MainViewModel,
     songsViewModel: SongsViewModel,
 ) {
-    NavHost(navController = navigationController, startDestination = Screen.MainPlayList.route) {
+    NavHost(navController = navigationController, startDestination = Screen.SplashScreen.route) {
+        composable(route = Screen.SplashScreen.route) {
+            SplashScreen(navController = navigationController)
+        }
         composable(route = Screen.MainPlayList.route) {
             HomeScreenState(navigationController, mainViewModel, innerPadding, songsViewModel)
         }
