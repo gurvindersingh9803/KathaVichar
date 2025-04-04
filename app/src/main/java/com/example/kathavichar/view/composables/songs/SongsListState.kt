@@ -1,10 +1,11 @@
 package com.example.kathavichar.view.composables.songs
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.media3.session.MediaController
 import com.example.kathavichar.common.utils.isDataLoading
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.view.composables.songs.main.SongScreenParent

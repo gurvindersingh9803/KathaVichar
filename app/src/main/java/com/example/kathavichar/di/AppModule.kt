@@ -15,8 +15,8 @@ import com.example.kathavichar.repositories.DefaultSongsDataRepository
 import com.example.kathavichar.repositories.RetrofitClient
 import com.example.kathavichar.repositories.SongsDataRepository
 import com.example.kathavichar.repositories.SongsService
+import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MediaService
-import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
 import com.example.kathavichar.view.musicPlayerService.DefaultMusicPlayerService
 import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
 import com.example.kathavichar.viewModel.MainViewModel
@@ -40,11 +40,11 @@ val appModule =
         single<ArtistsDataRepository> { DefaultArtistsDataRepository(get()) }
         single<SongsDataRepository> { DefaultSongsDataRepository(get()) }
         single<MusicPlayerService> { DefaultMusicPlayerService(androidContext()) }
-        single { ExoPlayer.Builder(androidContext()).build() }
         single { AndroidNetworkStatusProvider(androidContext()) }
         single {
-            MusicPlayerKathaVichar(get(), androidContext())
+            MusicPlayerKathaVichar(androidContext(), get())
         }
+        single { MediaService() }
         single {
             RetrofitClient().provideRetrofit().create(ArtistsService::class.java)
         }
@@ -52,8 +52,5 @@ val appModule =
             RetrofitClient().provideRetrofit().create(SongsService::class.java)
         }
         single { MediaPlayerNotificationManager(androidContext()) }
-        single { MediaService() }
-        factory {
-            MediaSession.Builder(get(), get<ExoPlayer>()).build()
-        }
+
     }

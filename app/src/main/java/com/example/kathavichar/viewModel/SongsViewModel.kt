@@ -18,8 +18,8 @@ import com.example.kathavichar.common.SharedPrefsManager
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.SongsDataRepository
+import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
-import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
 import io.reactivex.disposables.CompositeDisposable
@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
@@ -238,6 +239,15 @@ class SongsViewModel(
         _searchQuery.value = query
     }
 
+    private val _isPlayerSetUp = MutableStateFlow(false)
+    val isPlayerSetUp = _isPlayerSetUp.asStateFlow()
+
+    fun setupPlayer() {
+        _isPlayerSetUp.update {
+            true
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSongs(artistName: String) {
         viewModelScope.launch {
@@ -355,14 +365,16 @@ class SongsViewModel(
         isBottomClicked = false
         println("sdftghfgsdh ${song.audiourl}")
 
-        if (currentplayingsongs.isEmpty()) {
-            _currentplayingsongs.clear()
-            _currentplayingsongs.addAll(songs)
-            println("onTrackClicked $currentplayingsongs}")
-            musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
-            onTrackSelected(currentplayingsongs.indexOf(song))
-        } else {
-           /* println("wwewew $selectedTrackIndex")
+        try {
+            // setupPlayer()
+            if (currentplayingsongs.isEmpty()) {
+                _currentplayingsongs.clear()
+                _currentplayingsongs.addAll(songs)
+                println("onTrackClicked $currentplayingsongs}")
+                musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
+                onTrackSelected(currentplayingsongs.indexOf(song))
+            } else {
+                /* println("wwewew $selectedTrackIndex")
             val songIndex = songs.indexOf(song)
             println("wwewew nn $selectedTrackIndex")
             if (songIndex == -1) {
@@ -376,26 +388,29 @@ class SongsViewModel(
                 println("onTrackClicked} 2")
                 onTrackSelected(currentplayingsongs.indexOf(song))
             }*/
-            // println("fgfgg $songIndex")
-            // onTrackSelected(currentplayingsongs.indexOf(song), isTrackClicked = true)
+                // println("fgfgg $songIndex")
+                // onTrackSelected(currentplayingsongs.indexOf(song), isTrackClicked = true)
 
-            if (currentplayingsongs.indexOf(song) == -1) {
-                println("artist change $songs")
-                selectedTrackIndex = currentplayingsongs.indexOf(song)
-                _currentplayingsongs.clear()
-                _currentplayingsongs.addAll(songs)
-                musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
-                println("onTrackClicked 1 $song ${currentplayingsongs.indexOf(song)}")
-                println("onTrackClicked 1 $currentplayingsongs")
-                onTrackSelected(currentplayingsongs.indexOf(song))
-            } else {
-                onTrackSelected(currentplayingsongs.indexOf(song))
+                if (currentplayingsongs.indexOf(song) == -1) {
+                    println("artist change $songs")
+                    selectedTrackIndex = currentplayingsongs.indexOf(song)
+                    _currentplayingsongs.clear()
+                    _currentplayingsongs.addAll(songs)
+                    musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
+                    println("onTrackClicked 1 $song ${currentplayingsongs.indexOf(song)}")
+                    println("onTrackClicked 1 $currentplayingsongs")
+                    onTrackSelected(currentplayingsongs.indexOf(song))
+                } else {
+                    onTrackSelected(currentplayingsongs.indexOf(song))
+                }
+
+                /* onTrackSelected(currentplayingsongs.indexOf(song))
+            println("sdafg")*/
             }
 
-           /* onTrackSelected(currentplayingsongs.indexOf(song))
-            println("sdafg")*/
+        } catch (e: Exception){
+            println("dghsdhdfsg $e")
         }
-
         // selectedTrackIndex = currentplayingsongs.indexOf(song)
     }
 

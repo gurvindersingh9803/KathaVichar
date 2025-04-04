@@ -1,9 +1,13 @@
-package com.example.kathavichar.repositories.musicPlayer
+package com.example.kathavichar.repositories.musicPla
 
+import android.app.Application
+import com.example.kathavichar.repositories.musicPlayer.MediaService
+import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -13,23 +17,33 @@ import android.util.Log
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerNotificationManager
 import com.example.kathavichar.R
 import com.example.kathavichar.common.Constants
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlin.coroutines.cancellation.CancellationException
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableApi::class)
 class MusicPlayerKathaVichar(
-    private val mediaService: MediaService,
     private val context: Context,
+    private val mediaService: MediaService,
 ) : Player.Listener {
     private var isServiceRunning = false
     private var isListenerAdded = false
@@ -37,34 +51,137 @@ class MusicPlayerKathaVichar(
     private lateinit var playerNotification: PlayerNotificationManager
     val _playerStates = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
     val currentPlaybackPosition: Long
-        get() = if (mediaService.exoPlayer.currentPosition > 0) mediaService.exoPlayer.currentPosition else 0L
+        get() = if (mediaController?.currentPosition!! > 0) mediaController!!.currentPosition else 0L
 
     val currentTrackDuration: Long
-        get() = if (mediaService.exoPlayer.duration > 0) mediaService.exoPlayer.duration else 0L
+        get() = if (mediaController?.duration!! > 0) mediaController!!.duration else 0L
+    private var mediaController: MediaController? = null
+
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
-        mediaService.exoPlayer.clearMediaItems()
+        try {
+            println("🎶 Songs list $songsList")
+
+            // Exit early if the list is empty
+            if (songsList.isEmpty()) {
+                println("🎶 Songs list is empty!")
+                return
+            }
+
+            // Initialize the MediaController asynchronously
+            initializeMediaController {
+                if (mediaController == null) {
+                    println("⚠️ MediaController is null!")
+                    return@initializeMediaController
+                }
+
+                // Check if player is already initialized and playing something
+                val isAlreadyPlaying = mediaController?.playbackState == Player.STATE_READY ||
+                        mediaController?.isPlaying == true
+
+                // If it's already playing, just update the playlist (if it's different)
+                if (isAlreadyPlaying) {
+                    println("🎧 Player is already playing. Updating song list...")
+
+                    mediaController?.apply {
+                        val oldUris = mediaController?.currentMediaItem?.mediaId
+                        val newUris = songsList.get(0).mediaId
+
+                        println("fghdfghf $oldUris $newUris")
+                        if (oldUris != newUris) {
+                            clearMediaItems()
+                            setMediaItems(songsList)
+                            prepare()
+                            play() // optional: restart playback if list is updated
+                            println("✅ Playlist updated while playing. mnmn")
+                        } else {
+                            println("🔁 Same playlist. No changes made. mnmn")
+                        }
+                    }
+                } else {
+                    // Not playing anything: fresh start
+                    mediaController?.apply {
+                        clearMediaItems()
+                        addListener(this@MusicPlayerKathaVichar)
+                        println("🎵 Setting media items to controller...")
+                        setMediaItems(songsList.toList())
+                        prepare()
+                    }
+
+                    println("🎵 Initialized music player with ${mediaController?.mediaItemCount} items.")
+                }
+            }
+        } catch (e: Exception) {
+            println("Error initializing music player: ${e.message}")
+        }
+    }
+
+
+    // Initialize the MediaController
+
+       /* if (songsList.isEmpty()) {
+            println("songsList is EMPTY! No media items to play.")
+            return
+        }
+
+        println("🎵 Initializing music player with ${songsList.size} items")
+
+        songsList.forEachIndexed { index, mediaItem ->
+            println("🎶 Track $index: ${mediaItem.mediaId} - ${mediaItem.localConfiguration?.uri}")
+        }
+
+        mediaController?.clearMediaItems()
+        mediaController?.setMediaItems(songsList)
+        mediaController?.prepare()
+        mediaController?.playWhenReady = true
+        println("✅ Media items added. Total count: ${mediaController?.mediaItemCount}")*/
+
+        /*mediaController?.clearMediaItems()
         if (!isListenerAdded) {
-            mediaService.exoPlayer.addListener(this)
+            mediaController?.addListener(this)
             isListenerAdded = true
         }
-        mediaService.exoPlayer.setMediaItems(songsList)
-        mediaService.exoPlayer.prepare()
+
+        mediaController?.setMediaItems(songsList)
+        mediaController?.prepare()*/
+
+
+
+    private fun initializeMediaController(onInitialized: () -> Unit) {
+        if (mediaController == null) {
+            val mediaSessionToken = SessionToken(context, ComponentName(context, MediaService::class.java))
+            val future = MediaController.Builder(context, mediaSessionToken).buildAsync()
+
+            future.addListener(
+                {
+                    try {
+                        if (future.isCancelled) {
+                            println("🚫 MediaController initialization was cancelled.")
+                            return@addListener
+                        }
+
+                        mediaController = future.get()
+                        println("🎶 MediaController Initialized")
+
+                        onInitialized()
+                    } catch (e: CancellationException) {
+                        println("⚠️ MediaController init cancelled: ${e.message}")
+                    } catch (e: Exception) {
+                        println("❌ Error initializing MediaController: ${e.message}")
+                    }
+                },
+                MoreExecutors.directExecutor()
+            )
+        } else {
+            // Already initialized, proceed with callback
+            onInitialized()
+        }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    @UnstableApi
-    fun startMusicNotificationService(
-        mediaSessionService: MediaSessionService,
-        mediaSession: MediaSession,
-    ) {
-        createNotificationChannel()
-        startForegroundMusicService(mediaSessionService)
-        buildMusicNotification(mediaSession)
-    }
 
-    private fun createStubNotification(): Notification {
+
+    /*private fun createStubNotification(): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel() // Ensure channel exists
         }
@@ -90,34 +207,6 @@ class MusicPlayerKathaVichar(
         notificationManager.createNotificationChannel(channel)
     }
 
-    // Getter for ExoPlayer instance
-    fun getExoPlayer(): ExoPlayer {
-        return mediaService.exoPlayer
-    }
-
-    fun getCurrentMediaItem(): MediaItem? {
-        mediaService.exoPlayer.currentMediaItem?.mediaMetadata?.let { mediaMetadata ->
-            println("MediaMetadata Properties:")
-            println("Title: ${mediaMetadata.title}")
-            println("Artist: ${mediaMetadata.artist}")
-            println("Album Title: ${mediaMetadata.albumTitle}")
-            println("Display Title: ${mediaMetadata.displayTitle}")
-            println("Subtitle: ${mediaMetadata.subtitle}")
-            println("Description: ${mediaMetadata.description}")
-            println("Artwork URI: ${mediaMetadata.artworkUri}")
-            println("Extras: ${mediaMetadata.extras}") // Print extras if any
-            println("Track Number: ${mediaMetadata.trackNumber}")
-            println("Total Track Count: ${mediaMetadata.totalTrackCount}")
-            println("Folder Type: ${mediaMetadata.folderType}")
-            println("Is Playable: ${mediaMetadata.isPlayable}")
-            println("Is Browsable: ${mediaMetadata.isBrowsable}")
-            println("Release Year: ${mediaMetadata.releaseYear}")
-            println("Overall Rating: ${mediaMetadata.overallRating}")
-            println("User Rating: ${mediaMetadata.userRating}")
-            println("Media Type: ${mediaMetadata.mediaType}")
-        }
-        return mediaService.exoPlayer.currentMediaItem
-    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
@@ -167,32 +256,35 @@ class MusicPlayerKathaVichar(
                 it.setUseNextActionInCompactView(true)
                 it.setUsePreviousActionInCompactView(true)
                 it.setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                it.setPlayer(mediaService.exoPlayer)
+                it.setPlayer(mediaController)
             }
-    }
+    }*/
 
     fun playPause() {
-        if (mediaService.exoPlayer.playbackState == Player.STATE_IDLE) mediaService.exoPlayer.prepare()
-        mediaService.exoPlayer.playWhenReady = !mediaService.exoPlayer.playWhenReady
+        if (mediaController?.playbackState == Player.STATE_IDLE) {
+            mediaController?.prepare()
+        }
+
+        mediaController?.playWhenReady = !(mediaController?.playWhenReady ?: false)
     }
 
     fun releasePlayer() {
-        mediaService.exoPlayer.release()
+        mediaController?.release()
         isListenerAdded = false
     }
 
     fun seekToPosition(position: Long) {
-        mediaService.exoPlayer.seekTo(position)
+        mediaController?.seekTo(position)
     }
 
     fun setUpTrack(
         index: Int,
         isTrackPlay: Boolean,
-    ) { if (isTrackPlay) mediaService.exoPlayer.playWhenReady = true
+    ) { if (isTrackPlay) mediaController?.playWhenReady = true
         println("sadfdsfgsdf $index $isTrackPlay")
-        if (mediaService.exoPlayer.playbackState == Player.STATE_IDLE) mediaService.exoPlayer.prepare()
-        mediaService.exoPlayer.seekTo(index, 0)
-        if (isTrackPlay) mediaService.exoPlayer.playWhenReady = true
+        if (mediaController?.playbackState == Player.STATE_IDLE) mediaController?.prepare()
+        mediaController?.seekTo(index, 0)
+        if (isTrackPlay) mediaController?.playWhenReady = true
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -258,7 +350,7 @@ class MusicPlayerKathaVichar(
 
                 // _playerState.postValue(MusicPlayerStates.STATE_READY)
 
-                if (mediaService.exoPlayer.playWhenReady) {
+                if (mediaController?.playWhenReady == true) {
                     _playerStates.tryEmit(
                         MusicPlayerStates.STATE_PLAYING,
 
@@ -291,7 +383,7 @@ class MusicPlayerKathaVichar(
         reason: Int,
     ) {
         println("onPlayWhenReadyChanged ghhjghj")
-        if (mediaService.exoPlayer.playbackState == Player.STATE_READY) {
+        if (mediaController?.playbackState == Player.STATE_READY) {
             if (playWhenReady) {
                 _playerStates.tryEmit(
                     MusicPlayerStates.STATE_PLAYING,
@@ -333,3 +425,41 @@ class MusicPlayerKathaVichar(
         }
     }
 }
+
+
+
+class MediaControllerViewModel(application: Application) : AndroidViewModel(application) {
+    private val context = application.applicationContext
+    private var factory: ListenableFuture<MediaController>? = null
+
+    private val _mediaController = MutableStateFlow<MediaController?>(null)
+    val mediaController: StateFlow<MediaController?> = _mediaController // Observe in UI
+
+    init {
+        initialize()
+    }
+
+    @OptIn(androidx.media3.common.util.UnstableApi::class)
+    private fun initialize() {
+        if (factory == null || factory?.isDone == true) {
+            factory = MediaController.Builder(
+                context,
+                SessionToken(context, ComponentName(context, MediaService::class.java))
+            ).buildAsync()
+        }
+
+        factory?.addListener(
+            {
+                _mediaController.value = factory?.takeIf { it.isDone }?.get()
+            },
+            MoreExecutors.directExecutor()
+        )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        factory?.let { MediaController.releaseFuture(it) }
+        _mediaController.value = null
+    }
+}
+

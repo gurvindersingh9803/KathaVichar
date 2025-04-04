@@ -38,6 +38,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieDynamicProperties
@@ -65,6 +67,7 @@ import com.example.kathavichar.R
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.view.composables.musicPlayer.TrackImage
+import com.example.kathavichar.view.rememberManagedMediaController
 import com.example.kathavichar.viewModel.SongsViewModel
 
 @Composable
@@ -74,6 +77,19 @@ fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
     val songs = songsViewModel.songs
     val searchQuery by songsViewModel.searchQuery.collectAsState()
     val filteredSongs by songsViewModel.filteredSongs.collectAsState()
+
+    // Prepare and play the media when the player is set up
+    /*LaunchedEffect(key1 = isPlayerSetUp)main
+        if (isPlayerSetUp) {
+            mediaController?.run {
+                if (mediaItemCount > 0) {
+                    println("deghdsgh $mediaItemCount")
+                    prepare()
+                    play()
+                }
+            }
+        }
+    }*/
 
     Column(
         modifier = Modifier

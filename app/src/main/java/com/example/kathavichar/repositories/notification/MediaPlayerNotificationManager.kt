@@ -14,7 +14,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.ui.PlayerNotificationManager
 import com.example.kathavichar.R
 import com.example.kathavichar.common.Constants
-import com.example.kathavichar.repositories.musicPlayer.MusicPlayerKathaVichar
+import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import org.koin.android.ext.android.inject
 
 @UnstableApi

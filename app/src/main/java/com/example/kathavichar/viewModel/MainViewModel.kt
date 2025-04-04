@@ -17,8 +17,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.app.Application
+import android.content.ComponentName
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.example.kathavichar.repositories.musicPlayer.MediaService
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
 class MainViewModel : ViewModel() {
@@ -82,4 +94,10 @@ class MainViewModel : ViewModel() {
         println("onCleared")
         // subscription.clear()
     }
+
+
 }
+
+
+
+

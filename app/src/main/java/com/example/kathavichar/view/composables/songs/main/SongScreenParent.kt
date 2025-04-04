@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -28,16 +29,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.view.composables.musicPlayer.BottomPlayerTab
 import com.example.kathavichar.view.composables.musicPlayer.BottomSheetDialog
 import com.example.kathavichar.view.composables.songs.SongsListUI
+import com.example.kathavichar.view.rememberManagedMediaController
 import com.example.kathavichar.viewModel.SongsViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SongScreenParent(songsViewModel: SongsViewModel) {
+
     val fullScreenState =
         rememberModalBottomSheetState(
             initialValue = ModalBottomSheetValue.Hidden,
