@@ -13,7 +13,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-
 import com.example.kathavichar.common.SharedPrefsManager
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.network.ServerResponse
@@ -47,26 +46,12 @@ class SongsViewModel(
 
     private val songsDataRepository: SongsDataRepository by inject(SongsDataRepository::class.java)
 
-
-
     // Save the current playback state (song ID, playing status, etc.)
     var isPlaybackRestored = false
 
     private val sharedPreferences: SharedPrefsManager by inject(SharedPrefsManager::class.java)
 
-
-
-    fun savePlaybackState(selectedTrack: Songs, artistName: String, position: Long) {
-       /* try {
-            sharedPreferences.saveString("LAST_PLAYING_SONG_ID", selectedTrack.id)
-            sharedPreferences.saveString("LAST_PLAYING_PLAYLIST", artistName)
-            sharedPreferences.saveLong("LAST_PLAYING_POSITION", position)
-        } catch (e: Exception) {
-            println("SharedPreferences saving error: $e")
-        }*/
-    }
-
-    //TODO: stop this function to call unnecessary until restore is required.
+    // TODO: stop this function to call unnecessary until restore is required.
     fun restorePlaybackState() {
         println("sdfgdsfgsfdg")
         viewModelScope.launch {
@@ -74,39 +59,35 @@ class SongsViewModel(
             val lastPlaylistName = sharedPreferences.getString("LAST_PLAYING_PLAYLIST", null)
             val lastPosition = sharedPreferences.getLong("LAST_PLAYING_POSITION", 0L)
 
-// Restore only if we have valid saved data
+            // Restore only if we have valid saved data
             if (lastSongId != null && lastPlaylistName != null) {
                 // Check network before fetching playlist
-                println("sdfgdsfgsfdg 1")
+                println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")
                 val savedPlaylist = songsDataRepository.fetchSongs(lastPlaylistName)
 
-                    // Ensure the playlist is not empty before proceeding
-                    if (savedPlaylist.isNotEmpty()) {
-                       println("sdfgdsfgsfdg 2 ${lastPosition}")
-                        val restoredIndex = savedPlaylist.indexOfFirst { it.id == musicPlayerKathaVichar.currentMediaItemId }
+                // Ensure the playlist is not empty before proceeding
+                if (savedPlaylist.isNotEmpty()) {
+                    println("sdfgdsfgsfdg 2 ${lastSongId}")
+                    val restoredIndex = savedPlaylist.indexOfFirst { it.id == lastSongId }
 
-                        if (restoredIndex != -1) {
-                            musicPlayerKathaVichar.seekToPosition(lastPosition)
-                            _currentplayingsongs.clear()
-                            _currentplayingsongs.addAll(savedPlaylist)
-                            onTrackSelected(restoredIndex)
-                            observeMusicPlayerState()
+                    if (restoredIndex != -1) {
+                        _currentplayingsongs.clear()
+                        _currentplayingsongs.addAll(savedPlaylist)
+                        onTrackSelected(restoredIndex, true, lastPosition)
+                        observeMusicPlayerState()
 
-                            // Restore playback position
-                            println("Playback restored: Track Index - $restoredIndex")
-                        } else {
-                            println("Saved song not found in playlist. Skipping restore.")
-                        }
+                        // Restore playback position
+                        println("Playback restored: Track Index - $restoredIndex")
                     } else {
-                        println("No saved playlist found. Cannot restore.")
+                        println("Saved song not found in playlist. Skipping restore.")
                     }
-
+                } else {
+                    println("No saved playlist found. Cannot restore.")
+                }
             } else {
-                    println("Network unavailable. Cannot fetch saved playlist.")
-
+                println("Network unavailable. Cannot fetch saved playlist.")
             }
         }
-
 
             /*if (networkStatusProvider.isConnected() && lastPlaylistName != null && musicPlayerKathaVichar.currentMediaItemId.isNotEmpty()) {
                 println("gvbdnnb ${musicPlayerKathaVichar.currentMediaItemId}")
@@ -146,9 +127,8 @@ class SongsViewModel(
                 println("dfgsdfgsdfgsdfg")
             }
 */
-            // observeMusicPlayerState()
-        }
-
+        // observeMusicPlayerState()
+    }
 
     /**
      * An immutable snapshot of the current list of tracks.
@@ -324,10 +304,16 @@ class SongsViewModel(
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
             if (currentPlayingSongArtist == whichArtistSelected) {
-                if (currentSongIndex > 0) onTrackSelected(selectedTrackIndex - 1)
+                if (currentSongIndex > 0) onTrackSelected(
+                    selectedTrackIndex - 1,
+                    true,
+                )
             } else {
                 isBottomClicked = true
-                if (currentSongIndex > 0) onTrackSelected(selectedTrackIndex - 1)
+                if (currentSongIndex > 0) onTrackSelected(
+                    selectedTrackIndex - 1,
+                    true,
+                )
             }
         }
     }
@@ -339,18 +325,18 @@ class SongsViewModel(
 
             if (currentPlayingSongArtist == whichArtistSelected) {
                 if (currentSongIndex < currentplayingsongs.size - 1) {
-                    onTrackSelected(currentplayingsongs.indexOf(song) + 1)
+                    onTrackSelected(currentplayingsongs.indexOf(song) + 1, true)
                 }
             } else {
                 if (currentSongIndex < currentplayingsongs.size - 1) {
                     isBottomClicked = true
-                    onTrackSelected(currentplayingsongs.indexOf(song) + 1)
+                    onTrackSelected(currentplayingsongs.indexOf(song) + 1, true)
                 }
             }
         } else {
             val nextSongIndex = selectedTrackIndex + 1
             if (nextSongIndex < currentplayingsongs.size) {
-                onTrackSelected(nextSongIndex)
+                onTrackSelected(nextSongIndex, true)
             }
         }
     }
@@ -372,7 +358,7 @@ class SongsViewModel(
                 _currentplayingsongs.addAll(songs)
                 println("onTrackClicked $currentplayingsongs}")
                 musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
-                onTrackSelected(currentplayingsongs.indexOf(song))
+                onTrackSelected(currentplayingsongs.indexOf(song), true)
             } else {
                 /* println("wwewew $selectedTrackIndex")
             val songIndex = songs.indexOf(song)
@@ -399,16 +385,15 @@ class SongsViewModel(
                     musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
                     println("onTrackClicked 1 $song ${currentplayingsongs.indexOf(song)}")
                     println("onTrackClicked 1 $currentplayingsongs")
-                    onTrackSelected(currentplayingsongs.indexOf(song))
+                    onTrackSelected(currentplayingsongs.indexOf(song), true)
                 } else {
-                    onTrackSelected(currentplayingsongs.indexOf(song))
+                    onTrackSelected(currentplayingsongs.indexOf(song), true)
                 }
 
                 /* onTrackSelected(currentplayingsongs.indexOf(song))
             println("sdafg")*/
             }
-
-        } catch (e: Exception){
+        } catch (e: Exception) {
             println("dghsdhdfsg $e")
         }
         // selectedTrackIndex = currentplayingsongs.indexOf(song)
@@ -427,7 +412,7 @@ class SongsViewModel(
         }
     }
 
-    private fun onTrackSelected(index: Int) {
+    private fun onTrackSelected(index: Int, isSongRestored: Boolean? = false, lastPosition: Long? = 0L) {
         println("ghfrghdfjjj $index")
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
             isTrackPlay = true
@@ -438,7 +423,9 @@ class SongsViewModel(
                 _currentplayingsongs[selectedTrackIndex].isSelected = true
                 selectedTrack = currentplayingsongs[selectedTrackIndex]
             }
-            setUpTrack()
+            if (lastPosition != null) {
+                setUpTrack(isSongRestored, lastPosition)
+            }
         }
 
         /*if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
@@ -458,8 +445,8 @@ class SongsViewModel(
         }
     }
 
-    private fun setUpTrack() {
-        if (!isAuto) musicPlayerKathaVichar.setUpTrack(selectedTrackIndex, isTrackPlay)
+    private fun setUpTrack(isSongRestored: Boolean?, lastPosition: Long) {
+        if (!isAuto) musicPlayerKathaVichar.setUpTrack(selectedTrackIndex, isTrackPlay, isSongRestored, lastPosition)
         isAuto = false
     }
 
@@ -498,7 +485,7 @@ class SongsViewModel(
                 // TODO: check if the changes track is currentlyplaying artist or a new artist song is selected.
                 updateSelectedTrackIndex()
             }
-            if (state == MusicPlayerStates.STATE_END) onTrackSelected(0)
+            if (state == MusicPlayerStates.STATE_END) onTrackSelected(0, true)
         }
     }
 
@@ -509,7 +496,7 @@ class SongsViewModel(
         }
         println("yutuyrytry $currentMediaItem $index")
         if (index != -1) {
-            onTrackSelected(index)
+            onTrackSelected(index, true)
         }
     }
 

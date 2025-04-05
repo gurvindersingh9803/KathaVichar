@@ -3,8 +3,6 @@ package com.example.kathavichar.di
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaSession
 import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.common.DefaultSharedPrefsManager
 import com.example.kathavichar.common.SharedPrefsManager
@@ -42,7 +40,7 @@ val appModule =
         single<MusicPlayerService> { DefaultMusicPlayerService(androidContext()) }
         single { AndroidNetworkStatusProvider(androidContext()) }
         single {
-            MusicPlayerKathaVichar(androidContext(), get())
+            MusicPlayerKathaVichar(androidContext())
         }
         single { MediaService() }
         single {
@@ -52,5 +50,4 @@ val appModule =
             RetrofitClient().provideRetrofit().create(SongsService::class.java)
         }
         single { MediaPlayerNotificationManager(androidContext()) }
-
     }

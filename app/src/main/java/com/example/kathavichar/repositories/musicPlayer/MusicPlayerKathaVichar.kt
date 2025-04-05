@@ -1,62 +1,69 @@
 package com.example.kathavichar.repositories.musicPla
 
 import android.app.Application
-import com.example.kathavichar.repositories.musicPlayer.MediaService
-import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
-import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerNotificationManager
-import com.example.kathavichar.R
-import com.example.kathavichar.common.Constants
+import com.example.kathavichar.common.SharedPrefsManager
+import com.example.kathavichar.repositories.musicPlayer.MediaService
+import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent
 import kotlin.coroutines.cancellation.CancellationException
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableApi::class)
 class MusicPlayerKathaVichar(
     private val context: Context,
-    private val mediaService: MediaService,
 ) : Player.Listener {
     private var isServiceRunning = false
     private var isListenerAdded = false
     var currentMediaItemId = ""
     private lateinit var playerNotification: PlayerNotificationManager
     val _playerStates = MutableStateFlow(MusicPlayerStates.STATE_IDLE)
+    private val sharedPreferences: SharedPrefsManager by KoinJavaComponent.inject(SharedPrefsManager::class.java)
+
     val currentPlaybackPosition: Long
         get() = if (mediaController?.currentPosition!! > 0) mediaController!!.currentPosition else 0L
 
     val currentTrackDuration: Long
         get() = if (mediaController?.duration!! > 0) mediaController!!.duration else 0L
-    private var mediaController: MediaController? = null
+    var mediaController: MediaController? = null
 
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.Main + job)
+
+    init {
+        startPlaybackObserver()
+    }
+
+    private fun startPlaybackObserver() {
+        scope.launch {
+            observePlaybackState()
+        }
+    }
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
@@ -78,7 +85,7 @@ class MusicPlayerKathaVichar(
 
                 // Check if player is already initialized and playing something
                 val isAlreadyPlaying = mediaController?.playbackState == Player.STATE_READY ||
-                        mediaController?.isPlaying == true
+                    mediaController?.isPlaying == true
 
                 // If it's already playing, just update the playlist (if it's different)
                 if (isAlreadyPlaying) {
@@ -117,7 +124,6 @@ class MusicPlayerKathaVichar(
         }
     }
 
-
     // Initialize the MediaController
 
        /* if (songsList.isEmpty()) {
@@ -146,8 +152,37 @@ class MusicPlayerKathaVichar(
         mediaController?.setMediaItems(songsList)
         mediaController?.prepare()*/
 
+    suspend fun observePlaybackState() {
+        withContext(Dispatchers.Main) {
+            while (isActive) {
+                mediaController?.let {
+                    val currentMediaId = it.currentMediaItem?.mediaId
+                    val position = it.currentPosition
+                    if (currentMediaId != null) {
+                        println("ghfgnjj $currentMediaId $position")
+                        savePlaybackState(songId = currentMediaId, artistName = it.currentMediaItem!!.mediaMetadata.artist.toString(), position = position)
+                    }
+                }
+                delay(1000)
+            }
+        }
+    }
 
+    fun release() {
+        // Call this when you're done with the class, e.g., onDestroy or onViewModelCleared
+        job.cancel()
+    }
 
+    fun savePlaybackState(songId: String, artistName: String, position: Long) {
+        try {
+            println("dfghjdfgthd $songId $artistName $position")
+            sharedPreferences.saveString("LAST_PLAYING_SONG_ID", songId)
+            sharedPreferences.saveString("LAST_PLAYING_PLAYLIST", artistName)
+            sharedPreferences.saveLong("LAST_PLAYING_POSITION", position)
+        } catch (e: Exception) {
+            println("SharedPreferences saving error: $e")
+        }
+    }
     private fun initializeMediaController(onInitialized: () -> Unit) {
         if (mediaController == null) {
             val mediaSessionToken = SessionToken(context, ComponentName(context, MediaService::class.java))
@@ -171,15 +206,13 @@ class MusicPlayerKathaVichar(
                         println("❌ Error initializing MediaController: ${e.message}")
                     }
                 },
-                MoreExecutors.directExecutor()
+                MoreExecutors.directExecutor(),
             )
         } else {
             // Already initialized, proceed with callback
             onInitialized()
         }
     }
-
-
 
     /*private fun createStubNotification(): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -280,10 +313,17 @@ class MusicPlayerKathaVichar(
     fun setUpTrack(
         index: Int,
         isTrackPlay: Boolean,
+        isSongRestored: Boolean?,
+        lastPosition: Long,
     ) { if (isTrackPlay) mediaController?.playWhenReady = true
-        println("sadfdsfgsdf $index $isTrackPlay")
         if (mediaController?.playbackState == Player.STATE_IDLE) mediaController?.prepare()
-        mediaController?.seekTo(index, 0)
+        if (isSongRestored == true) {
+            println("restored sadfdsfgsdf $index $isTrackPlay")
+            mediaController?.seekTo(index, lastPosition)
+        } else {
+            println("not restored sadfdsfgsdf $index $isTrackPlay")
+            mediaController?.seekTo(index, 0)
+        }
         if (isTrackPlay) mediaController?.playWhenReady = true
     }
 
@@ -426,8 +466,6 @@ class MusicPlayerKathaVichar(
     }
 }
 
-
-
 class MediaControllerViewModel(application: Application) : AndroidViewModel(application) {
     private val context = application.applicationContext
     private var factory: ListenableFuture<MediaController>? = null
@@ -444,7 +482,7 @@ class MediaControllerViewModel(application: Application) : AndroidViewModel(appl
         if (factory == null || factory?.isDone == true) {
             factory = MediaController.Builder(
                 context,
-                SessionToken(context, ComponentName(context, MediaService::class.java))
+                SessionToken(context, ComponentName(context, MediaService::class.java)),
             ).buildAsync()
         }
 
@@ -452,7 +490,7 @@ class MediaControllerViewModel(application: Application) : AndroidViewModel(appl
             {
                 _mediaController.value = factory?.takeIf { it.isDone }?.get()
             },
-            MoreExecutors.directExecutor()
+            MoreExecutors.directExecutor(),
         )
     }
 
@@ -462,4 +500,3 @@ class MediaControllerViewModel(application: Application) : AndroidViewModel(appl
         _mediaController.value = null
     }
 }
-

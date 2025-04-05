@@ -6,22 +6,16 @@ import android.app.PendingIntent
 import android.app.TaskStackBuilder
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.OptIn
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.example.kathavichar.R
-import com.example.kathavichar.common.Constants
-import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.view.MainActivity
-import org.koin.android.ext.android.inject
 
 class MediaService : MediaSessionService() {
     private var _mediaSession: MediaSession? = null
@@ -32,7 +26,6 @@ class MediaService : MediaSessionService() {
         private const val CHANNEL_ID = "session_notification_channel_id"
         private val immutableFlag = if (Build.VERSION.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0
     }
-
 
     /**
      * This method is called when the service is being created.
@@ -57,7 +50,6 @@ class MediaService : MediaSessionService() {
         // Set the listener for the MediaSessionService
         setListener(MediaSessionServiceListener())
     }
-
 
     /**
      * This method is called when the system determines that the service is no longer used and is being removed.
@@ -86,7 +78,6 @@ class MediaService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return _mediaSession
     }
-
 
     /**
      * This method is called when the service is being destroyed.
@@ -125,7 +116,7 @@ class MediaService : MediaSessionService() {
             this,
             0,
             Intent(this, MainActivity::class.java),
-            immutableFlag or PendingIntent.FLAG_UPDATE_CURRENT
+            immutableFlag or PendingIntent.FLAG_UPDATE_CURRENT,
         )
     }
 
@@ -188,7 +179,7 @@ class MediaService : MediaSessionService() {
             NotificationChannel(
                 CHANNEL_ID,
                 "Manager",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_DEFAULT,
             )
         notificationManagerCompat.createNotificationChannel(channel)
     }

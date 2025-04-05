@@ -77,7 +77,9 @@ fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
     val songs = songsViewModel.songs
     val searchQuery by songsViewModel.searchQuery.collectAsState()
     val filteredSongs by songsViewModel.filteredSongs.collectAsState()
-
+    LaunchedEffect(Unit) {
+       // songsViewModel.observePlaybackState()
+    }
     // Prepare and play the media when the player is set up
     /*LaunchedEffect(key1 = isPlayerSetUp)main
         if (isPlayerSetUp) {

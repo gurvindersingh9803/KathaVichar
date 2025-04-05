@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.RememberObserver
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -27,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.navigation.compose.rememberNavController
@@ -56,6 +54,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // TODO: stop firebase duplicacy of data.
+
 
         // Restore playback state only if app was previously terminated
         if (!songsViewModel.isPlaybackRestored) {
@@ -88,13 +87,13 @@ class MainActivity : ComponentActivity() {
                                     if (!notificationPermissionState.status.isGranted) {
                                         Log.d("Permissions", "Requesting notification permission")
                                         notificationPermissionState.launchPermissionRequest()
-                                       // startMusicService()
+                                        // startMusicService()
                                     } else {
                                         Log.d("Permissions", "Notification permission already granted")
-                                        //startMusicService() // Start the service only if permission is granted
+                                        // startMusicService() // Start the service only if permission is granted
                                     }
                                 } else {
-                                   // startMusicService() // Start the service if no permission is required
+                                    // startMusicService() // Start the service if no permission is required
                                 }
                             }
                         }
@@ -112,10 +111,8 @@ class MainActivity : ComponentActivity() {
                     },
                     { innerPadding ->
 
-
                         Box(modifier = Modifier.padding()) {
                             // SongScreenParent(songsViewModel)
-
 
                             NavigationGraph(
                                 innerPadding,
@@ -206,7 +203,7 @@ fun MyEventListener(OnEvent: (event: Lifecycle.Event) -> Unit) {
  */
 @Composable
 fun rememberManagedMediaController(
-    lifecycle: Lifecycle = LocalLifecycleOwner.current.lifecycle
+    lifecycle: Lifecycle = LocalLifecycleOwner.current.lifecycle,
 ): State<MediaController?> {
     // Application context is used to prevent memory leaks
     val appContext = LocalContext.current.applicationContext
@@ -227,8 +224,6 @@ fun rememberManagedMediaController(
 
     return controllerManager.controller
 }
-
-
 
 /**
  * A Singleton class that manages a MediaController instance.
@@ -253,20 +248,21 @@ internal class MediaControllerManager private constructor(context: Context) : Re
         if (factory == null || factory?.isDone == true) {
             factory = MediaController.Builder(
                 appContext,
-                SessionToken(appContext, ComponentName(appContext, MediaService::class.java))
+                SessionToken(appContext, ComponentName(appContext, MediaService::class.java)),
             ).buildAsync()
         }
         factory?.addListener(
             {
                 // MediaController is available here with controllerFuture.get()
                 controller.value = factory?.let {
-                    if (it.isDone)
+                    if (it.isDone) {
                         it.get()
-                    else
+                    } else {
                         null
+                    }
                 }
             },
-            MoreExecutors.directExecutor()
+            MoreExecutors.directExecutor(),
         )
     }
 
