@@ -32,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.common.NavigationGraph
 import com.example.kathavichar.common.sharedComposables.ScaffoldWithTopBar
+import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.ui.theme.KathaVicharTheme
 import com.example.kathavichar.viewModel.MainViewModel
@@ -46,6 +47,7 @@ import org.koin.java.KoinJavaComponent.inject
 class MainActivity : ComponentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()
     private val songsViewModel by viewModels<SongsViewModel>()
+    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(MusicPlayerKathaVichar::class.java)
     private val androidNetworkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
     private var isServiceRunning = false
 
@@ -164,6 +166,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        //musicPlayerKathaVichar.savePlaybackState()
         /*songsViewModel.selectedTrack?.let {
             songsViewModel.savePlaybackState(
                 it,

@@ -53,27 +53,33 @@ class SongsViewModel(
 
     // TODO: stop this function to call unnecessary until restore is required.
     fun restorePlaybackState() {
-        println("sdfgdsfgsfdg")
+
+        val currentPosition = musicPlayerKathaVichar.mediaController?.currentPosition
+        val songId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaId
+        val artistId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artist
+        println("sdfgdsfgsfdg $currentPosition $songId $artistId")
+
         viewModelScope.launch {
             val lastSongId = sharedPreferences.getString("LAST_PLAYING_SONG_ID", null)
             val lastPlaylistName = sharedPreferences.getString("LAST_PLAYING_PLAYLIST", null)
             val lastPosition = sharedPreferences.getLong("LAST_PLAYING_POSITION", 0L)
+            println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")
 
             // Restore only if we have valid saved data
-            if (lastSongId != null && lastPlaylistName != null) {
+            if (currentPosition != null && songId != null && artistId != null) {
                 // Check network before fetching playlist
                 println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")
-                val savedPlaylist = songsDataRepository.fetchSongs(lastPlaylistName)
+                val savedPlaylist = songsDataRepository.fetchSongs(artistName = artistId.toString())
 
                 // Ensure the playlist is not empty before proceeding
                 if (savedPlaylist.isNotEmpty()) {
                     println("sdfgdsfgsfdg 2 ${lastSongId}")
-                    val restoredIndex = savedPlaylist.indexOfFirst { it.id == lastSongId }
+                    val restoredIndex = savedPlaylist.indexOfFirst { it.id == songId }
 
                     if (restoredIndex != -1) {
                         _currentplayingsongs.clear()
                         _currentplayingsongs.addAll(savedPlaylist)
-                        onTrackSelected(restoredIndex, true, lastPosition)
+                        onTrackSelected(restoredIndex, true, currentPosition)
                         observeMusicPlayerState()
 
                         // Restore playback position
@@ -84,9 +90,10 @@ class SongsViewModel(
                 } else {
                     println("No saved playlist found. Cannot restore.")
                 }
-            } else {
-                println("Network unavailable. Cannot fetch saved playlist.")
             }
+            //else {
+                //println("Network unavailable. Cannot fetch saved playlist.")
+            //}
         }
 
             /*if (networkStatusProvider.isConnected() && lastPlaylistName != null && musicPlayerKathaVichar.currentMediaItemId.isNotEmpty()) {

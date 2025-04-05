@@ -61,7 +61,7 @@ class MusicPlayerKathaVichar(
 
     private fun startPlaybackObserver() {
         scope.launch {
-            observePlaybackState()
+            //observePlaybackState()
         }
     }
 
@@ -320,6 +320,8 @@ class MusicPlayerKathaVichar(
         if (isSongRestored == true) {
             println("restored sadfdsfgsdf $index $isTrackPlay")
             mediaController?.seekTo(index, lastPosition)
+            //isSongRestored = false
+            release()
         } else {
             println("not restored sadfdsfgsdf $index $isTrackPlay")
             mediaController?.seekTo(index, 0)
