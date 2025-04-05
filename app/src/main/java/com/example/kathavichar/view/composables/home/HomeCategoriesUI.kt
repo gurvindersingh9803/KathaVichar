@@ -82,7 +82,6 @@ import com.example.kathavichar.view.composables.songs.md_theme_light_primary
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 import kotlinx.coroutines.launch
-import java.lang.Error
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -117,7 +116,6 @@ fun ArtistSearchScreen(
             }
         }
     }
-
 
     ModalBottomSheetLayout(
         sheetContent = {
@@ -159,10 +157,7 @@ fun ArtistSearchScreen(
                         .padding(top = 10.dp)
                         .fillMaxHeight()
                         .fillMaxWidth(),
-                )
-
-
-                {
+                ) {
                     Box(
                         modifier = Modifier
                             .background(Color(0xFFFAFAFA))
@@ -175,9 +170,7 @@ fun ArtistSearchScreen(
                                     bottom = innerPadding.calculateBottomPadding(),
                                 ),
                             ),
-                    )
-
-                    {
+                    ) {
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -252,7 +245,7 @@ fun ArtistSearchScreen(
                                 )
 
                                 else ->
-                                    if(errorMessage == null) {
+                                    if (errorMessage == null) {
                                         LazyVerticalGrid(
                                             columns = GridCells.Fixed(2), // 2 items per row
                                             horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -265,7 +258,7 @@ fun ArtistSearchScreen(
                                                     ArtistCard(
                                                         sectionData,
                                                         navigationController,
-                                                        selectedTrack
+                                                        selectedTrack,
                                                     )
                                                 }
                                             }
@@ -277,13 +270,17 @@ fun ArtistSearchScreen(
                         }
                     }
                 }
-
-            },
+            }, 
             bottomBar = {
+                println("dfghdfxcvzsd fdsfdhh $errorMessage $selectedTrack")
+                Box(modifier = Modifier.fillMaxWidth()) {
+                }
+
                 AnimatedVisibility(
                     visible = selectedTrack != null,
                     enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
                 ) {
+                    println("dfghdfxcvz $errorMessage $selectedTrack")
                     selectedTrack?.let { track ->
                         BottomPlayerTab(
                             song = track,
@@ -292,6 +289,7 @@ fun ArtistSearchScreen(
                         )
                     }
                 }
+
             },
         )
     }
