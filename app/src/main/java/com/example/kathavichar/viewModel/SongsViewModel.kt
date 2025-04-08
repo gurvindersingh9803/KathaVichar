@@ -1,5 +1,6 @@
 package com.example.kathavichar.viewModel
 
+import android.media.MediaMetadataRetriever
 import android.media.session.PlaybackState
 import android.os.Build
 import android.util.Log
@@ -22,6 +23,7 @@ import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
 class SongsViewModel(
@@ -53,7 +56,6 @@ class SongsViewModel(
 
     // TODO: stop this function to call unnecessary until restore is required.
     fun restorePlaybackState() {
-
         val currentPosition = musicPlayerKathaVichar.mediaController?.currentPosition
         val songId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaId
         val artistId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artist
@@ -69,11 +71,41 @@ class SongsViewModel(
             if (currentPosition != null && songId != null && artistId != null) {
                 // Check network before fetching playlist
                 println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")
-                val savedPlaylist = songsDataRepository.fetchSongs(artistName = artistId.toString())
+                // val savedPlaylist = songsDataRepository.fetchSongs(artistName = artistId.toString())
+
+                val savedPlaylist = withContext(Dispatchers.IO) {
+                    songsDataRepository.fetchSongs(artistName = artistId.toString()).map { rawSong ->
+                        val duration = try {
+                            MediaMetadataRetriever().use { retriever ->
+                                println("Fetching duration for: ${rawSong.audiourl}")
+                                retriever.setDataSource(rawSong.audiourl, mapOf("User-Agent" to "Kathavichar/1.0"))
+                                val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                println("Raw duration for ${rawSong.title}: $durationStr")
+                                durationStr?.toLongOrNull() ?: 0L.also {
+                                    if (durationStr == null) println("No duration metadata for ${rawSong.title}")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            println("Error fetching duration for ${rawSong.title} (${rawSong.audiourl}): ${e.javaClass.simpleName} - ${e.message}")
+                            0L
+                        }
+                        println("Building song ${rawSong.title} with duration: $duration")
+                        val song = Songs.Builder()
+                            .songId(rawSong.id)
+                            .title(rawSong.title)
+                            .audioUrl(rawSong.audiourl)
+                            .imgUrl(rawSong.imgurl)
+                            .artistId(rawSong.artist_id)
+                            .duration(duration)
+                            .build()
+                        println("Built song: $song")
+                        song
+                    }
+                }
 
                 // Ensure the playlist is not empty before proceeding
                 if (savedPlaylist.isNotEmpty()) {
-                    println("sdfgdsfgsfdg 2 ${lastSongId}")
+                    println("sdfgdsfgsfdg 2 $lastSongId")
                     val restoredIndex = savedPlaylist.indexOfFirst { it.id == songId }
 
                     if (restoredIndex != -1) {
@@ -91,9 +123,9 @@ class SongsViewModel(
                     println("No saved playlist found. Cannot restore.")
                 }
             }
-            //else {
-                //println("Network unavailable. Cannot fetch saved playlist.")
-            //}
+            // else {
+            // println("Network unavailable. Cannot fetch saved playlist.")
+            // }
         }
 
             /*if (networkStatusProvider.isConnected() && lastPlaylistName != null && musicPlayerKathaVichar.currentMediaItemId.isNotEmpty()) {
@@ -151,7 +183,7 @@ class SongsViewModel(
 
     val subscription: CompositeDisposable = CompositeDisposable()
 
-    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(
+    val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(
         MusicPlayerKathaVichar::class.java,
     )
 
@@ -242,57 +274,74 @@ class SongsViewModel(
                 println("dsgs $artistName")
                 _uiStateSongs.tryEmit(ServerResponse.isLoading())
                 whichArtistSelected = artistName
-                songsDataRepository.fetchSongs(artistName).let {
-                    val songList =
-                        it.map { rawSong ->
-                            Songs
-                                .Builder()
-                                .songId(rawSong.id)
-                                .title(rawSong.title)
-                                .audioUrl(rawSong.audiourl)
-                                .imgUrl(rawSong.imgurl)
-                                .artistId(rawSong.artist_id)
-                                .build()
-                        }
-                    // println("argts ${it.get(0).audiourl} ${Uri.parse(it.get(0).audiourl)}")
-                    println("argts $it")
 
-                    // Add to _songs and initialize the music player
-                    if (songList.isNotEmpty()) {
-                        if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
-                            if (artistName == currentplayingsongs[selectedTrackIndex].artist_id) {
-                                println("opopop same artist  $selectedTrackIndex ")
+                val songList = withContext(Dispatchers.IO) {
+                    songsDataRepository.fetchSongs(artistName).map { rawSong ->
+                        val duration = try {
+                            MediaMetadataRetriever().use { retriever ->
+                                println("Fetching duration for: ${rawSong.audiourl}")
+                                retriever.setDataSource(rawSong.audiourl, mapOf("User-Agent" to "Kathavichar/1.0"))
+                                val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                println("Raw duration for ${rawSong.title}: $durationStr")
+                                durationStr?.toLongOrNull() ?: 0L.also {
+                                    if (durationStr == null) println("No duration metadata for ${rawSong.title}")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            println("Error fetching duration for ${rawSong.title} (${rawSong.audiourl}): ${e.javaClass.simpleName} - ${e.message}")
+                            0L
+                        }
+                        println("Building song ${rawSong.title} with duration: $duration")
+                        val song = Songs.Builder()
+                            .songId(rawSong.id)
+                            .title(rawSong.title)
+                            .audioUrl(rawSong.audiourl)
+                            .imgUrl(rawSong.imgurl)
+                            .artistId(rawSong.artist_id)
+                            .duration(duration)
+                            .build()
+                        println("Built song: $song")
+                        song
+                    }
+                }
+
+                println("Song list with durations: $songList")
+
+                // Add to _songs and initialize the music player
+                if (songList.isNotEmpty()) {
+                    if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
+                        if (artistName == currentplayingsongs[selectedTrackIndex].artist_id) {
+                            println("opopop same artist  $selectedTrackIndex ")
                             /* _currentplayingsongs.clear()
                              _currentplayingsongs.addAll(songs)*/
-                                _songs.clear()
-                                _songs.addAll(currentplayingsongs)
-                                updateCurrentPlayingSongs()
-                                // println("opopop same artist  $currentplayingsongs ")
+                            _songs.clear()
+                            _songs.addAll(currentplayingsongs)
+                            updateCurrentPlayingSongs()
+                            // println("opopop same artist  $currentplayingsongs ")
 
                             /*_currentplayingsongs[selectedTrackIndex].isSelected = true
                             selectedTrack = currentplayingsongs[selectedTrackIndex]*/
-                            } else {
-                                println("opopop diffe artist  $selectedTrackIndex")
-                                // _currentplayingsongs.resetTracks()
-                                _songs.clear()
-                                _songs.addAll(songList)
-                                updateCurrentPlayingSongs()
-                                Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
-                                _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
-                            }
                         } else {
+                            println("opopop diffe artist  $selectedTrackIndex")
+                            // _currentplayingsongs.resetTracks()
                             _songs.clear()
                             _songs.addAll(songList)
-                            Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
                             updateCurrentPlayingSongs()
+                            Log.i("edfgwegf", songs.toMediaItemListWithMetadata().toString())
                             _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                         }
-
-                        println("dghyjghfjdg")
-                        _searchQuery.value = ""
+                    } else {
+                        _songs.clear()
+                        _songs.addAll(songList)
+                        Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
+                        updateCurrentPlayingSongs()
                         _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
-                        observeMusicPlayerState()
                     }
+
+                    println("dghyjghfjdg")
+                    _searchQuery.value = ""
+                    _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
+                    observeMusicPlayerState()
                 }
             }
         }
@@ -311,16 +360,20 @@ class SongsViewModel(
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
             if (currentPlayingSongArtist == whichArtistSelected) {
-                if (currentSongIndex > 0) onTrackSelected(
-                    selectedTrackIndex - 1,
-                    true,
-                )
+                if (currentSongIndex > 0) {
+                    onTrackSelected(
+                        selectedTrackIndex - 1,
+                        true,
+                    )
+                }
             } else {
                 isBottomClicked = true
-                if (currentSongIndex > 0) onTrackSelected(
-                    selectedTrackIndex - 1,
-                    true,
-                )
+                if (currentSongIndex > 0) {
+                    onTrackSelected(
+                        selectedTrackIndex - 1,
+                        true,
+                    )
+                }
             }
         }
     }

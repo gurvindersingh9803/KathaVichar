@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitClient {
 
-    private val BASE_URL = "http://134.199.223.51:3000/"
+    private val BASE_URL = "https://kathhaveechar.store/api/"
 
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()

@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieDynamicProperties
@@ -67,18 +66,26 @@ import com.example.kathavichar.R
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.view.composables.musicPlayer.TrackImage
-import com.example.kathavichar.view.rememberManagedMediaController
 import com.example.kathavichar.viewModel.SongsViewModel
 
 @Composable
-fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
+fun SongsListUI(
+    songsViewModel: SongsViewModel,
+    innerPadding: PaddingValues,
+    artistId: String?,
+    artistName: String?,
+) {
     val lazyListState = rememberLazyListState()
 
     val songs = songsViewModel.songs
+/*
+    val trackDuration by songsViewModel.playbackState.collectAsState()
+*/
+
     val searchQuery by songsViewModel.searchQuery.collectAsState()
     val filteredSongs by songsViewModel.filteredSongs.collectAsState()
     LaunchedEffect(Unit) {
-       // songsViewModel.observePlaybackState()
+        // songsViewModel.observePlaybackState()
     }
     // Prepare and play the media when the player is set up
     /*LaunchedEffect(key1 = isPlayerSetUp)main
@@ -184,7 +191,11 @@ fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
                             items(it.size) { index ->
                                 SongItem(
                                     song = filteredSongs[index],
-                                    onTrackClick = { songsViewModel.onTrackClicked(filteredSongs[index]) },
+                                    onTrackClick = {
+                                        songsViewModel.onTrackClicked(filteredSongs[index])
+                                    },
+                                    artistId,
+                                    artistName,
                                 )
                             }
                         }
@@ -199,7 +210,10 @@ fun SongsListUI(songsViewModel: SongsViewModel, innerPadding: PaddingValues) {
 fun SongItem(
     song: Songs,
     onTrackClick: () -> Unit,
+    artistId: String?,
+    artistName: String?,
 ) {
+    println("kmhnbmnm $song")
     val bgColor = if (song.isSelected) md_theme_light_primary else md_theme_light_surfaceVariant
     val textColor =
         if (song.isSelected) md_theme_light_onPrimary else md_theme_light_onSurfaceVariant
@@ -221,14 +235,17 @@ fun SongItem(
         ) {
             Text(text = song.title, style = typography.bodyLarge, color = textColor)
             Spacer(modifier = Modifier.height(5.dp))
-            Text(text = "artist name", style = typography.bodySmall, color = textColor)
+            Text(text = artistName.toString(), style = typography.bodySmall, color = textColor)
+            Text(text = song.formattedDuration.toString(), style = typography.bodySmall, color = textColor)
         }
         if (song.state == MusicPlayerStates.STATE_PLAYING) LottieAnimationForPlayingSong(modifier = Modifier.size(64.dp))
         if (song.state == MusicPlayerStates.STATE_BUFFERING) {
             CircularProgressIndicator(
                 color = Color.White,
                 strokeWidth = 2.dp,
-                modifier = Modifier.size(50.dp).padding(12.dp), // Explicit size for better control
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(12.dp), // Explicit size for better control
             )
         }
     }

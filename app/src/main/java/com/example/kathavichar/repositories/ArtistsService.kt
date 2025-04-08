@@ -4,6 +4,6 @@ import com.example.kathavichar.model.ArtistsData
 import retrofit2.http.GET
 
 interface ArtistsService {
-    @GET("/artists")
+    @GET("artists")
     suspend fun getArtists(): ArtistsData
 }

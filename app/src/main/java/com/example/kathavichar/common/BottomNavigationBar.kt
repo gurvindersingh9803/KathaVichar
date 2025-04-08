@@ -73,21 +73,25 @@ fun NavigationGraph(
             DownloadScreen()
         }
         composable(
-            route = "${Screen.SongsList.route}/{artistName}",
+            route = "${Screen.SongsList.route}/{artistName}/{artistId}",
             arguments =
             listOf(
                 navArgument("artistName") {
                     type = NavType.StringType
                 },
+                navArgument("artistId") {
+                    type = NavType.StringType
+                }
             ),
             deepLinks =
             listOf(
-                navDeepLink { uriPattern = "musify://songslist/{artistName}" },
+                navDeepLink { uriPattern = "musify://songslist/{artistName}/{artistId}" },
             ),
         ) {
             val artistName = it.arguments?.getString("artistName")
+            val artistId = it.arguments?.getString("artistId")
             println("sdtgfetjyu $artistName")
-            SongsListState(artistName.toString(), songsViewModel)
+            SongsListState(artistName.toString(), artistId, songsViewModel)
         }
     }
 }

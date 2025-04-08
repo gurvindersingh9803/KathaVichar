@@ -63,6 +63,7 @@ class MainActivity : ComponentActivity() {
             songsViewModel.restorePlaybackState()
             songsViewModel.isPlaybackRestored = true // Prevents multiple restores
         }
+        musicPlayerKathaVichar.initializeMediaController()
         setContent {
             KathaVicharTheme {
                 enableEdgeToEdge()

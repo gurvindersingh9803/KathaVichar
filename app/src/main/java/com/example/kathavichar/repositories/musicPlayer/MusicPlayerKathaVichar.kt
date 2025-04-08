@@ -56,17 +56,19 @@ class MusicPlayerKathaVichar(
     private val scope = CoroutineScope(Dispatchers.Main + job)
 
     init {
+        println("utytyru6truyytu")
         startPlaybackObserver()
     }
 
     private fun startPlaybackObserver() {
         scope.launch {
-            //observePlaybackState()
+            // observePlaybackState()
         }
     }
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
+        println("srtjhdffukgyruoik")
         try {
             println("🎶 Songs list $songsList")
 
@@ -77,47 +79,45 @@ class MusicPlayerKathaVichar(
             }
 
             // Initialize the MediaController asynchronously
-            initializeMediaController {
-                if (mediaController == null) {
-                    println("⚠️ MediaController is null!")
-                    return@initializeMediaController
-                }
+            if (mediaController == null) {
+                println("⚠️ MediaController is null!")
+                return
+            }
 
-                // Check if player is already initialized and playing something
-                val isAlreadyPlaying = mediaController?.playbackState == Player.STATE_READY ||
-                    mediaController?.isPlaying == true
+            // Check if player is already initialized and playing something
+            val isAlreadyPlaying = mediaController?.playbackState == Player.STATE_READY ||
+                mediaController?.isPlaying == true
 
-                // If it's already playing, just update the playlist (if it's different)
-                if (isAlreadyPlaying) {
-                    println("🎧 Player is already playing. Updating song list...")
+            // If it's already playing, just update the playlist (if it's different)
+            if (isAlreadyPlaying) {
+                println("🎧 Player is already playing. Updating song list...")
 
-                    mediaController?.apply {
-                        val oldUris = mediaController?.currentMediaItem?.mediaId
-                        val newUris = songsList.get(0).mediaId
+                mediaController?.apply {
+                    val oldUris = mediaController?.currentMediaItem?.mediaId
+                    val newUris = songsList.get(0).mediaId
 
-                        println("fghdfghf $oldUris $newUris")
-                        if (oldUris != newUris) {
-                            clearMediaItems()
-                            setMediaItems(songsList)
-                            prepare()
-                            play() // optional: restart playback if list is updated
-                            println("✅ Playlist updated while playing. mnmn")
-                        } else {
-                            println("🔁 Same playlist. No changes made. mnmn")
-                        }
-                    }
-                } else {
-                    // Not playing anything: fresh start
-                    mediaController?.apply {
+                    println("fghdfghf $oldUris $newUris")
+                    if (oldUris != newUris) {
                         clearMediaItems()
-                        addListener(this@MusicPlayerKathaVichar)
-                        println("🎵 Setting media items to controller...")
-                        setMediaItems(songsList.toList())
+                        setMediaItems(songsList)
                         prepare()
+                        play() // optional: restart playback if list is updated
+                        println("✅ Playlist updated while playing. mnmn")
+                    } else {
+                        println("🔁 Same playlist. No changes made. mnmn")
                     }
-
-                    println("🎵 Initialized music player with ${mediaController?.mediaItemCount} items.")
                 }
+            } else {
+                // Not playing anything: fresh start
+                mediaController?.apply {
+                    clearMediaItems()
+                    addListener(this@MusicPlayerKathaVichar)
+                    println("🎵 Setting media items to controller...")
+                    setMediaItems(songsList.toList())
+                    prepare()
+                }
+
+                println("🎵 Initialized music player with ${mediaController?.mediaItemCount} items.")
             }
         } catch (e: Exception) {
             println("Error initializing music player: ${e.message}")
@@ -183,11 +183,11 @@ class MusicPlayerKathaVichar(
             println("SharedPreferences saving error: $e")
         }
     }
-    private fun initializeMediaController(onInitialized: () -> Unit) {
+    fun initializeMediaController() {
         if (mediaController == null) {
+            println("dgfhyulh")
             val mediaSessionToken = SessionToken(context, ComponentName(context, MediaService::class.java))
             val future = MediaController.Builder(context, mediaSessionToken).buildAsync()
-
             future.addListener(
                 {
                     try {
@@ -198,8 +198,6 @@ class MusicPlayerKathaVichar(
 
                         mediaController = future.get()
                         println("🎶 MediaController Initialized")
-
-                        onInitialized()
                     } catch (e: CancellationException) {
                         println("⚠️ MediaController init cancelled: ${e.message}")
                     } catch (e: Exception) {
@@ -208,9 +206,6 @@ class MusicPlayerKathaVichar(
                 },
                 MoreExecutors.directExecutor(),
             )
-        } else {
-            // Already initialized, proceed with callback
-            onInitialized()
         }
     }
 
@@ -320,8 +315,8 @@ class MusicPlayerKathaVichar(
         if (isSongRestored == true) {
             println("restored sadfdsfgsdf $index $isTrackPlay")
             mediaController?.seekTo(index, lastPosition)
-            //isSongRestored = false
-            release()
+            // isSongRestored = false
+           // release()
         } else {
             println("not restored sadfdsfgsdf $index $isTrackPlay")
             mediaController?.seekTo(index, 0)

@@ -307,7 +307,7 @@ fun ArtistCard(
             .padding(12.dp)
             .aspectRatio(1.2f)
             .clickable {
-                navigationController.navigate("${Screen.SongsList.route}/${artist.id}")
+                navigationController.navigate("${Screen.SongsList.route}/${artist.name}/${artist.id}")
             },
         shape = RoundedCornerShape(16.dp),
         elevation = 10.dp,
