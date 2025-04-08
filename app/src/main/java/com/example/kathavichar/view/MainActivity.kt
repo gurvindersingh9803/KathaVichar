@@ -3,6 +3,8 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -17,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.RememberObserver
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -37,6 +38,7 @@ import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.ui.theme.KathaVicharTheme
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
+import com.example.kathavichar.viewModel.SplashScreenViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -47,16 +49,17 @@ import org.koin.java.KoinJavaComponent.inject
 class MainActivity : ComponentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()
     private val songsViewModel by viewModels<SongsViewModel>()
+    private val splashScreenViewModel by viewModels<SplashScreenViewModel>()
     private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(MusicPlayerKathaVichar::class.java)
     private val androidNetworkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
     private var isServiceRunning = false
-
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // TODO: stop firebase duplicacy of data.
 
+        val appVersion = getAppVersion()
 
         // Restore playback state only if app was previously terminated
         if (!songsViewModel.isPlaybackRestored) {
@@ -122,6 +125,8 @@ class MainActivity : ComponentActivity() {
                                 navigationController = navController,
                                 mainViewModel,
                                 songsViewModel,
+                                splashScreenViewModel,
+                                appVersion
                             )
                         }
 
@@ -177,7 +182,20 @@ class MainActivity : ComponentActivity() {
         }
         isServiceRunning = false*/
     }
+
+    // Function to fetch the app version using PackageManager
+    private fun getAppVersion(): String {
+        return try {
+            val packageInfo: PackageInfo = packageManager.getPackageInfo(packageName, 0)
+            packageInfo.versionName ?: "Version not found" // Handles null versionName gracefully
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+            "Version not found"
+        }
+    }
 }
+
+
 
 @Composable
 fun MyEventListener(OnEvent: (event: Lifecycle.Event) -> Unit) {

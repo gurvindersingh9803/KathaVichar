@@ -25,7 +25,6 @@ fun SplashScreen(navController: NavController) {
     var isVisible by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        delay(2000) // 2 seconds delay
         isVisible = false
         navController.navigate("MainPlayList") {
             popUpTo("SplashScreen") { inclusive = true }

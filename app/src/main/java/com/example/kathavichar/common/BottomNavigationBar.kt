@@ -6,10 +6,8 @@ import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.media3.session.MediaController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -21,8 +19,10 @@ import androidx.navigation.navDeepLink
 import com.example.kathavichar.view.composables.SplashScreen
 import com.example.kathavichar.view.composables.home.HomeScreenState
 import com.example.kathavichar.view.composables.songs.SongsListState
+import com.example.kathavichar.view.composables.splashScreen.SplashScreenState
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
+import com.example.kathavichar.viewModel.SplashScreenViewModel
 
 @Composable
 fun BottomNavigationBar(navigationController: NavHostController) {
@@ -61,10 +61,12 @@ fun NavigationGraph(
     navigationController: NavHostController,
     mainViewModel: MainViewModel,
     songsViewModel: SongsViewModel,
+    splashScreenViewModel: SplashScreenViewModel,
+    appVersion: String,
 ) {
     NavHost(navController = navigationController, startDestination = Screen.SplashScreen.route) {
         composable(route = Screen.SplashScreen.route) {
-            SplashScreen(navController = navigationController)
+            SplashScreenState(navigationController, appVersion, splashScreenViewModel)
         }
         composable(route = Screen.MainPlayList.route) {
             HomeScreenState(navigationController, mainViewModel, innerPadding, songsViewModel)
