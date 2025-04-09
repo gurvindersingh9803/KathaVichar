@@ -30,18 +30,19 @@ fun BottomPlayerTab(
     musicPlayerEvents: MusicPlayerEvents,
     onBottomTabClick: () -> Unit,
 ) {
+    println("ssygdefg $song")
     Column(
         Modifier.clickable { onBottomTabClick.invoke() }
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         md_theme_light_primary.copy(alpha = 1f),
-                        md_theme_light_primary.copy(alpha = 0.7f)
-                    )
+                        md_theme_light_primary.copy(alpha = 0.7f),
+                    ),
                 ),
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
             )
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
     ) {
         Row(
             modifier =
@@ -57,7 +58,7 @@ fun BottomPlayerTab(
             PreviousIcon(onClick = { musicPlayerEvents.onPreviousClicked(true, song) }, isBottomTab = true)
             PausePlayIcon(
                 currentSong = song,
-                onClick = {musicPlayerEvents.onPlayPauseClicked(song)},
+                onClick = { musicPlayerEvents.onPlayPauseClicked(song) },
                 isBottomTab = true,
             )
             NextIcon(onClick = { musicPlayerEvents.onNextClicked(true, song) }, isBottomTab = true)

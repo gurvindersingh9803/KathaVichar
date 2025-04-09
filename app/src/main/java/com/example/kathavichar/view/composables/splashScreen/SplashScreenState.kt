@@ -25,15 +25,14 @@ fun SplashScreenState(
 
     // This ensures that network changes trigger the effect each time
     LaunchedEffect(Unit) {
-        delay(2000)
         splashScreenViewModel.fetchVersionInfo(appVersion)
     }
 
     when (uiState) {
-        is ServerResponse.isLoading -> { isDataLoading("Fetching version info...") }
-        is ServerResponse.onSuccess -> SplashScreen(
+        is ServerResponse.isLoading -> SplashScreen(
             navigationController,
         )
+        is ServerResponse.onSuccess -> { isDataLoading("Fetching version info...") }
         is ServerResponse.onError -> {  }
     }
 }

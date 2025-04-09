@@ -2,6 +2,7 @@ package com.example.kathavichar.viewModel
 
 import android.media.MediaMetadataRetriever
 import android.media.session.PlaybackState
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -58,8 +59,12 @@ class SongsViewModel(
     fun restorePlaybackState() {
         val currentPosition = musicPlayerKathaVichar.mediaController?.currentPosition
         val songId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaId
+        val title = musicPlayerKathaVichar.mediaController?.mediaMetadata?.title
         val artistId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artist
-        println("sdfgdsfgsfdg $currentPosition $songId $artistId")
+        val imgUrl = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artworkUri
+        val audioUrl = musicPlayerKathaVichar.mediaController?.currentMediaItem?.localConfiguration?.uri
+
+        println("sdfgdsfgsfdg $audioUrl $songId $artistId $currentPosition")
 
         viewModelScope.launch {
             val lastSongId = sharedPreferences.getString("LAST_PLAYING_SONG_ID", null)
@@ -104,24 +109,27 @@ class SongsViewModel(
                 }
 
                 // Ensure the playlist is not empty before proceeding
-                if (savedPlaylist.isNotEmpty()) {
-                    println("sdfgdsfgsfdg 2 $lastSongId")
-                    val restoredIndex = savedPlaylist.indexOfFirst { it.id == songId }
+                // if (savedPlaylist.isNotEmpty()) {
+                println("sdfgdsfgsfdg 2 $lastSongId")
+                val restoredIndex = savedPlaylist.indexOfFirst { it.id == songId }
 
-                    if (restoredIndex != -1) {
-                        _currentplayingsongs.clear()
-                        _currentplayingsongs.addAll(savedPlaylist)
-                        onTrackSelected(restoredIndex, true, currentPosition)
-                        observeMusicPlayerState()
+                // if (restoredIndex != -1) {
+                // _currentplayingsongs.clear()
+                // _currentplayingsongs.addAll(savedPlaylist)
+                // onTrackSelected(restoredIndex, true, currentPosition)
 
-                        // Restore playback position
-                        println("Playback restored: Track Index - $restoredIndex")
-                    } else {
-                        println("Saved song not found in playlist. Skipping restore.")
-                    }
-                } else {
-                    println("No saved playlist found. Cannot restore.")
-                }
+                println("utrutytu $selectedTrack $selectedTrackIndex")
+
+                observeMusicPlayerState(artistId.toString(), audioUrl.toString(), songId.toString(), imgUrl.toString(), title.toString())
+
+                // Restore playback position
+                //     println("Playback restored: Track Index - $restoredIndex")
+                //  } else {
+                //   println("Saved song not found in playlist. Skipping restore.")
+                // }
+                // } else {
+                //    println("No saved playlist found. Cannot restore.")
+                // }
             }
             // else {
             // println("Network unavailable. Cannot fetch saved playlist.")
@@ -354,8 +362,21 @@ class SongsViewModel(
 
     override fun onPreviousClicked(isBottomClick: Boolean, song: Songs?) {
         // if (selectedTrackIndex > 0) onTrackSelected(selectedTrackIndex - 1)
+        // TODO: crashing when clicking back song in restored state
+        // TODO: try to test isPlaybackRestored as musch as possible.
+        //  Break isPlayBackRestored Method in both NEXTSONG CHANGE STATE and PREVIOUS SONG STATE.
+
+        println("gfn jkhjkh $isPlaybackRestored")
+        if (isPlaybackRestored) {
+            val mediaController = musicPlayerKathaVichar.mediaController
+            if (mediaController != null) {
+                if (mediaController.hasPreviousMediaItem()) {
+                    mediaController.seekToPrevious()
+                }
+            }
+        }
         println("fhjkljjlk $isBottomClick")
-        if (isBottomClick && song != null) {
+        if (isBottomClick && song != null && !isPlaybackRestored) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
@@ -379,7 +400,15 @@ class SongsViewModel(
     }
 
     override fun onNextClicked(isBottomClick: Boolean, song: Songs?) {
-        if (isBottomClick && song != null) {
+        if (isPlaybackRestored) {
+            val mediaController = musicPlayerKathaVichar.mediaController
+            if (mediaController != null) {
+                if (mediaController.hasNextMediaItem()) {
+                    mediaController.seekToNext()
+                }
+            }
+        }
+        if (isBottomClick && song != null && !isPlaybackRestored) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
@@ -409,8 +438,7 @@ class SongsViewModel(
         // list OR else it will updated currentPlayingSongsList and update the UI.
 
         isBottomClicked = false
-        println("sdftghfgsdh ${song.audiourl}")
-
+        isPlaybackRestored = false
         try {
             // setupPlayer()
             if (currentplayingsongs.isEmpty()) {
@@ -463,15 +491,22 @@ class SongsViewModel(
         viewModelScope.launch { musicPlayerKathaVichar.seekToPosition(position) }
     }
 
-    private fun observeMusicPlayerState() {
+    private fun observeMusicPlayerState(
+        artistName: String? = "",
+        audioUrl: String? = "",
+        songId: String? = "",
+        imgUrl: String? = "",
+        title: String? = "",
+    ) {
         viewModelScope.launch {
             musicPlayerKathaVichar._playerStates.collect { state ->
-                println("sdfghdf $state")
-                updateState(state)
+                println("sdfghdf $state $selectedTrackIndex")
+                updateState(state, artistName, audioUrl, songId, imgUrl, title)
             }
         }
     }
 
+    // TODO: remove isSongRestored: Boolean? = false, lastPosition: Long? = 0L
     private fun onTrackSelected(index: Int, isSongRestored: Boolean? = false, lastPosition: Long? = 0L) {
         println("ghfrghdfjjj $index")
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
@@ -482,10 +517,11 @@ class SongsViewModel(
                 println("gygygygy")
                 _currentplayingsongs[selectedTrackIndex].isSelected = true
                 selectedTrack = currentplayingsongs[selectedTrackIndex]
+                setUpTrack()
             }
-            if (lastPosition != null) {
-                setUpTrack(isSongRestored, lastPosition)
-            }
+            // if (lastPosition != null) {
+            //     setUpTrack(isSongRestored, lastPosition)
+            // }
         }
 
         /*if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
@@ -505,7 +541,7 @@ class SongsViewModel(
         }
     }
 
-    private fun setUpTrack(isSongRestored: Boolean?, lastPosition: Long) {
+    private fun setUpTrack(isSongRestored: Boolean? = false, lastPosition: Long? = 0L) {
         if (!isAuto) musicPlayerKathaVichar.setUpTrack(selectedTrackIndex, isTrackPlay, isSongRestored, lastPosition)
         isAuto = false
     }
@@ -525,9 +561,16 @@ class SongsViewModel(
         }
     }*/
 
-    private fun updateState(state: MusicPlayerStates) {
+    private fun updateState(
+        state: MusicPlayerStates,
+        artistName: String? = "",
+        audioUrl: String? = "",
+        songId: String? = "",
+        imgUrl: String? = "",
+        title: String? = "",
+    ) {
         if (selectedTrackIndex != -1) {
-            println("rgthger $state")
+            println("rgthger fghfghfsujkll $state")
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
             _currentplayingsongs[selectedTrackIndex].state = state
             _currentplayingsongs[selectedTrackIndex].isSelected = true
@@ -535,6 +578,33 @@ class SongsViewModel(
             selectedTrack = currentplayingsongs[selectedTrackIndex]
 
             updatePlaybackState(state)
+            if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
+                //  isAuto = true
+                println("rtyrt7ryurf")
+                onNextClicked()
+            }
+            if (state == MusicPlayerStates.STATE_TRACK_CHANGED) {
+                println("dfdfddfdf dvdf $selectedTrackIndex")
+                // TODO: check if the changes track is currentlyplaying artist or a new artist song is selected.
+                updateSelectedTrackIndex()
+            }
+            if (state == MusicPlayerStates.STATE_END) onTrackSelected(0, true)
+        } else if (isPlaybackRestored) {
+            println("rgthger fghfghfsujkll 1 $state")
+            updatePlaybackState(state)
+            if (artistName != null && songId != null && title != null && (state != MusicPlayerStates.STATE_NEXT_TRACK)) {
+                selectedTrack = Songs(
+                    artist_id = artistName,
+                    audiourl = audioUrl.toString(),
+                    id = songId,
+                    imgurl = imgUrl.toString(),
+                    title = title,
+                    state = state,
+                    isSelected = true,
+                    duration = null,
+                )
+            }
+
             if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
                 //  isAuto = true
                 println("rtyrt7ryurf")
@@ -587,6 +657,7 @@ class SongsViewModel(
                     .setMediaMetadata(
                         MediaMetadata
                             .Builder()
+                            .setArtworkUri(Uri.parse(song.imgurl))
                             .setTitle(song.title)
                             .setArtist(song.artist_id)
                             .build(),

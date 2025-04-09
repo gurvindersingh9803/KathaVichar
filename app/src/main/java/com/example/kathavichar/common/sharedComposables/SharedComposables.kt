@@ -26,7 +26,7 @@ fun PausePlayIcon(
     isBottomTab: Boolean,
 ) {
     IconButton(onClick = onClick) {
-        println("ewrfw")
+        println("ewrfw $currentSong")
         if (currentSong.state == MusicPlayerStates.STATE_BUFFERING) {
             isDataLoading()
         } else {

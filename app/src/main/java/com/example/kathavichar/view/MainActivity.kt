@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.navigation.compose.rememberNavController
@@ -53,6 +54,7 @@ class MainActivity : ComponentActivity() {
     private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(MusicPlayerKathaVichar::class.java)
     private val androidNetworkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
     private var isServiceRunning = false
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,10 +64,30 @@ class MainActivity : ComponentActivity() {
         val appVersion = getAppVersion()
 
         // Restore playback state only if app was previously terminated
-        if (!songsViewModel.isPlaybackRestored) {
-            songsViewModel.restorePlaybackState()
-            songsViewModel.isPlaybackRestored = true // Prevents multiple restores
+        println("sfgsdghsfl;;[ ${songsViewModel.musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaId}")
+
+        if (
+            !songsViewModel.isPlaybackRestored &&
+            musicPlayerKathaVichar.mediaController?.currentMediaItem != null &&
+            (
+                musicPlayerKathaVichar.mediaController?.playbackState == Player.STATE_READY || // Song is ready (either playing or paused)
+                    musicPlayerKathaVichar.mediaController?.playbackState == Player.STATE_BUFFERING // Song is buffering (might play soon)
+                )
+        ) {
+            // Handle restoration of playback
+            if (musicPlayerKathaVichar.mediaController?.playWhenReady == true) {
+                // Song is actively playing
+                // Proceed with restoring or resuming playback
+                songsViewModel.restorePlaybackState()
+                songsViewModel.isPlaybackRestored = true // Prevents multiple restores
+            } else {
+                // Song is paused
+                // Handle restoration logic for paused state (e.g., resume from the current position)
+                songsViewModel.restorePlaybackState()
+                songsViewModel.isPlaybackRestored = true // Prevents multiple restores
+            }
         }
+
         musicPlayerKathaVichar.initializeMediaController()
         setContent {
             KathaVicharTheme {
@@ -126,7 +148,7 @@ class MainActivity : ComponentActivity() {
                                 mainViewModel,
                                 songsViewModel,
                                 splashScreenViewModel,
-                                appVersion
+                                appVersion,
                             )
                         }
 
@@ -172,7 +194,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        //musicPlayerKathaVichar.savePlaybackState()
+        // musicPlayerKathaVichar.savePlaybackState()
         /*songsViewModel.selectedTrack?.let {
             songsViewModel.savePlaybackState(
                 it,
@@ -194,8 +216,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
 
 @Composable
 fun MyEventListener(OnEvent: (event: Lifecycle.Event) -> Unit) {

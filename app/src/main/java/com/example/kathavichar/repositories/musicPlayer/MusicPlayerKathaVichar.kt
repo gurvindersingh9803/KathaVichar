@@ -292,7 +292,6 @@ class MusicPlayerKathaVichar(
         if (mediaController?.playbackState == Player.STATE_IDLE) {
             mediaController?.prepare()
         }
-
         mediaController?.playWhenReady = !(mediaController?.playWhenReady ?: false)
     }
 
@@ -308,19 +307,19 @@ class MusicPlayerKathaVichar(
     fun setUpTrack(
         index: Int,
         isTrackPlay: Boolean,
-        isSongRestored: Boolean?,
-        lastPosition: Long,
+        isSongRestored: Boolean? = false,
+        lastPosition: Long? = 0L,
     ) { if (isTrackPlay) mediaController?.playWhenReady = true
         if (mediaController?.playbackState == Player.STATE_IDLE) mediaController?.prepare()
-        if (isSongRestored == true) {
-            println("restored sadfdsfgsdf $index $isTrackPlay")
-            mediaController?.seekTo(index, lastPosition)
-            // isSongRestored = false
-           // release()
-        } else {
-            println("not restored sadfdsfgsdf $index $isTrackPlay")
-            mediaController?.seekTo(index, 0)
-        }
+        // if (isSongRestored == true) {
+        // println("restored sadfdsfgsdf $index $isTrackPlay")
+        mediaController?.seekTo(index, 0)
+        // isSongRestored = false
+        // release()
+        // } else {
+        //   println("not restored sadfdsfgsdf $index $isTrackPlay")
+        //  mediaController?.seekTo(index, 0)
+        // }
         if (isTrackPlay) mediaController?.playWhenReady = true
     }
 
@@ -419,7 +418,7 @@ class MusicPlayerKathaVichar(
         playWhenReady: Boolean,
         reason: Int,
     ) {
-        println("onPlayWhenReadyChanged ghhjghj")
+        println("onPlayWhenReadyChanged ghhjghjddddd $mediaController")
         if (mediaController?.playbackState == Player.STATE_READY) {
             if (playWhenReady) {
                 _playerStates.tryEmit(
