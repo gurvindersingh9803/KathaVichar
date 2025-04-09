@@ -64,7 +64,6 @@ class MainActivity : ComponentActivity() {
         val appVersion = getAppVersion()
 
         // Restore playback state only if app was previously terminated
-        println("sfgsdghsfl;;[ ${songsViewModel.musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaId}")
 
         if (
             !songsViewModel.isPlaybackRestored &&
@@ -74,6 +73,8 @@ class MainActivity : ComponentActivity() {
                     musicPlayerKathaVichar.mediaController?.playbackState == Player.STATE_BUFFERING // Song is buffering (might play soon)
                 )
         ) {
+            songsViewModel.isPlaybackRestored = true
+
             // Handle restoration of playback
             if (musicPlayerKathaVichar.mediaController?.playWhenReady == true) {
                 // Song is actively playing
@@ -86,6 +87,8 @@ class MainActivity : ComponentActivity() {
                 songsViewModel.restorePlaybackState()
                 songsViewModel.isPlaybackRestored = true // Prevents multiple restores
             }
+            println("sfgsdghsfl;;[ ${songsViewModel.isPlaybackRestored}")
+
         }
 
         musicPlayerKathaVichar.initializeMediaController()

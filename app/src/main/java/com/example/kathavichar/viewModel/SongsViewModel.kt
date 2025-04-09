@@ -17,6 +17,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.kathavichar.common.SharedPrefsManager
 import com.example.kathavichar.model.Songs
+import com.example.kathavichar.model.getMusicPlayerState
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.SongsDataRepository
 import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
@@ -57,23 +58,43 @@ class SongsViewModel(
 
     // TODO: stop this function to call unnecessary until restore is required.
     fun restorePlaybackState() {
-        val currentPosition = musicPlayerKathaVichar.mediaController?.currentPosition
-        val songId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaId
-        val title = musicPlayerKathaVichar.mediaController?.mediaMetadata?.title
-        val artistId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artist
-        val imgUrl = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artworkUri
-        val audioUrl = musicPlayerKathaVichar.mediaController?.currentMediaItem?.localConfiguration?.uri
 
-        println("sdfgdsfgsfdg $audioUrl $songId $artistId $currentPosition")
+        // val currentMediaControllerItem = getMusicPlayerState(musicPlayerKathaVichar, s)
+        observeMusicPlayerState()
 
-        viewModelScope.launch {
-            val lastSongId = sharedPreferences.getString("LAST_PLAYING_SONG_ID", null)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /*   val currentPosition = musicPlayerKathaVichar.mediaController?.currentPosition
+           val songId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaId
+           //val title = musicPlayerKathaVichar.mediaController?.mediaMetadata?.title
+           val artistId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artist
+           val imgUrl = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artworkUri
+           val audioUrl = musicPlayerKathaVichar.mediaController?.currentMediaItem?.localConfiguration?.uri
+           val title = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.title
+
+           println("sdfgdsfgsfdg $audioUrl $songId $artistId $currentPosition $title")*/
+
+       // viewModelScope.launch {
+         /*   val lastSongId = sharedPreferences.getString("LAST_PLAYING_SONG_ID", null)
             val lastPlaylistName = sharedPreferences.getString("LAST_PLAYING_PLAYLIST", null)
             val lastPosition = sharedPreferences.getLong("LAST_PLAYING_POSITION", 0L)
-            println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")
+            println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")*/
 
             // Restore only if we have valid saved data
-            if (currentPosition != null && songId != null && artistId != null) {
+            /*if (currentPosition != null && songId != null && artistId != null) {
                 // Check network before fetching playlist
                 println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")
                 // val savedPlaylist = songsDataRepository.fetchSongs(artistName = artistId.toString())
@@ -121,6 +142,7 @@ class SongsViewModel(
                 println("utrutytu $selectedTrack $selectedTrackIndex")
 
                 observeMusicPlayerState(artistId.toString(), audioUrl.toString(), songId.toString(), imgUrl.toString(), title.toString())
+                val currentMediaControllerItem = getMusicPlayerState(musicPlayerKathaVichar, s)
 
                 // Restore playback position
                 //     println("Playback restored: Track Index - $restoredIndex")
@@ -130,7 +152,7 @@ class SongsViewModel(
                 // } else {
                 //    println("No saved playlist found. Cannot restore.")
                 // }
-            }
+            }*/
             // else {
             // println("Network unavailable. Cannot fetch saved playlist.")
             // }
@@ -175,7 +197,7 @@ class SongsViewModel(
             }
 */
         // observeMusicPlayerState()
-    }
+    //}
 
     /**
      * An immutable snapshot of the current list of tracks.
@@ -205,6 +227,7 @@ class SongsViewModel(
 
     private var isTrackPlay: Boolean = false
 
+    private var getCurrentRestoredItemIndex = -1
     private var isAuto: Boolean = false
 
     private var playbackStateJob: Job? = null
@@ -275,21 +298,28 @@ class SongsViewModel(
         }
     }
 
+    var songList: List<Songs> = emptyList()
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSongs(artistName: String) {
         viewModelScope.launch {
+
             if (whichArtistSelected == null || whichArtistSelected != artistName) {
-                println("dsgs $artistName")
+                println("dsgs $artistName $getCurrentRestoredItemIndex ")
                 _uiStateSongs.tryEmit(ServerResponse.isLoading())
                 whichArtistSelected = artistName
-
-                val songList = withContext(Dispatchers.IO) {
+                println("kljhjkukl rrf $artistName ${selectedTrack?.artist_id} $getCurrentRestoredItemIndex")
+                songList = withContext(Dispatchers.IO) {
                     songsDataRepository.fetchSongs(artistName).map { rawSong ->
                         val duration = try {
                             MediaMetadataRetriever().use { retriever ->
                                 println("Fetching duration for: ${rawSong.audiourl}")
-                                retriever.setDataSource(rawSong.audiourl, mapOf("User-Agent" to "Kathavichar/1.0"))
-                                val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                retriever.setDataSource(
+                                    rawSong.audiourl,
+                                    mapOf("User-Agent" to "Kathavichar/1.0")
+                                )
+                                val durationStr =
+                                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                                 println("Raw duration for ${rawSong.title}: $durationStr")
                                 durationStr?.toLongOrNull() ?: 0L.also {
                                     if (durationStr == null) println("No duration metadata for ${rawSong.title}")
@@ -314,7 +344,9 @@ class SongsViewModel(
                 }
 
                 println("Song list with durations: $songList")
-
+                /*if(artistName == selectedTrack?.artist_id && getCurrentRestoredItemIndex != -1) {
+                    selectedTrack = currentplayingsongs[getCurrentRestoredItemIndex]
+                }*/
                 // Add to _songs and initialize the music player
                 if (songList.isNotEmpty()) {
                     if (currentplayingsongs.isNotEmpty() && selectedTrackIndex != -1) {
@@ -340,16 +372,58 @@ class SongsViewModel(
                         }
                     } else {
                         _songs.clear()
+
+                        if (isPlaybackRestored && getCurrentRestoredItemIndex != -1 && whichArtistSelected == selectedTrack?.artist_id) {
+                            songList = songList.mapIndexed { index, song ->
+                                if (index == getCurrentRestoredItemIndex) {
+                                    song.copy(
+                                        isSelected = true,
+                                        state = musicPlayerKathaVichar._playerStates.value
+                                    )
+                                } else {
+                                    song.copy(
+                                        isSelected = false,
+                                        state = MusicPlayerStates.STATE_IDLE
+                                    ) // Ensure others are not selected
+                                }
+                            }
+                            selectedTrack = songList[getCurrentRestoredItemIndex]
+                            selectedTrackIndex = getCurrentRestoredItemIndex
+                            Log.i(
+                                "edfgwegfwfgjhjh",
+                                musicPlayerKathaVichar._playerStates.value.toString()
+                            )
+                        }
                         _songs.addAll(songList)
-                        Log.i("edfgwegf jhjh", songs.toMediaItemListWithMetadata().toString())
+
+
                         updateCurrentPlayingSongs()
-                        _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                     }
 
                     println("dghyjghfjdg")
                     _searchQuery.value = ""
                     _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                     observeMusicPlayerState()
+                }
+            } else {
+                if (isPlaybackRestored && getCurrentRestoredItemIndex != -1 && whichArtistSelected == selectedTrack?.artist_id) {
+                    _songs.clear()
+                    songList = songList.mapIndexed { index, song ->
+                        if (index == getCurrentRestoredItemIndex) {
+                            song.copy(
+                                isSelected = true,
+                                state = musicPlayerKathaVichar._playerStates.value
+                            )
+                        } else {
+                            song.copy(
+                                isSelected = false,
+                                state = MusicPlayerStates.STATE_IDLE
+                            ) // Ensure others are not selected
+                        }
+                    }
+                    selectedTrack = songList[getCurrentRestoredItemIndex]
+                    selectedTrackIndex = getCurrentRestoredItemIndex
+                    _songs.addAll(songList)
                 }
             }
         }
@@ -363,8 +437,8 @@ class SongsViewModel(
     override fun onPreviousClicked(isBottomClick: Boolean, song: Songs?) {
         // if (selectedTrackIndex > 0) onTrackSelected(selectedTrackIndex - 1)
         // TODO: crashing when clicking back song in restored state
-        // TODO: try to test isPlaybackRestored as musch as possible.
-        //  Break isPlayBackRestored Method in both NEXTSONG CHANGE STATE and PREVIOUS SONG STATE.
+        // TODO: try to test isPlaybackRestored as much as possible.
+        //  Break isPlayBackRestored Method in both NEXT SONG CHANGE STATE and PREVIOUS SONG STATE.
 
         println("gfn jkhjkh $isPlaybackRestored")
         if (isPlaybackRestored) {
@@ -372,9 +446,48 @@ class SongsViewModel(
             if (mediaController != null) {
                 if (mediaController.hasPreviousMediaItem()) {
                     mediaController.seekToPrevious()
+                    getMusicPlayerState(musicPlayerKathaVichar).let { currentMediaControllerItem ->
+                        if (currentMediaControllerItem != null && song != null) {
+                            println("khghjghjghj ${song.state}")
+                            getCurrentRestoredItemIndex = currentMediaControllerItem.currentIndex!!
+                            selectedTrack = Songs(
+                                artist_id = currentMediaControllerItem.artistId.toString(),
+                                audiourl = currentMediaControllerItem.audioUrl.toString(),
+                                id = currentMediaControllerItem.songId.toString(),
+                                imgurl = currentMediaControllerItem.imgUrl.toString(),
+                                title = currentMediaControllerItem.title.toString(),
+                                state = song.state,
+                                isSelected = true,
+                                duration = 0L,
+                            )
+                            println("khghjghjghj 1 ${selectedTrack}")
+                        }
+
+                        if (isPlaybackRestored && getCurrentRestoredItemIndex != -1 && whichArtistSelected == selectedTrack?.artist_id) {
+                            _songs.clear()
+                            songList = songList.mapIndexed { index, song ->
+                                if (index == getCurrentRestoredItemIndex) {
+                                    song.copy(
+                                        isSelected = true,
+                                        state = musicPlayerKathaVichar._playerStates.value
+                                    )
+                                } else {
+                                    song.copy(
+                                        isSelected = false,
+                                        state = MusicPlayerStates.STATE_IDLE
+                                    ) // Ensure others are not selected
+                                }
+                            }
+                            selectedTrack = songList[getCurrentRestoredItemIndex]
+                            selectedTrackIndex = getCurrentRestoredItemIndex
+                            _songs.addAll(songList)
+                        }
+
+                    }
                 }
             }
         }
+
         println("fhjkljjlk $isBottomClick")
         if (isBottomClick && song != null && !isPlaybackRestored) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
@@ -405,10 +518,49 @@ class SongsViewModel(
             if (mediaController != null) {
                 if (mediaController.hasNextMediaItem()) {
                     mediaController.seekToNext()
+                    getMusicPlayerState(musicPlayerKathaVichar).let { currentMediaControllerItem ->
+                        if (currentMediaControllerItem != null && song != null) {
+                            println("khghjghjghj ${song.state}")
+                            getCurrentRestoredItemIndex = currentMediaControllerItem.currentIndex!!
+                            selectedTrack = Songs(
+                                artist_id = currentMediaControllerItem.artistId.toString(),
+                                audiourl = currentMediaControllerItem.audioUrl.toString(),
+                                id = currentMediaControllerItem.songId.toString(),
+                                imgurl = currentMediaControllerItem.imgUrl.toString(),
+                                title = currentMediaControllerItem.title.toString(),
+                                state = song.state,
+                                isSelected = true,
+                                duration = 0L,
+                            )
+                            println("khghjghjghj 1 ${selectedTrack}")
+                        }
+
+                    }
+                    println("jhjhgkhgkhh ${selectedTrack?.audiourl} ${musicPlayerKathaVichar.mediaController?.currentMediaItem?.localConfiguration?.uri}")
+                }
+
+                if (isPlaybackRestored && getCurrentRestoredItemIndex != -1 && whichArtistSelected == selectedTrack?.artist_id) {
+                    _songs.clear()
+                    songList = songList.mapIndexed { index, song ->
+                        if (index == getCurrentRestoredItemIndex) {
+                            song.copy(
+                                isSelected = true,
+                                state = musicPlayerKathaVichar._playerStates.value
+                            )
+                        } else {
+                            song.copy(
+                                isSelected = false,
+                                state = MusicPlayerStates.STATE_IDLE
+                            ) // Ensure others are not selected
+                        }
+                    }
+                    selectedTrack = songList[getCurrentRestoredItemIndex]
+                    selectedTrackIndex = getCurrentRestoredItemIndex
+                    _songs.addAll(songList)
                 }
             }
         }
-        if (isBottomClick && song != null && !isPlaybackRestored) {
+        if (isBottomClick == true && song != null && !isPlaybackRestored) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
@@ -439,6 +591,7 @@ class SongsViewModel(
 
         isBottomClicked = false
         isPlaybackRestored = false
+        getCurrentRestoredItemIndex = -1
         try {
             // setupPlayer()
             if (currentplayingsongs.isEmpty()) {
@@ -500,7 +653,7 @@ class SongsViewModel(
     ) {
         viewModelScope.launch {
             musicPlayerKathaVichar._playerStates.collect { state ->
-                println("sdfghdf $state $selectedTrackIndex")
+                println("sdfghdf $state $selectedTrackIndex $isPlaybackRestored")
                 updateState(state, artistName, audioUrl, songId, imgUrl, title)
             }
         }
@@ -569,7 +722,7 @@ class SongsViewModel(
         imgUrl: String? = "",
         title: String? = "",
     ) {
-        if (selectedTrackIndex != -1) {
+        if (selectedTrackIndex != -1 && !isPlaybackRestored) {
             println("rgthger fghfghfsujkll $state")
             isTrackPlay = state == MusicPlayerStates.STATE_PLAYING
             _currentplayingsongs[selectedTrackIndex].state = state
@@ -590,32 +743,27 @@ class SongsViewModel(
             }
             if (state == MusicPlayerStates.STATE_END) onTrackSelected(0, true)
         } else if (isPlaybackRestored) {
-            println("rgthger fghfghfsujkll 1 $state")
             updatePlaybackState(state)
-            if (artistName != null && songId != null && title != null && (state != MusicPlayerStates.STATE_NEXT_TRACK)) {
-                selectedTrack = Songs(
-                    artist_id = artistName,
-                    audiourl = audioUrl.toString(),
-                    id = songId,
-                    imgurl = imgUrl.toString(),
-                    title = title,
-                    state = state,
-                    isSelected = true,
-                    duration = null,
-                )
-            }
+            getMusicPlayerState(musicPlayerKathaVichar, state).let { currentMediaControllerItem ->
+                if (currentMediaControllerItem != null ) {
+                    getCurrentRestoredItemIndex = currentMediaControllerItem.currentIndex!!
+                    selectedTrackIndex = getCurrentRestoredItemIndex
+                    println("hhjjh $getCurrentRestoredItemIndex")
+                    selectedTrack = currentMediaControllerItem.state?.let {
+                        Songs(
+                            artist_id = currentMediaControllerItem.artistId.toString(),
+                            audiourl = currentMediaControllerItem.audioUrl.toString(),
+                            id = currentMediaControllerItem.songId.toString(),
+                            imgurl = currentMediaControllerItem.imgUrl.toString(),
+                            title = currentMediaControllerItem.title.toString(),
+                            state = it,
+                            isSelected = true,
+                            duration = 0L,
+                        )
+                    }
+                }
 
-            if (state == MusicPlayerStates.STATE_NEXT_TRACK) {
-                //  isAuto = true
-                println("rtyrt7ryurf")
-                onNextClicked()
             }
-            if (state == MusicPlayerStates.STATE_TRACK_CHANGED) {
-                println("dfdfddfdf dvdf $selectedTrackIndex")
-                // TODO: check if the changes track is currentlyplaying artist or a new artist song is selected.
-                updateSelectedTrackIndex()
-            }
-            if (state == MusicPlayerStates.STATE_END) onTrackSelected(0, true)
         }
     }
 

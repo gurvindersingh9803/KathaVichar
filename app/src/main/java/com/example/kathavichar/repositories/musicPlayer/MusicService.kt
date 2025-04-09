@@ -151,6 +151,7 @@ class MediaService : MediaSessionService() {
                 checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED
             ) {
+                println("tyrtyerte")
                 // Notification permission is required but not granted
                 return
             }

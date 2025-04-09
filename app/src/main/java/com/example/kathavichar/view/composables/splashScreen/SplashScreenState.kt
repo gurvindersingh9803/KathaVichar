@@ -29,10 +29,12 @@ fun SplashScreenState(
     }
 
     when (uiState) {
-        is ServerResponse.isLoading -> SplashScreen(
-            navigationController,
-        )
-        is ServerResponse.onSuccess -> { isDataLoading("Fetching version info...") }
-        is ServerResponse.onError -> {  }
+        is ServerResponse.isLoading -> {
+            SplashScreen(navigationController, true)
+        }
+        is ServerResponse.onSuccess -> { SplashScreen(navigationController, false) }
+        is ServerResponse.onError -> {
+            uiState.message?.let { ForceUpgradeScreen(message = it, upgradeUrl = "") }
+        }
     }
 }

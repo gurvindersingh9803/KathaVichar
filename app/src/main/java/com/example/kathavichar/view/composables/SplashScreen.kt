@@ -21,17 +21,8 @@ import com.example.kathavichar.R
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController: NavController) {
-    var isVisible by remember { mutableStateOf(true) }
+fun SplashScreen(navController: NavController, isLoading: Boolean) {
 
-    LaunchedEffect(Unit) {
-        isVisible = false
-        navController.navigate("MainPlayList") {
-            popUpTo("SplashScreen") { inclusive = true }
-        }
-    }
-
-    if (isVisible) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -43,6 +34,13 @@ fun SplashScreen(navController: NavController) {
                 contentDescription = "App Logo",
                 modifier = Modifier.size(200.dp),
             )
+        }
+
+    LaunchedEffect(isLoading) {
+        if (!isLoading) {
+            navController.navigate("MainPlayList") {
+                popUpTo("SplashScreen") { inclusive = true }
+            }
         }
     }
 }

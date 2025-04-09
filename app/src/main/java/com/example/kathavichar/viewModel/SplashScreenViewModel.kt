@@ -2,46 +2,75 @@ package com.example.kathavichar.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.model.VersionInfo
 import com.example.kathavichar.network.ServerResponse
 import com.example.kathavichar.repositories.VersionRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
+import kotlin.system.measureTimeMillis
 
 class SplashScreenViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<ServerResponse<VersionInfo>> = MutableStateFlow(ServerResponse.isLoading())
     val uiState = _uiState.asStateFlow()
     private val versionRepository: VersionRepository by inject(VersionRepository::class.java)
+    private val networkStatusProvider: AndroidNetworkStatusProvider by inject(
+        AndroidNetworkStatusProvider::class.java)
+    val isNetworkAvailable: StateFlow<Boolean> = networkStatusProvider.networkStatusFlow
 
     fun fetchVersionInfo(currentAppVersion: String) {
         viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    versionRepository.getVersionInfo(currentAppVersion).let { versionInfo ->
-                        when {
-                            versionInfo.forceUpgrade -> {
-                                // TODO: show alert to upgrade the app
-                                _uiState.tryEmit(ServerResponse.onSuccess(versionInfo))
-
-                            }
-                            versionInfo.needsUpgrade -> {
-                                // TODO: show soft alert to upgrade the app
-                                _uiState.tryEmit(ServerResponse.onSuccess(versionInfo))
-                            }
-
-                            else -> {
-                                _uiState.tryEmit(ServerResponse.onSuccess(versionInfo))
-                            }
+            if(isNetworkAvailable.value) {
+                try {
+                    val versionInfo: VersionInfo
+                    val elapsedTime = measureTimeMillis {
+                        versionInfo = withContext(Dispatchers.IO) {
+                            versionRepository.getVersionInfo(currentAppVersion)
                         }
                     }
+
+                    // ⏱ Delay only if network was faster than splash duration
+                    val minSplashDuration = 2000L
+                    val delayTime = (minSplashDuration - elapsedTime).coerceAtLeast(0)
+                    println("sfghdfghoop $delayTime")
+                    delay(delayTime)
+
+                    if(!versionInfo.forceUpgrade) {
+                        _uiState.tryEmit(ServerResponse.onSuccess(versionInfo))
+                    } else {
+                        _uiState.tryEmit(
+                            ServerResponse.onError(
+                                data = null,
+                                message = "A new version of the app is available. Please update to continue."
+                            )
+                        )
+                    }
+
+                } catch (e: Exception) {
+                    delay(2000)
+                    _uiState.tryEmit(
+                        ServerResponse.onError(
+                            data = null,
+                            message = "Please try to restart the app. Check your network connection"
+                        )
+                    )
                 }
-            } catch (e: Exception) {
-                _uiState.tryEmit(ServerResponse.onError(data = null, message = e.toString()))
+            } else {
+                delay(2000)
+                _uiState.tryEmit(
+                    ServerResponse.onError(
+                        data = null,
+                        message = "Network not available"
+                    )
+                )
             }
         }
     }
+
 }
