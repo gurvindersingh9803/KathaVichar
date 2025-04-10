@@ -5,26 +5,39 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.RememberObserver
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.Player
@@ -33,6 +46,7 @@ import androidx.media3.session.SessionToken
 import androidx.navigation.compose.rememberNavController
 import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.common.NavigationGraph
+import com.example.kathavichar.common.SharedPrefsManager
 import com.example.kathavichar.common.sharedComposables.ScaffoldWithTopBar
 import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MediaService
@@ -41,8 +55,9 @@ import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 import com.example.kathavichar.viewModel.SplashScreenViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import org.koin.java.KoinJavaComponent.inject
@@ -54,6 +69,7 @@ class MainActivity : ComponentActivity() {
     private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(MusicPlayerKathaVichar::class.java)
     private val androidNetworkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
     private var isServiceRunning = false
+    private val sharedPreferences: SharedPrefsManager by inject(SharedPrefsManager::class.java)
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalPermissionsApi::class)
@@ -88,51 +104,15 @@ class MainActivity : ComponentActivity() {
                 songsViewModel.isPlaybackRestored = true // Prevents multiple restores
             }
             println("sfgsdghsfl;;[ ${songsViewModel.isPlaybackRestored}")
-
         }
 
         musicPlayerKathaVichar.initializeMediaController()
         setContent {
             KathaVicharTheme {
                 enableEdgeToEdge()
-                val isPermissionGranted =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-                    } else {
-                        null
-                    }
+                musicPlayerKathaVichar.initializeMediaController()
 
-                val lifeCycleOwner = LocalLifecycleOwner.current
-                val notificationPermissionState =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-                    } else {
-                        null
-                    }
-
-                DisposableEffect(key1 = lifeCycleOwner) {
-                    val observer =
-                        LifecycleEventObserver { _, event ->
-                            if (event == Lifecycle.Event.ON_RESUME) {
-                                if (notificationPermissionState != null) {
-                                    if (!notificationPermissionState.status.isGranted) {
-                                        Log.d("Permissions", "Requesting notification permission")
-                                        notificationPermissionState.launchPermissionRequest()
-                                        // startMusicService()
-                                    } else {
-                                        Log.d("Permissions", "Notification permission already granted")
-                                        // startMusicService() // Start the service only if permission is granted
-                                    }
-                                } else {
-                                    // startMusicService() // Start the service if no permission is required
-                                }
-                            }
-                        }
-                    lifeCycleOwner.lifecycle.addObserver(observer)
-                    onDispose {
-                        lifeCycleOwner.lifecycle.removeObserver(observer)
-                    }
-                }
+                // Handle permission logic
 
                 val navController = rememberNavController()
                 ScaffoldWithTopBar(
@@ -144,6 +124,7 @@ class MainActivity : ComponentActivity() {
 
                         Box(modifier = Modifier.padding()) {
                             // SongScreenParent(songsViewModel)
+                            HandleNotificationPermission()
 
                             NavigationGraph(
                                 innerPadding,
@@ -175,6 +156,116 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    @OptIn(ExperimentalPermissionsApi::class)
+    @Composable
+    fun HandleNotificationPermission() {
+        val notificationPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        val context = LocalContext.current
+
+        // Track if the permission request has been processed after user interaction
+        var hasRequestedPermission by rememberSaveable { mutableStateOf(false) }
+        var permissionRequestCompleted by rememberSaveable { mutableStateOf(false) }
+
+        LaunchedEffect(notificationPermissionState.status) {
+
+            // Check if the permission state has changed after the request
+            if (hasRequestedPermission) {
+                println("ertyheuhrwtdwty ${notificationPermissionState.status}")
+                permissionRequestCompleted = true
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
+            when (val status = notificationPermissionState.status) {
+                is PermissionStatus.Granted -> {
+                    // Permission granted, show success message
+                    Text("Camera permission granted. You can now use the camera.")
+                    Button(onClick = { }, Modifier.padding(top = 16.dp)) {
+                        Text("Go Back")
+                    }
+                }
+                is PermissionStatus.Denied -> {
+                    if (permissionRequestCompleted) {
+                        // Show rationale only after the permission request is completed
+                        if (status.shouldShowRationale) {
+                            Text("Camera permission is required to use this feature.")
+                            Button(onClick = {
+                                notificationPermissionState.launchPermissionRequest()
+                                hasRequestedPermission = true
+                            }) {
+                                Text("Request Camera Permission")
+                            }
+                        } else {
+                            // Show "Denied" message only after the user has denied permission
+                            Text("Camera permission denied. Please enable it in the app settings to proceed.")
+                            Button(onClick = {
+                                // Open app settings to manually enable the permission
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
+                                context.startActivity(intent)
+                            }) {
+                                Text("Open App Settings")
+                            }
+                        }
+                    } else {
+                        // Show the initial request button
+                        Button(onClick = {
+                            notificationPermissionState.launchPermissionRequest()
+                            hasRequestedPermission = true
+                        }) {
+                            Text("Request Camera Permission")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun PermissionRationaleDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Permission Required") },
+            text = { Text("This app needs notification permission to show playback controls. Please grant it.") },
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("Grant")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Deny")
+                }
+            },
+        )
+    }
+
+    @Composable
+    fun PermissionDeniedDialog(onDismiss: () -> Unit) {
+        val context = LocalContext.current
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Permission Denied") },
+            text = { Text("Notification permission was denied. Please enable it in app settings.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = "package:${context.packageName}".toUri()
+                    }
+                    context.startActivity(intent)
+                    onDismiss()
+                }) {
+                    Text("Go to Settings")
+                }
+            },
+        )
+    }
     private fun startMusicService() {
         try {
             println("khgkjhkghgjh $isServiceRunning")
@@ -197,15 +288,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // musicPlayerKathaVichar.savePlaybackState()
-        /*songsViewModel.selectedTrack?.let {
-            songsViewModel.savePlaybackState(
-                it,
-                songsViewModel.selectedTrack!!.artist_id,
-                songsViewModel.playbackState.value.currentPlayBackPosition,
-            )
-        }
-        isServiceRunning = false*/
     }
 
     // Function to fetch the app version using PackageManager
