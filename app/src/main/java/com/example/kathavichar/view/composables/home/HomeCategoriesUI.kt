@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -117,10 +118,21 @@ fun ArtistSearchScreen(
         }
     }
 
+
+
+    // Check if track is playing when screen launches
+    LaunchedEffect(selectedTrack) {
+        selectedTrack?.let { track ->
+            if (track.state == MusicPlayerStates.STATE_PLAYING ||
+                track.state == MusicPlayerStates.STATE_BUFFERING) {
+                fullScreenState.show()
+            }
+        }
+    }
     ModalBottomSheetLayout(
         sheetContent = {
             selectedTrack?.let { track ->
-                BottomSheetDialog(track, songsViewModel, songsViewModel.playbackState)
+                BottomSheetDialog(track, songsViewModel, songsViewModel.playbackState, fullScreenState.isVisible)
             }
         },
         sheetState = fullScreenState,

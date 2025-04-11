@@ -38,7 +38,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.1'
+        kotlinCompilerExtensionVersion '1.5.15'
     }
 
 }
@@ -85,6 +85,9 @@ dependencies {
     implementation "com.jakewharton.rxrelay2:rxrelay:$rxRelayVersion"
     implementation "io.reactivex.rxjava2:rxkotlin:$rxKotlinVersion"
     implementation("androidx.compose.runtime:runtime-rxjava2:$rxComposeVersion")
+
+    //admob
+    implementation("com.google.android.gms:play-services-ads:21.3.0")
 
     // koin
     implementation 'io.insert-koin:koin-androidx-compose:3.2.0'

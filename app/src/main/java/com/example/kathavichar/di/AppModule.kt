@@ -18,6 +18,7 @@ import com.example.kathavichar.repositories.VersionRepository
 import com.example.kathavichar.repositories.VersionService
 import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MediaService
+import com.example.kathavichar.view.composables.musicPlayer.AdManager
 import com.example.kathavichar.view.musicPlayerService.DefaultMusicPlayerService
 import com.example.kathavichar.view.musicPlayerService.MusicPlayerService
 import com.example.kathavichar.viewModel.MainViewModel
@@ -39,6 +40,7 @@ val appModule =
         viewModel { SongsViewModel(get()) }
         viewModel { SplashScreenViewModel() }
         viewModel { MusicPlayerViewModel() }
+        single { AdManager(get()) }
         single<SharedPrefsManager> { DefaultSharedPrefsManager(androidContext(), get()) }
         single<ArtistsDataRepository> { DefaultArtistsDataRepository(get()) }
         single<SongsDataRepository> { DefaultSongsDataRepository(get()) }

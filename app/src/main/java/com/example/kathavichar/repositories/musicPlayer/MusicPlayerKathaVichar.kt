@@ -1,5 +1,6 @@
 package com.example.kathavichar.repositories.musicPla
 
+import android.app.Activity
 import android.app.Application
 import android.app.PendingIntent
 import android.content.ComponentName
@@ -17,12 +18,15 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerNotificationManager
 import com.example.kathavichar.common.SharedPrefsManager
+import com.example.kathavichar.common.utils.PlayTimeTracker
 import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
+import com.example.kathavichar.view.composables.musicPlayer.AdManager
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,19 +56,20 @@ class MusicPlayerKathaVichar(
         get() = if (mediaController?.duration!! > 0) mediaController!!.duration else 0L
     var mediaController: MediaController? = null
 
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.Main + job)
-
-    init {
-        println("utytyru6truyytu")
-        startPlaybackObserver()
+    private fun stopPlayTimeTracking() {
+        //trackingJob?.cancel()
     }
 
-    private fun startPlaybackObserver() {
-        scope.launch {
-            // observePlaybackState()
-        }
+    fun releaseCleanUp() {
+        stopPlayTimeTracking()
+        //trackingJob?.cancel()
+        mediaController?.release()
+        isListenerAdded = false
     }
+    //fun release() {
+    //    stopPlayTimeTracking()
+        // Rest of your existing release code...
+   // }
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
@@ -170,7 +175,7 @@ class MusicPlayerKathaVichar(
 
     fun release() {
         // Call this when you're done with the class, e.g., onDestroy or onViewModelCleared
-        job.cancel()
+        //job.cancel()
     }
 
     fun savePlaybackState(songId: String, artistName: String, position: Long) {
@@ -208,85 +213,6 @@ class MusicPlayerKathaVichar(
             )
         }
     }
-
-    /*private fun createStubNotification(): Notification {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel() // Ensure channel exists
-        }
-
-        return NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("Music Player")
-            .setContentText("Playing music")
-            .setSmallIcon(R.drawable.headset) // Ensure this icon exists in res/drawable
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannel() {
-        val channel = NotificationChannel(
-            Constants.NOTIFICATION_CHANNEL_ID, // Use the same ID in notification
-            "Music Playback",
-            NotificationManager.IMPORTANCE_LOW, // Low importance to avoid intrusive behavior
-        )
-        channel.description = "Channel for music playback notifications"
-
-        val notificationManager = context.getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(channel)
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun startForegroundMusicService(mediaSessionService: MediaSessionService) {
-        val musicNotification =
-            NotificationCompat
-                .Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
-                .setContentTitle("Music Player")
-                .setContentText("Playing music")
-                .setSmallIcon(R.drawable.headset)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(
-                    PendingIntent.getActivity(
-                        context,
-                        0,
-                        Intent(Intent.ACTION_VIEW, Uri.parse("musify://songslist/Maskeen Ji")),
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                    ),
-                ).build()
-
-        mediaSessionService.startForeground(Constants.NOTIFICATION_ID, musicNotification)
-    }
-
-    @UnstableApi
-    private fun buildMusicNotification(mediaSession: MediaSession) {
-        playerNotification = PlayerNotificationManager
-            .Builder(
-                context,
-                Constants.NOTIFICATION_ID,
-                Constants.NOTIFICATION_CHANNEL_ID,
-            ).setMediaDescriptionAdapter(
-                MusicNotificationDescriptorAdapter(
-                    context,
-                    pendingIntent =
-                    PendingIntent.getActivity(
-                        context,
-                        0,
-                        Intent(Intent.ACTION_VIEW, Uri.parse("musify://songslist/Maskeen Ji")),
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                    ),
-                ),
-            ).setSmallIconResourceId(R.drawable.headset)
-            .build()
-            .also {
-                it.setMediaSessionToken(mediaSession.sessionCompatToken)
-                it.setUseFastForwardActionInCompactView(true)
-                it.setUseRewindActionInCompactView(true)
-                it.setUseNextActionInCompactView(true)
-                it.setUsePreviousActionInCompactView(true)
-                it.setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                it.setPlayer(mediaController)
-            }
-    }*/
 
     fun playPause() {
         if (mediaController?.playbackState == Player.STATE_IDLE) {
@@ -360,6 +286,7 @@ class MusicPlayerKathaVichar(
         println("onPlaybackStateChanged ghhjghj $playbackState")
         when (playbackState) {
             Player.STATE_IDLE -> {
+                stopPlayTimeTracking()
                 _playerStates.tryEmit(
                     MusicPlayerStates.STATE_IDLE,
 
@@ -370,7 +297,6 @@ class MusicPlayerKathaVichar(
 
             Player.STATE_BUFFERING -> {
                 _playerStates.tryEmit(
-
                     MusicPlayerStates.STATE_BUFFERING,
 
                 )
@@ -404,6 +330,7 @@ class MusicPlayerKathaVichar(
             }
 
             Player.STATE_ENDED -> {
+                stopPlayTimeTracking()
                 _playerStates.tryEmit(
                     MusicPlayerStates.STATE_END,
 

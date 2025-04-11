@@ -42,6 +42,7 @@ class SplashScreenViewModel : ViewModel() {
                     delay(delayTime)
 
                     if(!versionInfo.forceUpgrade) {
+                        println("mbvmvbbn")
                         _uiState.tryEmit(ServerResponse.onSuccess(versionInfo))
                     } else {
                         _uiState.tryEmit(

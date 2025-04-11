@@ -46,6 +46,8 @@ fun BottomSheetDialog(
     selectedTrack: Songs,
     playerEvents: MusicPlayerEvents,
     playbackState: StateFlow<PlayerBackState>,
+    isVisible: Boolean // Add this parameter
+
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -54,6 +56,7 @@ fun BottomSheetDialog(
             trackImage = selectedTrack.imgurl.toString(),
             trackName = selectedTrack.title,
             artistName = selectedTrack.artist_id,
+            isBottomSheetVisible = isVisible // Pass visibility
         )
         TrackProgressSlider(playbackState = playbackState) {
             playerEvents.onSeekBarPositionChanged(it)
@@ -79,6 +82,7 @@ fun TrackInfo(
     trackImage: String,
     trackName: String,
     artistName: String,
+    isBottomSheetVisible: Boolean,
 ) {
     Box(
         modifier =
@@ -86,13 +90,28 @@ fun TrackInfo(
             .fillMaxWidth()
             .height(height = 350.dp),
     ) {
-        TrackImage(
-            trackImage = trackImage,
-            modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(all = 16.dp),
-        )
+        Column {
+
+            if(isBottomSheetVisible) {
+                AdBanner(
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .fillMaxWidth(),
+                    onAdFailed = {
+                        // Handle failure silently to maintain layout
+                    }
+                )
+            }
+
+            TrackImage(
+                trackImage = trackImage,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(all = 16.dp),
+            )
+        }
+
     }
     Text(
         text = trackName,

@@ -1,5 +1,7 @@
 package com.example.kathavichar.viewModel
 
+import android.app.Activity
+import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.media.session.PlaybackState
 import android.net.Uri
@@ -10,12 +12,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.kathavichar.common.SharedPrefsManager
+import com.example.kathavichar.common.utils.PlayTimeTracker
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.model.getMusicPlayerState
 import com.example.kathavichar.network.ServerResponse
@@ -24,9 +29,12 @@ import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
+import com.example.kathavichar.view.composables.musicPlayer.AdManager
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,6 +46,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent
 import org.koin.java.KoinJavaComponent.inject
 
 class SongsViewModel(
@@ -56,132 +65,15 @@ class SongsViewModel(
 
     private val sharedPreferences: SharedPrefsManager by inject(SharedPrefsManager::class.java)
 
+    private val _shouldStartAdCountTiming = MutableLiveData<Boolean>()
+    val shouldStartAdCountTiming: LiveData<Boolean> = _shouldStartAdCountTiming
+
+
+
     // TODO: stop this function to call unnecessary until restore is required.
     fun restorePlaybackState() {
-        // val currentMediaControllerItem = getMusicPlayerState(musicPlayerKathaVichar, s)
         observeMusicPlayerState()
-
-        /*   val currentPosition = musicPlayerKathaVichar.mediaController?.currentPosition
-           val songId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaId
-           //val title = musicPlayerKathaVichar.mediaController?.mediaMetadata?.title
-           val artistId = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artist
-           val imgUrl = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.artworkUri
-           val audioUrl = musicPlayerKathaVichar.mediaController?.currentMediaItem?.localConfiguration?.uri
-           val title = musicPlayerKathaVichar.mediaController?.currentMediaItem?.mediaMetadata?.title
-
-           println("sdfgdsfgsfdg $audioUrl $songId $artistId $currentPosition $title")*/
-
-        // viewModelScope.launch {
-         /*   val lastSongId = sharedPreferences.getString("LAST_PLAYING_SONG_ID", null)
-            val lastPlaylistName = sharedPreferences.getString("LAST_PLAYING_PLAYLIST", null)
-            val lastPosition = sharedPreferences.getLong("LAST_PLAYING_POSITION", 0L)
-            println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")*/
-
-        // Restore only if we have valid saved data
-            /*if (currentPosition != null && songId != null && artistId != null) {
-                // Check network before fetching playlist
-                println("sdfgdsfgsfdg 1 $lastSongId $lastPlaylistName $lastPosition")
-                // val savedPlaylist = songsDataRepository.fetchSongs(artistName = artistId.toString())
-
-                val savedPlaylist = withContext(Dispatchers.IO) {
-                    songsDataRepository.fetchSongs(artistName = artistId.toString()).map { rawSong ->
-                        val duration = try {
-                            MediaMetadataRetriever().use { retriever ->
-                                println("Fetching duration for: ${rawSong.audiourl}")
-                                retriever.setDataSource(rawSong.audiourl, mapOf("User-Agent" to "Kathavichar/1.0"))
-                                val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                                println("Raw duration for ${rawSong.title}: $durationStr")
-                                durationStr?.toLongOrNull() ?: 0L.also {
-                                    if (durationStr == null) println("No duration metadata for ${rawSong.title}")
-                                }
-                            }
-                        } catch (e: Exception) {
-                            println("Error fetching duration for ${rawSong.title} (${rawSong.audiourl}): ${e.javaClass.simpleName} - ${e.message}")
-                            0L
-                        }
-                        println("Building song ${rawSong.title} with duration: $duration")
-                        val song = Songs.Builder()
-                            .songId(rawSong.id)
-                            .title(rawSong.title)
-                            .audioUrl(rawSong.audiourl)
-                            .imgUrl(rawSong.imgurl)
-                            .artistId(rawSong.artist_id)
-                            .duration(duration)
-                            .build()
-                        println("Built song: $song")
-                        song
-                    }
-                }
-
-                // Ensure the playlist is not empty before proceeding
-                // if (savedPlaylist.isNotEmpty()) {
-                println("sdfgdsfgsfdg 2 $lastSongId")
-                val restoredIndex = savedPlaylist.indexOfFirst { it.id == songId }
-
-                // if (restoredIndex != -1) {
-                // _currentplayingsongs.clear()
-                // _currentplayingsongs.addAll(savedPlaylist)
-                // onTrackSelected(restoredIndex, true, currentPosition)
-
-                println("utrutytu $selectedTrack $selectedTrackIndex")
-
-                observeMusicPlayerState(artistId.toString(), audioUrl.toString(), songId.toString(), imgUrl.toString(), title.toString())
-                val currentMediaControllerItem = getMusicPlayerState(musicPlayerKathaVichar, s)
-
-                // Restore playback position
-                //     println("Playback restored: Track Index - $restoredIndex")
-                //  } else {
-                //   println("Saved song not found in playlist. Skipping restore.")
-                // }
-                // } else {
-                //    println("No saved playlist found. Cannot restore.")
-                // }
-            }*/
-        // else {
-        // println("Network unavailable. Cannot fetch saved playlist.")
-        // }
     }
-
-            /*if (networkStatusProvider.isConnected() && lastPlaylistName != null && musicPlayerKathaVichar.currentMediaItemId.isNotEmpty()) {
-                println("gvbdnnb ${musicPlayerKathaVichar.currentMediaItemId}")
-                val savedPlaylist = songsDataRepository.fetchSongs(lastPlaylistName)
-
-                val restoredIndex = savedPlaylist.indexOfFirst { it.id == musicPlayerKathaVichar.currentMediaItemId }
-                _currentplayingsongs.clear()
-                _currentplayingsongs.addAll(savedPlaylist)
-                onTrackSelected(restoredIndex)
-                musicPlayerKathaVichar.seekToPosition(musicPlayerKathaVichar.currentPlaybackPosition)
-                observeMusicPlayerState()
-                println("gvbdnnb $restoredIndex")
-
-                *//*val savedPlaylist = songsDataRepository.fetchSongs(lastPlaylistName)
-
-                selectedTrackIndex = savedPlaylist.indexOfFirst { it.id == musicPlayerKathaVichar.currentMediaItemId }
-                _currentplayingsongs.clear()
-                _currentplayingsongs.addAll(savedPlaylist)
-                // musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
-                println("onTrackClicked 1 ")
-                println("onTrackClicked 1 fsdg $currentplayingsongs $selectedTrackIndex")*//*
-                // onTrackSelected(selectedTrackIndex)
-
-                *//*if (savedPlaylist.isNotEmpty()) {
-                    _currentplayingsongs.clear()
-                    _currentplayingsongs.addAll(savedPlaylist)
-                    updateCurrentPlayingSongs()
-
-                    val songIndex = savedPlaylist.indexOfFirst { it.id == lastSongId }
-                    if (songIndex != -1) {
-                        selectedTrackIndex = songIndex
-                        selectedTrack = savedPlaylist[songIndex]
-                        musicPlayerKathaVichar.seekToPosition(lastPosition)
-                    }
-                }*//*
-            } else {
-                println("dfgsdfgsdfgsdfg")
-            }
-*/
-    // observeMusicPlayerState()
-    // }
 
     /**
      * An immutable snapshot of the current list of tracks.
@@ -273,14 +165,8 @@ class SongsViewModel(
         _searchQuery.value = query
     }
 
-    private val _isPlayerSetUp = MutableStateFlow(false)
-    val isPlayerSetUp = _isPlayerSetUp.asStateFlow()
 
-    fun setupPlayer() {
-        _isPlayerSetUp.update {
-            true
-        }
-    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSongs(artistName: String) {
@@ -647,6 +533,10 @@ class SongsViewModel(
             musicPlayerKathaVichar._playerStates.collect { state ->
                 println("sdfghdf $state $selectedTrackIndex $isPlaybackRestored")
                 updateState(state, artistName, audioUrl, songId, imgUrl, title)
+
+                if(state == MusicPlayerStates.STATE_PLAYING) {
+                    _shouldStartAdCountTiming.postValue(true)
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.example.kathavichar.view
 import android.Manifest
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -11,6 +12,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import org.koin.core.parameter.parametersOf
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -48,9 +50,11 @@ import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.common.NavigationGraph
 import com.example.kathavichar.common.SharedPrefsManager
 import com.example.kathavichar.common.sharedComposables.ScaffoldWithTopBar
+import com.example.kathavichar.common.utils.PlayTimeTracker
 import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.ui.theme.KathaVicharTheme
+import com.example.kathavichar.view.composables.musicPlayer.AdManager
 import com.example.kathavichar.viewModel.MainViewModel
 import com.example.kathavichar.viewModel.SongsViewModel
 import com.example.kathavichar.viewModel.SplashScreenViewModel
@@ -59,13 +63,30 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
+import org.koin.android.ext.android.inject
+import org.koin.java.KoinJavaComponent
+
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()
     private val songsViewModel by viewModels<SongsViewModel>()
     private val splashScreenViewModel by viewModels<SplashScreenViewModel>()
-    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject(MusicPlayerKathaVichar::class.java)
+    private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject()
+    private val playTimeTracker = PlayTimeTracker()
+    private val adManager: AdManager by KoinJavaComponent.inject(AdManager::class.java)
+    private var trackingJob: Job? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+
     private val androidNetworkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
     private var isServiceRunning = false
     private val sharedPreferences: SharedPrefsManager by inject(SharedPrefsManager::class.java)
@@ -76,8 +97,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // TODO: stop firebase duplicacy of data.
 
+        songsViewModel.shouldStartAdCountTiming.observe(this) {
+            println("gthfghdf")
+            startPlayTimeTracking()
+        }
         val appVersion = getAppVersion()
-
         // Restore playback state only if app was previously terminated
 
         if (
@@ -287,6 +311,37 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+    }
+
+    private fun startPlayTimeTracking() {
+        trackingJob?.cancel()
+        trackingJob = scope.launch {
+            while (isActive) {
+                musicPlayerKathaVichar.mediaController?.currentPosition?.let { position ->
+                    playTimeTracker.updatePlayTime(position)
+                    println("Time tracking: position=$position, shouldShowAd=${playTimeTracker.shouldShowAd()}")
+
+                    if (playTimeTracker.shouldShowAd()) {
+                        // Ensure we're on the main thread and have an Activity context
+                        withContext(Dispatchers.Main) {
+                            println("wewewew 0")
+                            when (this) {
+                                is Activity -> {
+                                    println("wewewew")
+                                    adManager.showInterstitialAd(this) {
+                                        playTimeTracker.resetAfterAd()
+                                    }
+                                }
+                                else -> {
+                                    println("Warning: Context is not an Activity, cannot show ad")
+                                }
+                            }
+                        }
+                    }
+                }
+                delay(1000)
+            }
+        }
     }
 
     // Function to fetch the app version using PackageManager

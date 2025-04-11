@@ -61,7 +61,7 @@ fun SongScreenParent(songsViewModel: SongsViewModel, artistName: String?, artist
     ModalBottomSheetLayout(
         sheetContent = {
             selectedTrack?.let { track ->
-                BottomSheetDialog(track, songsViewModel, songsViewModel.playbackState)
+                BottomSheetDialog(track, songsViewModel, songsViewModel.playbackState, fullScreenState.isVisible)
             }
         },
         sheetState = fullScreenState,
@@ -112,56 +112,5 @@ fun SongScreenParent(songsViewModel: SongsViewModel, artistName: String?, artist
                 }
             },
         )
-    }
-
-    /*Scaffold(
-        content = { padding ->
-            Content(
-                songsViewModel = songsViewModel,
-                fullScreenState = fullScreenState,
-                innerPadding = padding,
-                selectedTrack,
-            )
-        },
-        bottomBar = {
-            AnimatedVisibility(
-                visible = selectedTrack != null,
-                enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }),
-            ) {
-                println("srtdfy $selectedTrack")
-                selectedTrack?.let { track ->
-                    BottomPlayerTab(
-                        song = track,
-                        songsViewModel,
-                        onBottomTabClick = onBottomTabClick,
-                    )
-                }
-            }
-        },
-    )*/
-}
-
-fun BottomPlayerTab(song: Songs, viewModel: SongsViewModel, onBottomTabClick: () -> Unit) {
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun Content(
-    songsViewModel: SongsViewModel,
-    fullScreenState: ModalBottomSheetState,
-    innerPadding: PaddingValues,
-    selectedTrack: Songs?,
-) {
-    ModalBottomSheetLayout(
-        sheetContent = {
-            selectedTrack?.let { track ->
-                BottomSheetDialog(track, songsViewModel, songsViewModel.playbackState)
-            }
-        },
-        sheetState = fullScreenState,
-        sheetShape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
-        sheetElevation = 12.dp,
-    ) {
-        // SongsListUI(songsViewModel, innerPadding, artistName)
     }
 }

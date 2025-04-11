@@ -23,6 +23,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun SplashScreen(navController: NavController, isLoading: Boolean) {
 
+    println("wfwervdc $isLoading")
         Box(
             modifier = Modifier
                 .fillMaxSize()
