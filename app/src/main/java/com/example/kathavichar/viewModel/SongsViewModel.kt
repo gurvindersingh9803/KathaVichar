@@ -354,13 +354,12 @@ class SongsViewModel(
                             _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList()))
                         }
                     } else {
-
                         // restorePlaybackStateIfNeeded(MusicPlayerStates.STATE_PLAYING, songList).let {
                         _songs.clear()
                         _songs.addAll(songList)
                         updateCurrentPlayingSongs()
                         _uiStateSongs.tryEmit(ServerResponse.onSuccess(songList.toMutableList())).also {
-                            if(isPlaybackRestored) {
+                            if (isPlaybackRestored) {
                                 getMusicPlayerState(musicPlayerKathaVichar).let { currentMediaControllerItem ->
                                     println("sdefrgdfg $currentMediaControllerItem")
 
@@ -373,7 +372,7 @@ class SongsViewModel(
                                             title = currentMediaControllerItem.title.toString(),
                                             state = MusicPlayerStates.STATE_IDLE,
                                             isSelected = false,
-                                            duration = currentMediaControllerItem.duration
+                                            duration = currentMediaControllerItem.duration,
                                         )
                                         println("khghjghjghj 1 $selectedTrack $songList")
                                         onTrackClicked(selectedTrack!!)
@@ -406,7 +405,7 @@ class SongsViewModel(
         //  Break isPlayBackRestored Method in both NEXT SONG CHANGE STATE and PREVIOUS SONG STATE.
 
         println("gfn jkhjkh $isPlaybackRestored $selectedTrackIndex")
-        if (isPlaybackRestored) {
+       /* if (isPlaybackRestored) {
             val mediaController = musicPlayerKathaVichar.mediaController
             if (mediaController != null) {
                 if (mediaController.hasPreviousMediaItem()) {
@@ -423,20 +422,20 @@ class SongsViewModel(
                                     title = currentMediaControllerItem.title.toString(),
                                     state = MusicPlayerStates.STATE_IDLE,
                                     isSelected = false,
-                                    duration = currentMediaControllerItem.duration
+                                    duration = currentMediaControllerItem.duration,
                                 )
                                 onTrackClicked(selectedTrack!!)
                                 println("khghjghjghj 1 $selectedTrack")
                             }
-                            //restorePlaybackStateIfNeeded(song.state)
+                            // restorePlaybackStateIfNeeded(song.state)
                         }
                     }
                 }
             }
-        }
+        }*/
 
         println("fhjkljjlk $isBottomClick")
-        if (isBottomClick && song != null && !isPlaybackRestored) {
+        if (isBottomClick && song != null && isPlaybackRestored) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
@@ -472,7 +471,7 @@ class SongsViewModel(
                         getMusicPlayerState(musicPlayerKathaVichar).let { currentMediaControllerItem ->
                             if (currentMediaControllerItem != null) {
                                 // selectedTrackIndex = currentMediaControllerItem.currentIndex!!
-                                println("dsfagdsfg $selectedTrackIndex")
+                               /* println("dsfagdsfg $selectedTrackIndex")
                                 selectedTrack = Songs(
                                     artist_id = currentMediaControllerItem.artistId.toString(),
                                     audiourl = currentMediaControllerItem.audioUrl.toString(),
@@ -481,8 +480,8 @@ class SongsViewModel(
                                     title = currentMediaControllerItem.title.toString(),
                                     state = MusicPlayerStates.STATE_IDLE,
                                     isSelected = false,
-                                    duration = currentMediaControllerItem.duration
-                                )
+                                    duration = currentMediaControllerItem.duration,
+                                )*/
                                 onTrackClicked(selectedTrack!!)
                             }
                         }
@@ -570,7 +569,7 @@ class SongsViewModel(
         // list OR else it will updated currentPlayingSongsList and update the UI.
 
         isBottomClicked = false
-        isPlaybackRestored = false
+        // isPlaybackRestored = false
         getCurrentRestoredItemIndex = -1
         try {
             // setupPlayer()
@@ -641,7 +640,16 @@ class SongsViewModel(
 
     // TODO: remove isSongRestored: Boolean? = false, lastPosition: Long? = 0L
     private fun onTrackSelected(index: Int, isSongRestored: Boolean? = false, lastPosition: Long? = 0L) {
-        println("ghfrghdfjjj $index $selectedTrackIndex")
+        println("ghfrghdfjjj gygygygy $isPlaybackRestored")
+        if (isPlaybackRestored) {
+            // isTrackPlay = true
+            // selectedTrackIndex = index
+            _currentplayingsongs.resetTracks()
+            _currentplayingsongs[selectedTrackIndex].isSelected = true
+            selectedTrack = currentplayingsongs[selectedTrackIndex]
+            return
+        }
+
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
             isTrackPlay = true
             selectedTrackIndex = index
@@ -725,9 +733,9 @@ class SongsViewModel(
             updatePlaybackState(state)
             getMusicPlayerState(musicPlayerKathaVichar, state).let { currentMediaControllerItem ->
                 if (currentMediaControllerItem != null) {
-                    getCurrentRestoredItemIndex = currentMediaControllerItem.currentIndex!!
-                    selectedTrackIndex = getCurrentRestoredItemIndex
-                    println("hhjjh $getCurrentRestoredItemIndex")
+                    // getCurrentRestoredItemIndex = currentMediaControllerItem.currentIndex!!
+                     selectedTrackIndex = currentMediaControllerItem.currentIndex!!
+                    println("hhjjh $selectedTrackIndex")
                     selectedTrack = currentMediaControllerItem.state?.let {
                         Songs(
                             artist_id = currentMediaControllerItem.artistId.toString(),
@@ -736,8 +744,8 @@ class SongsViewModel(
                             imgurl = currentMediaControllerItem.imgUrl.toString(),
                             title = currentMediaControllerItem.title.toString(),
                             state = it,
-                            isSelected = true,
-                            duration = 0L,
+                            isSelected = false,
+                            duration = currentMediaControllerItem.duration,
                         )
                     }
                 }
