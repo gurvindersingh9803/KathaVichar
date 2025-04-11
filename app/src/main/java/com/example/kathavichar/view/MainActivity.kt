@@ -322,19 +322,11 @@ class MainActivity : ComponentActivity() {
                     println("Time tracking: position=$position, shouldShowAd=${playTimeTracker.shouldShowAd()}")
 
                     if (playTimeTracker.shouldShowAd()) {
-                        // Ensure we're on the main thread and have an Activity context
+                        println("dhgdf")
                         withContext(Dispatchers.Main) {
-                            println("wewewew 0")
-                            when (this) {
-                                is Activity -> {
-                                    println("wewewew")
-                                    adManager.showInterstitialAd(this) {
-                                        playTimeTracker.resetAfterAd()
-                                    }
-                                }
-                                else -> {
-                                    println("Warning: Context is not an Activity, cannot show ad")
-                                }
+                            // Use 'this@MainActivity' instead of 'this'
+                            adManager.showInterstitialAd(this@MainActivity) {
+                                playTimeTracker.resetAfterAd()
                             }
                         }
                     }
