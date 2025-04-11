@@ -405,7 +405,7 @@ class SongsViewModel(
         //  Break isPlayBackRestored Method in both NEXT SONG CHANGE STATE and PREVIOUS SONG STATE.
 
         println("gfn jkhjkh $isPlaybackRestored $selectedTrackIndex")
-       /* if (isPlaybackRestored) {
+       if (isPlaybackRestored) {
             val mediaController = musicPlayerKathaVichar.mediaController
             if (mediaController != null) {
                 if (mediaController.hasPreviousMediaItem()) {
@@ -414,7 +414,7 @@ class SongsViewModel(
                         getMusicPlayerState(musicPlayerKathaVichar).let { currentMediaControllerItem ->
                             if (currentMediaControllerItem != null && song != null) {
                                 println("khghjghjghj ${song.state}")
-                                selectedTrack = Songs(
+                                /*selectedTrack = Songs(
                                     artist_id = currentMediaControllerItem.artistId.toString(),
                                     audiourl = currentMediaControllerItem.audioUrl.toString(),
                                     id = currentMediaControllerItem.songId.toString(),
@@ -423,19 +423,21 @@ class SongsViewModel(
                                     state = MusicPlayerStates.STATE_IDLE,
                                     isSelected = false,
                                     duration = currentMediaControllerItem.duration,
-                                )
+                                )*/
                                 onTrackClicked(selectedTrack!!)
                                 println("khghjghjghj 1 $selectedTrack")
+
                             }
                             // restorePlaybackStateIfNeeded(song.state)
                         }
                     }
                 }
             }
-        }*/
+           return
+       }
 
         println("fhjkljjlk $isBottomClick")
-        if (isBottomClick && song != null && isPlaybackRestored) {
+        if (isBottomClick && song != null) {
             val currentSongIndex = currentplayingsongs.indexOf(song)
             val currentPlayingSongArtist = currentplayingsongs[currentSongIndex].artist_id
 
@@ -570,15 +572,26 @@ class SongsViewModel(
 
         isBottomClicked = false
         // isPlaybackRestored = false
-        getCurrentRestoredItemIndex = -1
+       // getCurrentRestoredItemIndex = -1
         try {
+            var localIndex: Int = -1
             // setupPlayer()
             if (currentplayingsongs.isEmpty()) {
                 _currentplayingsongs.clear()
                 _currentplayingsongs.addAll(songs)
-                println("onTrackClicked $songs ${currentplayingsongs.indexOf(song)}}")
-                musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
-                onTrackSelected(currentplayingsongs.indexOf(song), true)
+                println("onTrackClicked $isPlaybackRestored}")
+
+                if(!isPlaybackRestored) {
+                    //selectedTrackIndex = currentplayingsongs.indexOf(song)
+                    musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
+                    localIndex = currentplayingsongs.indexOf(song)
+                } else {
+                    val matchingSongIndex = currentplayingsongs.indexOfFirst { it.id == selectedTrack?.id }
+                    localIndex = matchingSongIndex
+                    //selectedTrackIndex = matchingSongIndex
+                }
+
+                onTrackSelected(localIndex, true)
             } else {
                 /* println("wwewew $selectedTrackIndex")
             val songIndex = songs.indexOf(song)
@@ -643,19 +656,20 @@ class SongsViewModel(
         println("ghfrghdfjjj gygygygy $isPlaybackRestored")
         if (isPlaybackRestored) {
             // isTrackPlay = true
-            // selectedTrackIndex = index
+            selectedTrackIndex = index
             _currentplayingsongs.resetTracks()
             _currentplayingsongs[selectedTrackIndex].isSelected = true
             selectedTrack = currentplayingsongs[selectedTrackIndex]
+            isPlaybackRestored = false
             return
         }
 
         if (selectedTrackIndex == -1 || selectedTrackIndex != index) {
+            println("gygygygy fdfdf $_currentplayingsongs")
             isTrackPlay = true
             selectedTrackIndex = index
             _currentplayingsongs.resetTracks()
             if (!isBottomClicked) {
-                println("gygygygy $_currentplayingsongs")
                 _currentplayingsongs[selectedTrackIndex].isSelected = true
                 selectedTrack = currentplayingsongs[selectedTrackIndex]
                 setUpTrack()
