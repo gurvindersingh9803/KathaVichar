@@ -4,6 +4,7 @@ import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 
 data class CurrentMusicItemRestored(
+    val duration: Long?,
     val currentPositionItem: Long?,
     val songId: String?,
     val title: String?,
@@ -24,7 +25,7 @@ fun getMusicPlayerState(musicPlayerKathaVichar: MusicPlayerKathaVichar, state: M
     val imgUrl = mediaController?.currentMediaItem?.mediaMetadata?.artworkUri
     val audioUrl = mediaController?.currentMediaItem?.localConfiguration?.uri
     val currentIndex = mediaController?.currentMediaItemIndex
-
+    val duration = mediaController?.duration
     return if (songId != null && title != null
                 && artistId != null
                 && imgUrl != null
@@ -38,7 +39,8 @@ fun getMusicPlayerState(musicPlayerKathaVichar: MusicPlayerKathaVichar, state: M
             imgUrl = imgUrl.toString(),
             audioUrl = audioUrl.toString(),
             state = state,
-            currentIndex = currentIndex
+            currentIndex = currentIndex,
+            duration = duration,
         )
     } else {
         null

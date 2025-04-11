@@ -57,7 +57,6 @@ import com.example.kathavichar.viewModel.SplashScreenViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import org.koin.java.KoinJavaComponent.inject
@@ -124,7 +123,7 @@ class MainActivity : ComponentActivity() {
 
                         Box(modifier = Modifier.padding()) {
                             // SongScreenParent(songsViewModel)
-                            HandleNotificationPermission()
+                            //HandleNotificationPermission()
 
                             NavigationGraph(
                                 innerPadding,
