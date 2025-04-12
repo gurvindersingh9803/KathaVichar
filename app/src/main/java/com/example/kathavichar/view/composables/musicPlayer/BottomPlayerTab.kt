@@ -39,6 +39,8 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import kotlinx.coroutines.delay
@@ -108,7 +110,7 @@ fun AdBanner(
         factory = { context ->
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)
-                adUnitId = "ca-app-pub-3940256099942544/6300978111" // Test ID
+                adUnitId = "ca-app-pub-4362763688795619/6313004741" // Test ID
 
                 adListener = object : AdListener() {
                     override fun onAdLoaded() {
@@ -146,6 +148,13 @@ class AdManager(private val context: Context) {
     private var onAdLoaded: (() -> Unit)? = null
 
     init {
+        println("seyrhtdtg")
+        // Set test device ID for test ads
+        val testDeviceIds = listOf("37ae4d96-de54-4ad3-8186- f704a8ed6f73") // Replace with your test device ID
+        val configuration = RequestConfiguration.Builder()
+            .setTestDeviceIds(testDeviceIds)
+            .build()
+        MobileAds.setRequestConfiguration(configuration)
         loadInterstitialAd() // Load ad when AdManager is created
     }
 
@@ -181,7 +190,7 @@ class AdManager(private val context: Context) {
 
         InterstitialAd.load(
             context,
-            "ca-app-pub-3940256099942544/1033173712", // Test ID
+            "ca-app-pub-4362763688795619/9344931574", // Test ID
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
