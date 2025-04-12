@@ -47,8 +47,8 @@ class PlaybackTracker(
             while (isActive) {
                 delay(1000) // Increment every second
                 accumulatedTime += 1000
-                println("vbnvcbnvb $accumulatedTime")
-                if (accumulatedTime >= 30 * 1000) { // 30 minutes
+                println("accumulatedTime $accumulatedTime")
+                if (accumulatedTime >= 15 * 60 * 1000) { // 30 minutes
                     withContext(Dispatchers.Main) { onAdTrigger() }
                     resetTimer()
                 }

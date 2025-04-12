@@ -340,6 +340,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         playbackTracker.stopTracking()
+        songsViewModel.saveBottomSheetOnRestartState(true)
     }
 
     // Function to fetch the app version using PackageManager

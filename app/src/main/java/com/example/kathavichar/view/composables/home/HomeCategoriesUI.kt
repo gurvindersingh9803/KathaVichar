@@ -104,7 +104,7 @@ fun ArtistSearchScreen(
             skipHalfExpanded = true,
         )
     val selectedTrack by rememberUpdatedState(songsViewModel.selectedTrack)
-
+    val getShowBottomSheetOnRestartState by rememberUpdatedState(songsViewModel.getShowBottomSheetOnRestartState())
     val scope = rememberCoroutineScope()
 
     val onBottomTabClick: () -> Unit = {
@@ -118,14 +118,12 @@ fun ArtistSearchScreen(
         }
     }
 
-
-
     // Check if track is playing when screen launches
-    LaunchedEffect(selectedTrack) {
-        selectedTrack?.let { track ->
-            if (track.state == MusicPlayerStates.STATE_PLAYING ||
-                track.state == MusicPlayerStates.STATE_BUFFERING) {
+    LaunchedEffect(getShowBottomSheetOnRestartState && selectedTrack != null) {
+        scope.launch {
+            if (getShowBottomSheetOnRestartState) {
                 fullScreenState.show()
+                songsViewModel.saveBottomSheetOnRestartState(false)
             }
         }
     }
@@ -282,7 +280,7 @@ fun ArtistSearchScreen(
                         }
                     }
                 }
-            }, 
+            },
             bottomBar = {
                 println("dfghdfxcvzsd fdsfdhh $errorMessage $selectedTrack")
                 Box(modifier = Modifier.fillMaxWidth()) {
@@ -301,7 +299,6 @@ fun ArtistSearchScreen(
                         )
                     }
                 }
-
             },
         )
     }

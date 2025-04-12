@@ -31,7 +31,7 @@ import com.example.kathavichar.common.sharedComposables.PreviousIcon
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
- import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * [BottomSheetDialog] is a composable that represents the bottom sheet dialog which contains information about the selected track,
@@ -46,7 +46,7 @@ fun BottomSheetDialog(
     selectedTrack: Songs,
     playerEvents: MusicPlayerEvents,
     playbackState: StateFlow<PlayerBackState>,
-    isVisible: Boolean // Add this parameter
+    isVisible: Boolean, // Add this parameter
 
 ) {
     Column(
@@ -56,7 +56,7 @@ fun BottomSheetDialog(
             trackImage = selectedTrack.imgurl.toString(),
             trackName = selectedTrack.title,
             artistName = selectedTrack.artist_id,
-            isBottomSheetVisible = isVisible // Pass visibility
+            isBottomSheetVisible = isVisible, // Pass visibility
         )
         TrackProgressSlider(playbackState = playbackState) {
             playerEvents.onSeekBarPositionChanged(it)
@@ -91,27 +91,26 @@ fun TrackInfo(
             .height(height = 350.dp),
     ) {
         Column {
-
-            if(isBottomSheetVisible) {
+            println("werwqer $isBottomSheetVisible")
+            if (isBottomSheetVisible) {
                 AdBanner(
                     modifier = Modifier
                         .padding(vertical = 8.dp)
                         .fillMaxWidth(),
                     onAdFailed = {
                         // Handle failure silently to maintain layout
-                    }
+                    },
                 )
             }
 
             TrackImage(
                 trackImage = trackImage,
                 modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(all = 16.dp),
+                Modifier
+                    .fillMaxSize()
+                    .padding(all = 16.dp),
             )
         }
-
     }
     Text(
         text = trackName,
