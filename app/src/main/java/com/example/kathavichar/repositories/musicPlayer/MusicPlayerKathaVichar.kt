@@ -1,6 +1,5 @@
 package com.example.kathavichar.repositories.musicPla
 
-import android.app.Activity
 import android.app.Application
 import android.app.PendingIntent
 import android.content.ComponentName
@@ -18,21 +17,15 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.media3.ui.PlayerNotificationManager
 import com.example.kathavichar.common.SharedPrefsManager
-import com.example.kathavichar.common.utils.PlayTimeTracker
 import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
-import com.example.kathavichar.view.composables.musicPlayer.AdManager
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent
 import kotlin.coroutines.cancellation.CancellationException
@@ -57,19 +50,19 @@ class MusicPlayerKathaVichar(
     var mediaController: MediaController? = null
 
     private fun stopPlayTimeTracking() {
-        //trackingJob?.cancel()
+        // trackingJob?.cancel()
     }
 
     fun releaseCleanUp() {
         stopPlayTimeTracking()
-        //trackingJob?.cancel()
+        // trackingJob?.cancel()
         mediaController?.release()
         isListenerAdded = false
     }
-    //fun release() {
+    // fun release() {
     //    stopPlayTimeTracking()
-        // Rest of your existing release code...
-   // }
+    // Rest of your existing release code...
+    // }
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
@@ -175,7 +168,7 @@ class MusicPlayerKathaVichar(
 
     fun release() {
         // Call this when you're done with the class, e.g., onDestroy or onViewModelCleared
-        //job.cancel()
+        // job.cancel()
     }
 
     fun savePlaybackState(songId: String, artistName: String, position: Long) {

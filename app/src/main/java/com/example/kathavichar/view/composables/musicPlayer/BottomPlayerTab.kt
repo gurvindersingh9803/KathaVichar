@@ -34,17 +34,14 @@ import com.example.kathavichar.common.sharedComposables.SongName
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.view.composables.songs.md_theme_light_primary
-import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import kotlinx.coroutines.delay
-import kotlin.math.pow
 
 @Composable
 fun BottomPlayerTab(
@@ -92,7 +89,7 @@ fun BottomPlayerTab(
 fun AdBanner(
     modifier: Modifier = Modifier,
     onAdLoaded: () -> Unit = {},
-    onAdFailed: () -> Unit = {}
+    onAdFailed: () -> Unit = {},
 ) {
     var isAdLoaded by remember { mutableStateOf(false) }
     val adRefreshKey by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -139,25 +136,26 @@ fun AdBanner(
             if (!isAdLoaded) {
                 adView.loadAd(AdRequest.Builder().build())
             }
-        }
+        },
     )
 }
-
 
 class AdManager(private val context: Context) {
     private var interstitialAd: InterstitialAd? = null
     private var isLoading = false
+    private var onAdLoaded: (() -> Unit)? = null
 
     init {
         loadInterstitialAd() // Load ad when AdManager is created
     }
 
-    fun showInterstitialAd(activity: Activity, onAdClosed: () -> Unit) {
+    fun showInterstitialAd(activity: Activity) {
         println("Ad Status - interstitialAd: ${interstitialAd != null}, isLoading: $isLoading")
 
         if (interstitialAd != null) {
             interstitialAd?.show(activity)
-            onAdClosed()
+            interstitialAd = null // Reset after showing to load a new ad
+            loadInterstitialAd() // Preload the next ad
         } else {
             println("Ad not ready, trying to load...")
             loadInterstitialAd()
@@ -165,13 +163,12 @@ class AdManager(private val context: Context) {
             onAdLoaded = {
                 println("Ad loaded, showing now")
                 interstitialAd?.show(activity)
-                onAdClosed()
+                interstitialAd = null // Reset after showing
+                loadInterstitialAd() // Preload the next ad
                 onAdLoaded = null
             }
         }
     }
-
-    private var onAdLoaded: (() -> Unit)? = null
 
     fun loadInterstitialAd() {
         if (isLoading || interstitialAd != null) {
@@ -191,7 +188,6 @@ class AdManager(private val context: Context) {
                     println("Ad loaded successfully")
                     interstitialAd = ad
                     isLoading = false
-                   // setupFullScreenCallback()
                     onAdLoaded?.invoke()
                 }
 
@@ -204,7 +200,7 @@ class AdManager(private val context: Context) {
                         loadInterstitialAd()
                     }, 5000)
                 }
-            }
+            },
         )
     }
 }

@@ -1,31 +1,76 @@
 package com.example.kathavichar.common.utils
 
-class PlayTimeTracker {
-    private var totalPlayTime = 0L
-    private var lastCheckpoint = 0L
-    // private val AD_THRESHOLD = 30 * 60 * 1000L // 30 minutes in milliseconds
-    private val AD_THRESHOLD = 1 * 60 * 1000L // 1 minute in milliseconds
+import android.content.Context
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import com.example.kathavichar.common.SharedPrefsManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent
 
+class PlaybackTracker(
+    private val context: Context,
+    private val lifecycleOwner: LifecycleOwner,
+    private val onAdTrigger: () -> Unit,
+) {
+    private val sharedPreferences: SharedPrefsManager by KoinJavaComponent.inject(SharedPrefsManager::class.java)
+    private var accumulatedTime: Long = 0L
+    private var isTracking = false
+    private var timerJob: Job? = null
+    init {
+        // Restore accumulated time from SharedPreferences
+        accumulatedTime = sharedPreferences.getLong("accumulatedTime", 0L)
 
-    fun updatePlayTime(currentPosition: Long) {
-        if (lastCheckpoint == 0L) {
-            lastCheckpoint = currentPosition
-            return
-        }
+        // Observe lifecycle events
+        lifecycleOwner.lifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_DESTROY -> saveState()
+                    Lifecycle.Event.ON_PAUSE -> saveState()
+                    Lifecycle.Event.ON_RESUME -> resumeTrackingIfNeeded()
+                    else -> {}
+                }
+            },
+        )
+    }
 
-        val delta = currentPosition - lastCheckpoint
-        if (delta > 0) {
-            totalPlayTime += delta
-            lastCheckpoint = currentPosition
+    fun startTracking() {
+        if (isTracking) return
+        isTracking = true
+        timerJob = CoroutineScope(Dispatchers.Default).launch {
+            while (isActive) {
+                delay(1000) // Increment every second
+                accumulatedTime += 1000
+                println("vbnvcbnvb $accumulatedTime")
+                if (accumulatedTime >= 30 * 1000) { // 30 minutes
+                    withContext(Dispatchers.Main) { onAdTrigger() }
+                    resetTimer()
+                }
+            }
         }
     }
 
-    fun shouldShowAd(): Boolean {
-        return totalPlayTime >= AD_THRESHOLD
+    fun stopTracking() {
+        isTracking = false
+        timerJob?.cancel()
     }
 
-    fun resetAfterAd() {
-        totalPlayTime = 0L
-        lastCheckpoint = 0L
+    fun resetTimer() {
+        accumulatedTime = 0L
+        saveState()
+    }
+
+    private fun saveState() {
+        sharedPreferences.saveLong("accumulatedTime", accumulatedTime)
+    }
+
+    private fun resumeTrackingIfNeeded() {
+        if (isTracking) startTracking()
     }
 }

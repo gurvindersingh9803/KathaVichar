@@ -1,7 +1,5 @@
 package com.example.kathavichar.viewModel
 
-import android.app.Activity
-import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.media.session.PlaybackState
 import android.net.Uri
@@ -20,7 +18,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.kathavichar.common.SharedPrefsManager
-import com.example.kathavichar.common.utils.PlayTimeTracker
 import com.example.kathavichar.model.Songs
 import com.example.kathavichar.model.getMusicPlayerState
 import com.example.kathavichar.network.ServerResponse
@@ -29,12 +26,9 @@ import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerEvents
 import com.example.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.example.kathavichar.repositories.musicPlayer.PlayerBackState
-import com.example.kathavichar.view.composables.musicPlayer.AdManager
 import io.reactivex.disposables.CompositeDisposable
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,11 +36,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent
 import org.koin.java.KoinJavaComponent.inject
 
 class SongsViewModel(
@@ -67,8 +59,6 @@ class SongsViewModel(
 
     private val _shouldStartAdCountTiming = MutableLiveData<Boolean>()
     val shouldStartAdCountTiming: LiveData<Boolean> = _shouldStartAdCountTiming
-
-
 
     // TODO: stop this function to call unnecessary until restore is required.
     fun restorePlaybackState() {
@@ -164,9 +154,6 @@ class SongsViewModel(
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
     }
-
-
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSongs(artistName: String) {
@@ -291,7 +278,7 @@ class SongsViewModel(
         //  Break isPlayBackRestored Method in both NEXT SONG CHANGE STATE and PREVIOUS SONG STATE.
 
         println("gfn jkhjkh $isPlaybackRestored $selectedTrackIndex")
-       if (isPlaybackRestored) {
+        if (isPlaybackRestored) {
             val mediaController = musicPlayerKathaVichar.mediaController
             if (mediaController != null) {
                 if (mediaController.hasPreviousMediaItem()) {
@@ -312,15 +299,14 @@ class SongsViewModel(
                                 )*/
                                 onTrackClicked(selectedTrack!!)
                                 println("khghjghjghj 1 $selectedTrack")
-
                             }
                             // restorePlaybackStateIfNeeded(song.state)
                         }
                     }
                 }
             }
-           return
-       }
+            return
+        }
 
         println("fhjkljjlk $isBottomClick")
         if (isBottomClick && song != null) {
@@ -458,7 +444,7 @@ class SongsViewModel(
 
         isBottomClicked = false
         // isPlaybackRestored = false
-       // getCurrentRestoredItemIndex = -1
+        // getCurrentRestoredItemIndex = -1
         try {
             var localIndex: Int = -1
             // setupPlayer()
@@ -467,14 +453,14 @@ class SongsViewModel(
                 _currentplayingsongs.addAll(songs)
                 println("onTrackClicked $isPlaybackRestored}")
 
-                if(!isPlaybackRestored) {
-                    //selectedTrackIndex = currentplayingsongs.indexOf(song)
+                if (!isPlaybackRestored) {
+                    // selectedTrackIndex = currentplayingsongs.indexOf(song)
                     musicPlayerKathaVichar.initMusicPlayer(currentplayingsongs.toMediaItemListWithMetadata())
                     localIndex = currentplayingsongs.indexOf(song)
                 } else {
                     val matchingSongIndex = currentplayingsongs.indexOfFirst { it.id == selectedTrack?.id }
                     localIndex = matchingSongIndex
-                    //selectedTrackIndex = matchingSongIndex
+                    // selectedTrackIndex = matchingSongIndex
                 }
 
                 onTrackSelected(localIndex, true)
@@ -521,6 +507,7 @@ class SongsViewModel(
     override fun onSeekBarPositionChanged(position: Long) {
         viewModelScope.launch { musicPlayerKathaVichar.seekToPosition(position) }
     }
+    private var isAdTimingUpdated = false
 
     private fun observeMusicPlayerState(
         artistName: String? = "",
@@ -533,9 +520,22 @@ class SongsViewModel(
             musicPlayerKathaVichar._playerStates.collect { state ->
                 println("sdfghdf $state $selectedTrackIndex $isPlaybackRestored")
                 updateState(state, artistName, audioUrl, songId, imgUrl, title)
-
-                if(state == MusicPlayerStates.STATE_PLAYING) {
-                    _shouldStartAdCountTiming.postValue(true)
+                // Control multiple hits for ad timing logic
+                if (!isAdTimingUpdated) {
+                    try {
+                        if (state == MusicPlayerStates.STATE_PLAYING || state == MusicPlayerStates.STATE_BUFFERING) {
+                            _shouldStartAdCountTiming.postValue(true)
+                            isAdTimingUpdated = true
+                        } else if (state == MusicPlayerStates.STATE_IDLE || state == MusicPlayerStates.STATE_END || state == MusicPlayerStates.STATE_PAUSE) {
+                            _shouldStartAdCountTiming.postValue(false)
+                            isAdTimingUpdated = false
+                        }
+                    } finally {
+                        // Reset the flag when state changes to allow future updates
+                        if (state == MusicPlayerStates.STATE_IDLE || state == MusicPlayerStates.STATE_END || state == MusicPlayerStates.STATE_PAUSE || state == MusicPlayerStates.STATE_PLAYING || state == MusicPlayerStates.STATE_BUFFERING) {
+                            isAdTimingUpdated = false
+                        }
+                    }
                 }
             }
         }
@@ -638,7 +638,7 @@ class SongsViewModel(
             getMusicPlayerState(musicPlayerKathaVichar, state).let { currentMediaControllerItem ->
                 if (currentMediaControllerItem != null) {
                     // getCurrentRestoredItemIndex = currentMediaControllerItem.currentIndex!!
-                     selectedTrackIndex = currentMediaControllerItem.currentIndex!!
+                    selectedTrackIndex = currentMediaControllerItem.currentIndex!!
                     println("hhjjh $selectedTrackIndex")
                     selectedTrack = currentMediaControllerItem.state?.let {
                         Songs(

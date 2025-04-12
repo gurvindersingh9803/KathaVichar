@@ -1,6 +1,5 @@
 package com.example.kathavichar.view
 import android.Manifest
-import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -12,7 +11,6 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import org.koin.core.parameter.parametersOf
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -50,7 +48,7 @@ import com.example.kathavichar.common.AndroidNetworkStatusProvider
 import com.example.kathavichar.common.NavigationGraph
 import com.example.kathavichar.common.SharedPrefsManager
 import com.example.kathavichar.common.sharedComposables.ScaffoldWithTopBar
-import com.example.kathavichar.common.utils.PlayTimeTracker
+import com.example.kathavichar.common.utils.PlaybackTracker
 import com.example.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.example.kathavichar.repositories.musicPlayer.MediaService
 import com.example.kathavichar.ui.theme.KathaVicharTheme
@@ -67,25 +65,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
 import org.koin.android.ext.android.inject
 import org.koin.java.KoinJavaComponent
-
+import org.koin.java.KoinJavaComponent.inject
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()
     private val songsViewModel by viewModels<SongsViewModel>()
     private val splashScreenViewModel by viewModels<SplashScreenViewModel>()
     private val musicPlayerKathaVichar: MusicPlayerKathaVichar by inject()
-    private val playTimeTracker = PlayTimeTracker()
+    private lateinit var playbackTracker: PlaybackTracker
     private val adManager: AdManager by KoinJavaComponent.inject(AdManager::class.java)
     private var trackingJob: Job? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
 
     private val androidNetworkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
     private var isServiceRunning = false
@@ -97,9 +91,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // TODO: stop firebase duplicacy of data.
 
+        playbackTracker = PlaybackTracker(
+            context = this,
+            lifecycleOwner = this,
+            onAdTrigger = {
+                scope.launch {
+                    showInterstitialAd()
+                }
+            },
+        )
         songsViewModel.shouldStartAdCountTiming.observe(this) {
-            println("gthfghdf")
-            startPlayTimeTracking()
+            println("gthfghdf $it")
+            if(it) {
+                startPlayback()
+            } else {
+                pausePlayback()
+            }
         }
         val appVersion = getAppVersion()
         // Restore playback state only if app was previously terminated
@@ -147,7 +154,7 @@ class MainActivity : ComponentActivity() {
 
                         Box(modifier = Modifier.padding()) {
                             // SongScreenParent(songsViewModel)
-                            //HandleNotificationPermission()
+                            // HandleNotificationPermission()
 
                             NavigationGraph(
                                 innerPadding,
@@ -191,7 +198,6 @@ class MainActivity : ComponentActivity() {
         var permissionRequestCompleted by rememberSaveable { mutableStateOf(false) }
 
         LaunchedEffect(notificationPermissionState.status) {
-
             // Check if the permission state has changed after the request
             if (hasRequestedPermission) {
                 println("ertyheuhrwtdwty ${notificationPermissionState.status}")
@@ -309,31 +315,31 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    private fun startPlayback() {
+        playbackTracker.startTracking()
     }
 
-    private fun startPlayTimeTracking() {
-        trackingJob?.cancel()
-        trackingJob = scope.launch {
-            while (isActive) {
-                musicPlayerKathaVichar.mediaController?.currentPosition?.let { position ->
-                    playTimeTracker.updatePlayTime(position)
-                    println("Time tracking: position=$position, shouldShowAd=${playTimeTracker.shouldShowAd()}")
+    private fun pausePlayback() {
+        playbackTracker.stopTracking()
+    }
 
-                    if (playTimeTracker.shouldShowAd()) {
-                        println("dhgdf")
-                        withContext(Dispatchers.Main) {
-                            // Use 'this@MainActivity' instead of 'this'
-                            adManager.showInterstitialAd(this@MainActivity) {
-                                playTimeTracker.resetAfterAd()
-                            }
-                        }
-                    }
-                }
-                delay(1000)
-            }
+    private fun stopPlayback() {
+        playbackTracker.stopTracking()
+        playbackTracker.resetTimer()
+    }
+
+    private suspend fun showInterstitialAd() {
+        // Logic to show interstitial ad
+        println("hjndghfj")
+        withContext(Dispatchers.Main) {
+            // Use 'this@MainActivity' instead of 'this'
+            adManager.showInterstitialAd(this@MainActivity)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        playbackTracker.stopTracking()
     }
 
     // Function to fetch the app version using PackageManager
