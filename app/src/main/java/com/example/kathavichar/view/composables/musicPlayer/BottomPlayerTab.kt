@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.kathavichar.BuildConfig
 import com.example.kathavichar.common.sharedComposables.NextIcon
 import com.example.kathavichar.common.sharedComposables.PausePlayIcon
 import com.example.kathavichar.common.sharedComposables.PreviousIcon
@@ -110,8 +111,7 @@ fun AdBanner(
         factory = { context ->
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)
-                adUnitId = "ca-app-pub-4362763688795619/6313004741" // Test ID
-
+                adUnitId = BuildConfig.ADMOB_BANNERL_ID
                 adListener = object : AdListener() {
                     override fun onAdLoaded() {
                         isAdLoaded = true
@@ -148,7 +148,6 @@ class AdManager(private val context: Context) {
     private var onAdLoaded: (() -> Unit)? = null
 
     init {
-        println("seyrhtdtg")
         // Set test device ID for test ads
         val testDeviceIds = listOf("37ae4d96-de54-4ad3-8186- f704a8ed6f73") // Replace with your test device ID
         val configuration = RequestConfiguration.Builder()
@@ -190,7 +189,7 @@ class AdManager(private val context: Context) {
 
         InterstitialAd.load(
             context,
-            "ca-app-pub-4362763688795619/9344931574", // Test ID
+            BuildConfig.ADMOB_INTERSTITIAL_ID, // Replace with your ad unit ID
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {

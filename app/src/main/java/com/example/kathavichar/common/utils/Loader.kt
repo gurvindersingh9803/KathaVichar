@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-
 @Composable
 fun isDataLoading(message: String? = "Please wait while loading") {
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
@@ -23,13 +22,13 @@ fun isDataLoading(message: String? = "Please wait while loading") {
             CircularProgressIndicator(
                 color = Color.Black,
                 strokeWidth = 2.dp,
-                modifier = Modifier.size(50.dp) // Explicit size for better control
+                modifier = Modifier.size(50.dp), // Explicit size for better control
             )
             Spacer(modifier = Modifier.height(16.dp)) // Adds space between progress indicator and text
             Text(
                 text = message.toString(),
                 color = Color.Black, // You can change the color as needed
-                style = MaterialTheme.typography.labelLarge
+                style = MaterialTheme.typography.labelLarge,
             )
         }
     }

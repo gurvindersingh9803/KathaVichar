@@ -14,17 +14,29 @@ android {
         targetSdk 35
         versionCode 1
         versionName "1.0.1"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true
         }
     }
 
+    buildFeatures {
+        buildConfig true
+        compose true
+    }
+
     buildTypes {
+        debug {
+            buildConfigField "String", "BASE_URL", "\"https://kathhaveechar.store/api/\""
+            buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-3940256099942544/1033173712\""
+            buildConfigField "String", "ADMOB_BANNERL_ID", "\"ca-app-pub-3940256099942544/6300978111\""
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "BASE_URL", "\"https://kathhaveechar.store/api/\""
+            buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-4362763688795619/9344931574\""
+            buildConfigField "String", "ADMOB_BANNERL_ID", "\"ca-app-pub-4362763688795619/6313004741\""
         }
     }
     compileOptions {
@@ -34,14 +46,12 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-    buildFeatures {
-        compose true
-    }
     composeOptions {
         kotlinCompilerExtensionVersion '1.5.15'
     }
 
 }
+
 
 dependencies {
 
