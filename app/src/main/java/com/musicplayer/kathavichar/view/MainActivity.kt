@@ -48,7 +48,6 @@ import androidx.navigation.compose.rememberNavController
 import com.musicplayer.kathavichar.common.AndroidNetworkStatusProvider
 import com.musicplayer.kathavichar.common.NavigationGraph
 import com.musicplayer.kathavichar.common.SharedPrefsManager
-import com.musicplayer.kathavichar.common.sharedComposables.ScaffoldWithTopBar
 import com.musicplayer.kathavichar.common.utils.PlaybackTracker
 import com.musicplayer.kathavichar.repositories.musicPla.MusicPlayerKathaVichar
 import com.musicplayer.kathavichar.repositories.musicPlayer.MediaService
@@ -146,10 +145,6 @@ class MainActivity : ComponentActivity() {
                 // Handle permission logic
 
                 val navController = rememberNavController()
-                        Box(modifier = Modifier.padding().navigationBarsPadding()) {
-                            // SongScreenParent(songsViewModel)
-                            // HandleNotificationPermission()
-
                             NavigationGraph(
                                 navigationController = navController,
                                 mainViewModel,
@@ -173,7 +168,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-            }
+
         }
     }
 
@@ -286,25 +281,6 @@ class MainActivity : ComponentActivity() {
             },
         )
     }
-    private fun startMusicService() {
-        try {
-            println("khgkjhkghgjh $isServiceRunning")
-            if (!isServiceRunning) {
-                val intent = Intent(this, MediaService::class.java)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    println("khgkjhkghgjh 1 $isServiceRunning")
-                    startForegroundService(intent)
-                } else {
-                    println("khgkjhkghgjh 2 $isServiceRunning")
-
-                    startService(intent)
-                }
-                isServiceRunning = true
-            }
-        } catch (e: Exception) {
-            println("fgbhdfghd $e")
-        }
-    }
 
     private fun startPlayback() {
         playbackTracker.startTracking()
@@ -320,10 +296,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private suspend fun showInterstitialAd() {
-        // Logic to show interstitial ad
-        println("hjndghfj")
         withContext(Dispatchers.Main) {
-            // Use 'this@MainActivity' instead of 'this'
             adManager.showInterstitialAd(this@MainActivity)
         }
     }

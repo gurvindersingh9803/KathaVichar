@@ -11,6 +11,7 @@ import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -34,9 +35,24 @@ class MediaService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate() // Call the superclass method
 
-        println("uiyiuyiuyi")
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                /* minBufferMs= */ 10000,          // Reduced from 15000
+                /* maxBufferMs= */ 20000,          // Reduced from 30000
+                /* bufferForPlaybackMs= */ 2000,   // Reduced from 2500
+                /* bufferForPlaybackAfterRebufferMs= */ 4000  // Reduced from 5000
+            )
+            .setTargetBufferBytes(DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES / 2) // Reduce target buffer size
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .setBackBuffer(
+                /* backBufferDurationMs= */ 10000,
+                /* retainBackBufferFromKeyframe= */ true
+            )
+            .build()
+
         // Create an ExoPlayer instance
-        val player = ExoPlayer.Builder(this).build()
+        val player = ExoPlayer.Builder(this).setLoadControl(loadControl)
+                    .build()
 
         // Create a MediaSession instance
         _mediaSession = MediaSession.Builder(this, player)

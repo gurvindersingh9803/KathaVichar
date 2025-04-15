@@ -21,12 +21,8 @@ import com.musicplayer.kathavichar.repositories.musicPlayer.MediaService
 import com.musicplayer.kathavichar.repositories.musicPlayer.MusicPlayerStates
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -66,103 +62,45 @@ class MusicPlayerKathaVichar(
 
     @OptIn(UnstableApi::class)
     fun initMusicPlayer(songsList: MutableList<MediaItem>) {
-        println("srtjhdffukgyruoik")
-        try {
-            println("🎶 Songs list $songsList")
-
-            // Exit early if the list is empty
-            if (songsList.isEmpty()) {
-                println("🎶 Songs list is empty!")
-                return
-            }
-
-            // Initialize the MediaController asynchronously
-            if (mediaController == null) {
-                println("⚠️ MediaController is null!")
-                return
-            }
-
-            // Check if player is already initialized and playing something
-            val isAlreadyPlaying = mediaController?.playbackState == Player.STATE_READY ||
-                mediaController?.isPlaying == true
-
-            // If it's already playing, just update the playlist (if it's different)
-            if (isAlreadyPlaying) {
-                println("🎧 Player is already playing. Updating song list...")
-
-                mediaController?.apply {
-                    val oldUris = mediaController?.currentMediaItem?.mediaId
-                    val newUris = songsList.get(0).mediaId
-
-                    println("fghdfghf $oldUris $newUris")
-                    if (oldUris != newUris) {
-                        clearMediaItems()
-                        setMediaItems(songsList)
-                        prepare()
-                        play() // optional: restart playback if list is updated
-                        println("✅ Playlist updated while playing. mnmn")
-                    } else {
-                        println("🔁 Same playlist. No changes made. mnmn")
-                    }
-                }
-            } else {
-                // Not playing anything: fresh start
-                mediaController?.apply {
-                    clearMediaItems()
-                    addListener(this@MusicPlayerKathaVichar)
-                    println("🎵 Setting media items to controller...")
-                    setMediaItems(songsList.toList())
-                    prepare()
-                }
-
-                println("🎵 Initialized music player with ${mediaController?.mediaItemCount} items.")
-            }
-        } catch (e: Exception) {
-            println("Error initializing music player: ${e.message}")
-        }
+        handlePlaylistLoading(songsList)
     }
 
-    // Initialize the MediaController
-
-       /* if (songsList.isEmpty()) {
-            println("songsList is EMPTY! No media items to play.")
+    private fun handlePlaylistLoading(songsList: MutableList<MediaItem>) {
+        if (songsList.isEmpty()) {
+            println("🎶 Songs list is empty!")
             return
         }
 
-        println("🎵 Initializing music player with ${songsList.size} items")
+        val isAlreadyPlaying = mediaController?.playbackState == Player.STATE_READY ||
+                mediaController?.isPlaying == true
 
-        songsList.forEachIndexed { index, mediaItem ->
-            println("🎶 Track $index: ${mediaItem.mediaId} - ${mediaItem.localConfiguration?.uri}")
+        if (isAlreadyPlaying) {
+            updateExistingPlaylist(songsList)
+        } else {
+            startFreshPlayback(songsList)
         }
+    }
 
-        mediaController?.clearMediaItems()
-        mediaController?.setMediaItems(songsList)
-        mediaController?.prepare()
-        mediaController?.playWhenReady = true
-        println("✅ Media items added. Total count: ${mediaController?.mediaItemCount}")*/
+    private fun updateExistingPlaylist(songsList: MutableList<MediaItem>) {
+        mediaController?.apply {
+            val oldUris = currentMediaItem?.mediaId
+            val newUris = songsList.firstOrNull()?.mediaId
 
-        /*mediaController?.clearMediaItems()
-        if (!isListenerAdded) {
-            mediaController?.addListener(this)
-            isListenerAdded = true
-        }
-
-        mediaController?.setMediaItems(songsList)
-        mediaController?.prepare()*/
-
-    suspend fun observePlaybackState() {
-        withContext(Dispatchers.Main) {
-            while (isActive) {
-                mediaController?.let {
-                    val currentMediaId = it.currentMediaItem?.mediaId
-                    val position = it.currentPosition
-                    if (currentMediaId != null) {
-                        println("ghfgnjj $currentMediaId $position")
-                        savePlaybackState(songId = currentMediaId, artistName = it.currentMediaItem!!.mediaMetadata.artist.toString(), position = position)
-                    }
-                }
-                delay(1000)
+            if (oldUris != newUris) {
+                clearMediaItems()
+                setMediaItems(songsList)
+                prepare()
+                play()
             }
+        }
+    }
+
+    private fun startFreshPlayback(songsList: MutableList<MediaItem>) {
+        mediaController?.apply {
+            clearMediaItems()
+            addListener(this@MusicPlayerKathaVichar)
+            setMediaItems(songsList.toList())
+            prepare()
         }
     }
 
@@ -171,16 +109,6 @@ class MusicPlayerKathaVichar(
         // job.cancel()
     }
 
-    fun savePlaybackState(songId: String, artistName: String, position: Long) {
-        try {
-            println("dfghjdfgthd $songId $artistName $position")
-            sharedPreferences.saveString("LAST_PLAYING_SONG_ID", songId)
-            sharedPreferences.saveString("LAST_PLAYING_PLAYLIST", artistName)
-            sharedPreferences.saveLong("LAST_PLAYING_POSITION", position)
-        } catch (e: Exception) {
-            println("SharedPreferences saving error: $e")
-        }
-    }
     fun initializeMediaController() {
         if (mediaController == null) {
             println("dgfhyulh")

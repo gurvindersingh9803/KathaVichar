@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -158,6 +159,7 @@ fun ArtistSearchScreen(
                                 "Explore Your Spiritual Journey",
                                 style = MaterialTheme.typography.displayLarge.copy(
                                     fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily(),
                                     fontSize = 20.sp,
                                     color = Color(0xFF909090),
                                 ),
