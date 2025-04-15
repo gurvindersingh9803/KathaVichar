@@ -32,6 +32,7 @@ class MainViewModel : ViewModel() {
     private val networkStatusProvider: AndroidNetworkStatusProvider by inject(AndroidNetworkStatusProvider::class.java)
 
     val isNetworkAvailable: StateFlow<Boolean> = networkStatusProvider.networkStatusFlow
+
     // Combined state for UI
     val filteredArtists: StateFlow<List<ArtistsItem>?> = combine(
         _uiState,
@@ -61,15 +62,14 @@ class MainViewModel : ViewModel() {
 
     fun getCategories() {
         viewModelScope.launch {
-            if(isNetworkAvailable.value) {
+            if (isNetworkAvailable.value) {
                 withContext(Dispatchers.Main) {
                     artistsDataRepository.fetchArtists().let {
                         _uiState.emit(ServerResponse.onSuccess(it))
                     }
                 }
-            }else {
+            } else {
                 _uiState.emit(ServerResponse.onError(data = null, message = "No internet connection"))
-
             }
         }
     }
@@ -79,10 +79,4 @@ class MainViewModel : ViewModel() {
         println("onCleared")
         // subscription.clear()
     }
-
-
 }
-
-
-
-

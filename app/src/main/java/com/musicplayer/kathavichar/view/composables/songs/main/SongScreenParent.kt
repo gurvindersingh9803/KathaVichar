@@ -73,7 +73,7 @@ fun SongScreenParent(songsViewModel: SongsViewModel, artistName: String?, artist
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         ) {
                             androidx.compose.material.Text(
-                                "Songs",
+                                "Tracks",
                                 style = MaterialTheme.typography.displayLarge.copy(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 32.sp,

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -89,7 +90,6 @@ import kotlinx.coroutines.launch
 fun ArtistSearchScreen(
     artists: List<ArtistsItem>? = null,
     navigationController: NavHostController,
-    innerPadding: PaddingValues,
     viewModel: MainViewModel,
     songsViewModel: SongsViewModel,
     errorMessage: String?,
@@ -130,12 +130,24 @@ fun ArtistSearchScreen(
     ModalBottomSheetLayout(
         sheetContent = {
             selectedTrack?.let { track ->
-                BottomSheetDialog(track, songsViewModel, songsViewModel.playbackState, fullScreenState.isVisible)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
+                ) {
+                    BottomSheetDialog(
+                        track,
+                        songsViewModel,
+                        songsViewModel.playbackState,
+                        fullScreenState.isVisible,
+                    )
+                }
             }
         },
         sheetState = fullScreenState,
         sheetShape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
         sheetElevation = 12.dp,
+
     ) {
         Scaffold(
             topBar = {

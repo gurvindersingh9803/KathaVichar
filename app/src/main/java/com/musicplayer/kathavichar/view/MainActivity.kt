@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
@@ -145,19 +146,11 @@ class MainActivity : ComponentActivity() {
                 // Handle permission logic
 
                 val navController = rememberNavController()
-                ScaffoldWithTopBar(
-                    false,
-                    title = "Katha Vaachaks",
-                    actions = {
-                    },
-                    { innerPadding ->
-
-                        Box(modifier = Modifier.padding()) {
+                        Box(modifier = Modifier.padding().navigationBarsPadding()) {
                             // SongScreenParent(songsViewModel)
                             // HandleNotificationPermission()
 
                             NavigationGraph(
-                                innerPadding,
                                 navigationController = navController,
                                 mainViewModel,
                                 songsViewModel,
@@ -179,9 +172,7 @@ class MainActivity : ComponentActivity() {
                                 else -> {}
                             }
                         }
-                    },
-                ) {
-                }
+
             }
         }
     }

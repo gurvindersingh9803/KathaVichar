@@ -17,20 +17,19 @@ import com.musicplayer.kathavichar.R
 
 @Composable
 fun SplashScreen(navController: NavController, isLoading: Boolean) {
-
     println("wfwervdc $isLoading")
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White),
-            contentAlignment = Alignment.Center,
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.main_img),
-                contentDescription = "App Logo",
-                modifier = Modifier.size(200.dp),
-            )
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.main_logo_eight),
+            contentDescription = "App Logo",
+            modifier = Modifier.size(200.dp),
+        )
+    }
 
     LaunchedEffect(isLoading) {
         if (!isLoading) {

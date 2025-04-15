@@ -56,7 +56,6 @@ fun BottomNavigationBar(navigationController: NavHostController) {
 
 @Composable
 fun NavigationGraph(
-    innerPadding: PaddingValues,
     navigationController: NavHostController,
     mainViewModel: MainViewModel,
     songsViewModel: SongsViewModel,
@@ -68,7 +67,7 @@ fun NavigationGraph(
             SplashScreenState(navigationController, appVersion, splashScreenViewModel)
         }
         composable(route = Screen.MainPlayList.route) {
-            HomeScreenState(navigationController, mainViewModel, innerPadding, songsViewModel)
+            HomeScreenState(navigationController, mainViewModel, songsViewModel)
         }
         composable(route = Screen.Download.route) {
             DownloadScreen()

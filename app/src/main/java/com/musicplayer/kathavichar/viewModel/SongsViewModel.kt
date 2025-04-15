@@ -144,7 +144,7 @@ class SongsViewModel(
                 val songList = withContext(Dispatchers.IO) {
                     songsDataRepository.fetchSongs(artistName).map { rawSong ->
                         val duration = try {
-                            MediaMetadataRetriever().use { retriever ->
+                            MediaMetadataRetriever().let { retriever ->
                                 println("Fetching duration for: ${rawSong.audiourl}")
                                 retriever.setDataSource(
                                     rawSong.audiourl,

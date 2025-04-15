@@ -1,6 +1,5 @@
 package com.musicplayer.kathavichar.view.composables.home
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,8 +14,7 @@ import com.musicplayer.kathavichar.viewModel.SongsViewModel
 fun HomeScreenState(
     navigationController: NavHostController,
     viewModel: MainViewModel,
-    innerPadding: PaddingValues,
-    songsViewModel: SongsViewModel
+    songsViewModel: SongsViewModel,
 ) {
     val isNetworkAvailable by viewModel.isNetworkAvailable.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
@@ -24,8 +22,7 @@ fun HomeScreenState(
     // This ensures that network changes trigger the effect each time
     LaunchedEffect(isNetworkAvailable) {
         println("Network status changed: $isNetworkAvailable")
-            viewModel.getCategories() // Refresh data when network is back online
-
+        viewModel.getCategories() // Refresh data when network is back online
     }
 
     when (uiState) {
@@ -33,11 +30,10 @@ fun HomeScreenState(
         is ServerResponse.onSuccess -> ArtistSearchScreen(
             uiState.data,
             navigationController,
-            innerPadding,
             viewModel,
             songsViewModel,
-            null
+            null,
         )
-        is ServerResponse.onError -> { ArtistSearchScreen(null, navigationController, innerPadding, viewModel, songsViewModel, uiState.message) }
+        is ServerResponse.onError -> { ArtistSearchScreen(null, navigationController, viewModel, songsViewModel, uiState.message) }
     }
 }
