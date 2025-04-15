@@ -159,7 +159,6 @@ fun ArtistSearchScreen(
                                 "Explore Your Spiritual Journey",
                                 style = MaterialTheme.typography.displayLarge.copy(
                                     fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily(),
                                     fontSize = 20.sp,
                                     color = Color(0xFF909090),
                                 ),
